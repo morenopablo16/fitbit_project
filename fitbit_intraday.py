@@ -51,7 +51,7 @@ def get_intraday_data(access_token, email):
     user_id = get_latest_user_id_by_email(email)
 
     # Intraday Steps (1-minute granularity)
-    steps_intraday_url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{today}/1d/1min.json"
+    steps_intraday_url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{today}/1d/15min.json"
     response = requests.get(steps_intraday_url, headers=headers)
     if response.status_code == 401 and response.json().get("errors", [{}])[0].get("errorType") == "expired_token":
         raise requests.exceptions.HTTPError("Token expirado", response=response)

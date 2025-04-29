@@ -71,7 +71,6 @@ messages.pot
 translate.py
 *.mo
 
-
 # Documentation
 Tfg_bueno*.doc
 Tfg_bueno*.pdf

@@ -1,5 +1,5 @@
 from logging.handlers import RotatingFileHandler
-from flask import Flask, logging, render_template, request, redirect, session, url_for, flash
+from flask import Flask, logging, render_template, request, redirect, session, url_for, flash, g
 from auth import generate_state, get_tokens, generate_code_verifier, generate_code_challenge, generate_auth_url
 from db import connect_to_db, add_user
 from config import CLIENT_ID, REDIRECT_URI
@@ -9,6 +9,7 @@ from flask_login import LoginManager, UserMixin
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from flask_babel import Babel, get_locale, gettext as _
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -18,6 +19,34 @@ FLASK_ENV = os.getenv('FLASK_ENV', 'development')  # Por defecto, modo desarroll
 USERNAME = os.getenv('log_USERNAME')  
 PASSWORD = os.getenv('PASSWORD')
 
+# Language settings
+LANGUAGES = {
+    'es': 'Español',
+    'en': 'English'
+}
+DEFAULT_LANGUAGE = 'es'
+
+# Initialize Babel
+babel = Babel(app)
+
+def select_locale():
+    """Get the best language for the user."""
+    # First try to get language from the session
+    if 'language' in session:
+        return session['language']
+    return request.accept_languages.best_match(LANGUAGES.keys(), DEFAULT_LANGUAGE)
+
+babel.init_app(app, locale_selector=select_locale)
+
+@app.context_processor
+def inject_globals():
+    """Make common variables available to all templates."""
+    return {
+        'LANGUAGES': LANGUAGES,
+        'get_locale': lambda: str(get_locale()),
+        'current_language': lambda: session.get('language', DEFAULT_LANGUAGE),
+        '_': _
+    }
 
 # Configurar Flask-Login
 login_manager = LoginManager()
@@ -54,7 +83,7 @@ def load_user(user_id):
 @app.route('/livelyageing/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))  # Si ya está autenticado, redirige al inicio
+        return redirect(url_for('home'))  # Redirigir a home en lugar de index
 
     if request.method == 'POST':
         username = request.form['username']
@@ -66,9 +95,9 @@ def login():
         if username == USERNAME and password == PASSWORD:
             user = User(username)
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('home'))  # Redirigir a home en lugar de index
         else:
-            flash('Usuario o contraseña incorrectos')
+            flash('Usuario o contraseña incorrectos', 'danger')
     return render_template('login.html')
 
 # Ruta de cierre de sesión
@@ -88,9 +117,9 @@ def require_login():
 @app.route('/')
 def root():
     """
-    Redirect from root URL to the dashboard.
+    Redirect from root URL to the home page.
     """
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 # Route: Homepage (Dashboard)
 @app.route('/livelyageing/')
@@ -569,6 +598,32 @@ def format_datetime(value):
         return value.strftime('%Y-%m-%d %H:%M:%S')
     except (ValueError, TypeError):
         return value
+
+def get_text(key):
+    """Get the translation for a key in the current language."""
+    lang = get_locale()
+    # Split the key by dots to access nested dictionaries
+    keys = key.split('.')
+    value = LANGUAGES.get(lang, {})
+    for k in keys:
+        value = value.get(k, '')
+    return value if value else key
+
+@app.context_processor
+def utility_processor():
+    """Make translation function available in templates."""
+    return {
+        'get_text': get_text,
+        'current_language': get_locale
+    }
+
+@app.route('/livelyageing/change_language')
+def change_language():
+    """Change the application language."""
+    lang = request.args.get('lang', DEFAULT_LANGUAGE)
+    if lang in LANGUAGES:
+        session['language'] = lang
+    return redirect(request.referrer or url_for('home'))
 
 # Run the Flask app
 if __name__ == '__main__':

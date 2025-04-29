@@ -12,3 +12,10 @@ app.log
 .ssh
 Tfg_bueno(1).doc
 Tfg_bueno(1).pdf
+
+# Translation files
+messages.pot
+translate.py
+*.mo
+__pycache__/
+*.pyc

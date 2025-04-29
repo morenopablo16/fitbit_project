@@ -1,0 +1,623 @@
+# English translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-04-29 23:33+0200\n"
+"PO-Revision-Date: 2025-04-29 23:29+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:29
+msgid "Welcome"
+msgstr "Welcome"
+
+#: templates/base.html:34 templates/home.html:34
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates/base.html:39 templates/home.html:20 templates/home.html:23
+msgid "Link Device"
+msgstr "Link Device"
+
+#: templates/base.html:44
+msgid "Logout"
+msgstr "Logout"
+
+#: templates/base.html:52
+msgid "Language"
+msgstr "Language"
+
+#: templates/base.html:89
+msgid "All rights reserved"
+msgstr "All rights reserved"
+
+#: templates/home.html:3
+msgid "Home"
+msgstr "Home"
+
+#: templates/home.html:9
+msgid "Welcome to Lively Ageing"
+msgstr "Welcome to Lively Ageing"
+
+#: templates/home.html:10
+msgid "Monitor and manage Fitbit users physical activity data"
+msgstr "Monitor and manage Fitbit users physical activity data"
+
+#: templates/home.html:21
+msgid "Connect a new Fitbit device or reassign an existing one to a user"
+msgstr "Connect a new Fitbit device or reassign an existing one to a user"
+
+#: templates/home.html:35
+msgid "View a general summary of the most recent data from all users"
+msgstr "View a general summary of the most recent data from all users"
+
+#: templates/home.html:37
+msgid "View Dashboard"
+msgstr "View Dashboard"
+
+#: templates/home.html:48 templates/user_stats.html:18
+msgid "Users"
+msgstr "Users"
+
+#: templates/home.html:49
+msgid "Access detailed statistics for each individual user"
+msgstr "Access detailed statistics for each individual user"
+
+#: templates/home.html:51
+msgid "View Users"
+msgstr "View Users"
+
+#: templates/home.html:63
+msgid "Recent Activity"
+msgstr "Recent Activity"
+
+#: templates/home.html:70
+msgid "User"
+msgstr "User"
+
+#: templates/home.html:71 templates/user_detail.html:24
+#: templates/user_stats.html:26
+msgid "Email"
+msgstr "Email"
+
+#: templates/home.html:72
+msgid "Last Update"
+msgstr "Last Update"
+
+#: templates/home.html:73 templates/user_stats.html:28
+msgid "Actions"
+msgstr "Actions"
+
+#: templates/home.html:81
+msgid "No data"
+msgstr "No data"
+
+#: templates/home.html:84 templates/user_stats.html:38
+msgid "View Details"
+msgstr "View Details"
+
+#: templates/link_device.html:3 templates/link_device.html:11
+msgid "Link Fitbit Device"
+msgstr "Link Fitbit Device"
+
+#: templates/link_device.html:14
+msgid "Select an email"
+msgstr "Select an email"
+
+#: templates/link_device.html:23
+msgid "Authorize Fitbit"
+msgstr "Authorize Fitbit"
+
+#: templates/login.html:3
+msgid "Login"
+msgstr "Login"
+
+#: templates/login.html:7
+msgid "Login to your account"
+msgstr "Login to your account"
+
+#: templates/login.html:12
+msgid "Username"
+msgstr "Username"
+
+#: templates/login.html:16
+msgid "Password"
+msgstr "Password"
+
+#: templates/login.html:19
+msgid "Sign In"
+msgstr "Sign In"
+
+#: templates/user_detail.html:3
+msgid "Lively Ageing - User Details"
+msgstr "Lively Ageing - User Details"
+
+#: templates/user_detail.html:9
+msgid "User Details"
+msgstr "User Details"
+
+#: templates/user_detail.html:10
+msgid "Detailed information for"
+msgstr "Detailed information for"
+
+#: templates/user_detail.html:18
+msgid "User Information"
+msgstr "User Information"
+
+#: templates/user_detail.html:23 templates/user_stats.html:25
+msgid "Name"
+msgstr "Name"
+
+#: templates/user_detail.html:27 templates/user_stats.html:27
+msgid "Created At"
+msgstr "Created At"
+
+#: templates/user_detail.html:39
+msgid "Daily Summaries"
+msgstr "Daily Summaries"
+
+#: templates/user_detail.html:46 templates/user_detail.html:96
+msgid "Date"
+msgstr "Date"
+
+#: templates/user_detail.html:47 templates/user_detail.html:98
+msgid "Steps"
+msgstr "Steps"
+
+#: templates/user_detail.html:48 templates/user_detail.html:99
+msgid "Heart Rate"
+msgstr "Heart Rate"
+
+#: templates/user_detail.html:49
+msgid "Sleep (min)"
+msgstr "Sleep (min)"
+
+#: templates/user_detail.html:50
+msgid "Calories"
+msgstr "Calories"
+
+#: templates/user_detail.html:51
+msgid "Distance (km)"
+msgstr "Distance (km)"
+
+#: templates/user_detail.html:52
+msgid "Floors"
+msgstr "Floors"
+
+#: templates/user_detail.html:53
+msgid "Elevation (m)"
+msgstr "Elevation (m)"
+
+#: templates/user_detail.html:54
+msgid "Active Minutes"
+msgstr "Active Minutes"
+
+#: templates/user_detail.html:55
+msgid "Sedentary Minutes"
+msgstr "Sedentary Minutes"
+
+#: templates/user_detail.html:74
+msgid "No daily summaries found."
+msgstr "No daily summaries found."
+
+#: templates/user_detail.html:89
+msgid "Intraday Metrics"
+msgstr "Intraday Metrics"
+
+#: templates/user_detail.html:97
+msgid "Time"
+msgstr "Time"
+
+#: templates/user_detail.html:100
+msgid "Type"
+msgstr "Type"
+
+#: templates/user_detail.html:101
+msgid "Value"
+msgstr "Value"
+
+#: templates/user_detail.html:116
+msgid "No intraday metrics found."
+msgstr "No intraday metrics found."
+
+#: templates/user_stats.html:3
+msgid "Lively Ageing - User Statistics"
+msgstr "Lively Ageing - User Statistics"
+
+#: templates/user_stats.html:9
+msgid "User Statistics"
+msgstr "User Statistics"
+
+#: templates/user_stats.html:10
+msgid "View statistics for all users in the system."
+msgstr "View statistics for all users in the system."
+
+#: templates/user_stats.html:43
+msgid "No users found."
+msgstr "No users found."
+
+#: venv/Lib/site-packages/click/_termui_impl.py:556
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr "{editor}: Editing failed"
+
+#: venv/Lib/site-packages/click/_termui_impl.py:560
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr "{editor}: Editing failed: {e}"
+
+#: venv/Lib/site-packages/click/core.py:1124
+msgid "Aborted!"
+msgstr "Aborted!"
+
+#: venv/Lib/site-packages/click/core.py:1349
+#: venv/Lib/site-packages/click/core.py:1379
+#, python-brace-format
+msgid "(Deprecated) {text}"
+msgstr "(Deprecated) {text}"
+
+#: venv/Lib/site-packages/click/core.py:1396
+msgid "Options"
+msgstr "Options"
+
+#: venv/Lib/site-packages/click/core.py:1422
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] "Got unexpected extra argument ({args})"
+msgstr[1] "Got unexpected extra arguments ({args})"
+
+#: venv/Lib/site-packages/click/core.py:1438
+#, python-brace-format
+msgid "DeprecationWarning: The command {name!r} is deprecated."
+msgstr "DeprecationWarning: The command {name!r} is deprecated."
+
+#: venv/Lib/site-packages/click/core.py:1645
+msgid "Commands"
+msgstr "Commands"
+
+#: venv/Lib/site-packages/click/core.py:1677
+msgid "Missing command."
+msgstr "Missing command."
+
+#: venv/Lib/site-packages/click/core.py:1755
+#, python-brace-format
+msgid "No such command {name!r}."
+msgstr "No such command {name!r}."
+
+#: venv/Lib/site-packages/click/core.py:2313
+msgid "Value must be an iterable."
+msgstr "Value must be an iterable."
+
+#: venv/Lib/site-packages/click/core.py:2334
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] "Takes {nargs} values but 1 was given."
+msgstr[1] "Takes {nargs} values but {len} were given."
+
+#: venv/Lib/site-packages/click/core.py:2783
+#, python-brace-format
+msgid "env var: {var}"
+msgstr "Env was: {was}"
+
+#: venv/Lib/site-packages/click/core.py:2813
+msgid "(dynamic)"
+msgstr "(dynamic)"
+
+#: venv/Lib/site-packages/click/core.py:2828
+#, python-brace-format
+msgid "default: {default}"
+msgstr "default: {default}"
+
+#: venv/Lib/site-packages/click/core.py:2841
+msgid "required"
+msgstr "required"
+
+#: venv/Lib/site-packages/click/decorators.py:457
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr "%(prog)s, version %(version)s"
+
+#: venv/Lib/site-packages/click/decorators.py:520
+msgid "Show the version and exit."
+msgstr "Show the version and exit."
+
+#: venv/Lib/site-packages/click/decorators.py:541
+msgid "Show this message and exit."
+msgstr "Show this message and exit."
+
+#: venv/Lib/site-packages/click/exceptions.py:49
+#: venv/Lib/site-packages/click/exceptions.py:88
+#, python-brace-format
+msgid "Error: {message}"
+msgstr "Error: {message}"
+
+#: venv/Lib/site-packages/click/exceptions.py:80
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr "Try '{command} {option}' for help."
+
+#: venv/Lib/site-packages/click/exceptions.py:129
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr "Invalid value: {message}"
+
+#: venv/Lib/site-packages/click/exceptions.py:131
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr "Invalid value for {param_hint}: {message}"
+
+#: venv/Lib/site-packages/click/exceptions.py:187
+msgid "Missing argument"
+msgstr "Missing argument"
+
+#: venv/Lib/site-packages/click/exceptions.py:189
+msgid "Missing option"
+msgstr "Missing option"
+
+#: venv/Lib/site-packages/click/exceptions.py:191
+msgid "Missing parameter"
+msgstr "Missing parameter"
+
+#: venv/Lib/site-packages/click/exceptions.py:193
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr "Missing {param_type}"
+
+#: venv/Lib/site-packages/click/exceptions.py:200
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr "Missing parameter: {param_name}"
+
+#: venv/Lib/site-packages/click/exceptions.py:220
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr "No such option: {name}"
+
+#: venv/Lib/site-packages/click/exceptions.py:232
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] "Did you mean {possibility}?"
+msgstr[1] "(Possible options: {possibilities})"
+
+#: venv/Lib/site-packages/click/exceptions.py:270
+msgid "unknown error"
+msgstr "unknown error"
+
+#: venv/Lib/site-packages/click/exceptions.py:277
+#, python-brace-format
+msgid "Could not open file {filename!r}: {message}"
+msgstr "Could not open file {filename!r}: {message}"
+
+#: venv/Lib/site-packages/click/formatting.py:156
+msgid "Usage:"
+msgstr "Usage:"
+
+#: venv/Lib/site-packages/click/parser.py:233
+#, python-brace-format
+msgid "Argument {name!r} takes {nargs} values."
+msgstr "Argument {name!r} takes {nargs} values."
+
+#: venv/Lib/site-packages/click/parser.py:415
+#, python-brace-format
+msgid "Option {name!r} does not take a value."
+msgstr "Option {name!r} does not take a value."
+
+#: venv/Lib/site-packages/click/parser.py:476
+#, python-brace-format
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] "Option {name!r} requires an argument."
+msgstr[1] "Option {name!r} requires {nargs} arguments."
+
+#: venv/Lib/site-packages/click/shell_completion.py:326
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr "Shell completion is not supported for Bash versions older than 4.4."
+
+#: venv/Lib/site-packages/click/shell_completion.py:333
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr "Couldn't detect Bash version, shell completion is not supported."
+
+#: venv/Lib/site-packages/click/termui.py:158
+msgid "Repeat for confirmation"
+msgstr "Repeat for confirmation"
+
+#: venv/Lib/site-packages/click/termui.py:174
+msgid "Error: The value you entered was invalid."
+msgstr "Error: The value you entered was invalid."
+
+#: venv/Lib/site-packages/click/termui.py:176
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr "Error: {e.message}"
+
+#: venv/Lib/site-packages/click/termui.py:187
+msgid "Error: The two entered values do not match."
+msgstr "Error: The two entered values do not match."
+
+#: venv/Lib/site-packages/click/termui.py:243
+msgid "Error: invalid input"
+msgstr "Error: invalid input"
+
+#: venv/Lib/site-packages/click/termui.py:773
+msgid "Press any key to continue..."
+msgstr "Press any key to continue..."
+
+#: venv/Lib/site-packages/click/types.py:267
+#, python-brace-format
+msgid "Choose from:\n\t{choices}"
+msgstr "Choose from:\n\t{choices}"
+
+#: venv/Lib/site-packages/click/types.py:299
+#, python-brace-format
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] "{value!r} is not {choice}."
+msgstr[1] "{value!r} is not one of {choices}."
+
+#: venv/Lib/site-packages/click/types.py:393
+#, python-brace-format
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] "{value!r} does not match the format {format}."
+msgstr[1] "{value!r} does not match the formats {formats}."
+
+#: venv/Lib/site-packages/click/types.py:415
+#, python-brace-format
+msgid "{value!r} is not a valid {number_type}."
+msgstr "{value!r} is not a valid {number_type}."
+
+#: venv/Lib/site-packages/click/types.py:471
+#, python-brace-format
+msgid "{value} is not in the range {range}."
+msgstr "{value} is not in the range {range}."
+
+#: venv/Lib/site-packages/click/types.py:612
+#, python-brace-format
+msgid "{value!r} is not a valid boolean."
+msgstr "{value!r} is not a valid boolean."
+
+#: venv/Lib/site-packages/click/types.py:636
+#, python-brace-format
+msgid "{value!r} is not a valid UUID."
+msgstr "{value!r} is not a valid UUID."
+
+#: venv/Lib/site-packages/click/types.py:826
+msgid "file"
+msgstr "file"
+
+#: venv/Lib/site-packages/click/types.py:828
+msgid "directory"
+msgstr "directory"
+
+#: venv/Lib/site-packages/click/types.py:830
+msgid "path"
+msgstr "path"
+
+#: venv/Lib/site-packages/click/types.py:881
+#, python-brace-format
+msgid "{name} {filename!r} does not exist."
+msgstr "{name} {filename!r} does not exist."
+
+#: venv/Lib/site-packages/click/types.py:890
+#, python-brace-format
+msgid "{name} {filename!r} is a file."
+msgstr "{name} {filename!r} is a file."
+
+#: venv/Lib/site-packages/click/types.py:898
+#, python-brace-format
+msgid "{name} {filename!r} is a directory."
+msgstr "{name} {filename!r} is a directory."
+
+#: venv/Lib/site-packages/click/types.py:907
+#, python-brace-format
+msgid "{name} {filename!r} is not readable."
+msgstr "{name} {filename!r} is not readable."
+
+#: venv/Lib/site-packages/click/types.py:916
+#, python-brace-format
+msgid "{name} {filename!r} is not writable."
+msgstr "{name} {filename!r} is not writable."
+
+#: venv/Lib/site-packages/click/types.py:925
+#, python-brace-format
+msgid "{name} {filename!r} is not executable."
+msgstr "{name} {filename!r} is not executable."
+
+#: venv/Lib/site-packages/click/types.py:992
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] "{len_type} values are required, but {len_value} was given."
+msgstr[1] "{len_type} values are required, but {len_value} were given."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:408
+#, python-format
+msgid "Content purported to be compressed with %s but failed to decompress."
+msgstr "Content purported to be compressed with %s but failed to decompress."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:572
+#, python-format
+msgid "Unsupported value for qop: %s."
+msgstr "Unsupported value for qop: %s."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:576
+#: venv/Lib/site-packages/httplib2/__init__.py:654
+#, python-format
+msgid "Unsupported value for algorithm: %s.algorithm"
+msgstr "Unsupported value for algorithm: %s.algorithm"
+
+#: venv/Lib/site-packages/httplib2/__init__.py:649
+msgid "The challenge doesn't contain a server nonce, or this one is empty."
+msgstr "The challenge doesn't contain a server nonce, or this one is empty."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:659
+#, python-format
+msgid "Unsupported value for pw-algorithm: %s.pw-algorithm"
+msgstr "Unsupported value for pw-algorithm: %s.pw-algorithm"
+
+#: venv/Lib/site-packages/httplib2/__init__.py:1468
+msgid "Redirected but the response is missing a Location: header."
+msgstr "Redirected but the response is missing a Location: header."
+
+#: templates/assign_user.html:3
+msgid "Assign User - Fitbit Dashboard"
+msgstr "Assign User - Fitbit Dashboard"
+
+#: templates/assign_user.html:7
+msgid "Assign New User"
+msgstr "Assign New User"
+
+#: templates/assign_user.html:15
+msgid "Name of new user:"
+msgstr "Name of new user:"
+
+#: templates/assign_user.html:18
+msgid "Assign"
+msgstr "Assign"
+
+#: templates/assign_user.html:19
+msgid "Cancel"
+msgstr "Cancel"
+
+#: templates/reassign_confirmation.html:3
+msgid "Reassign Device - Fitbit Dashboard"
+msgstr "Reassign Device - Fitbit Dashboard"
+
+#: templates/reassign_confirmation.html:7
+msgid "Reassign Fitbit Device"
+msgstr "Reassign Fitbit Device"
+
+#: templates/reassign_confirmation.html:9
+msgid "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
+msgstr "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
+
+#: templates/reassign_confirmation.html:11
+msgid "Do you want to reassign the watch to a new person?"
+msgstr "Do you want to reassign the watch to a new person?"
+
+#: templates/reassign_confirmation.html:15
+msgid "Name of new user:"
+msgstr "Name of new user:"
+
+#: templates/reassign_confirmation.html:18
+msgid "Reassign"
+msgstr "Reassign"
+
+#: templates/reassign_confirmation.html:19
+msgid "Cancel"
+msgstr "Cancel"
+

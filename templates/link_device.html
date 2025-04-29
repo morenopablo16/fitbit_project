@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Vincular Dispositivo - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Link Fitbit Device') }} - Lively Ageing{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -8,10 +8,10 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Vincular un Dispositivo Fitbit</h2>
+                    <h2 class="card-title text-center mb-4">{{ _('Link Fitbit Device') }}</h2>
                     <form method="POST" action="{{ url_for('link_device') }}" class="link-device-form">
                         <div class="mb-3">
-                            <label for="email" class="form-label">Selecciona un email:</label>
+                            <label for="email" class="form-label">{{ _('Select an email') }}:</label>
                             <select name="email" id="email" class="form-select" required>
                                 {% for email in emails %}
                                 <option value="{{ email }}">{{ email }}</option>
@@ -20,7 +20,7 @@
                         </div>
                         <div class="d-grid">
                             <button type="button" class="btn btn-primary btn-lg" onclick="this.form.submit();">
-                                Autorizar Fitbit
+                                {{ _('Authorize Fitbit') }}
                             </button>
                         </div>
                     </form>

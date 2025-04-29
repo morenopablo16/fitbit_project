@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Autorizar Fitbit - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Authorize Fitbit - Fitbit Dashboard') }}{% endblock %}
 
 {% block content %}
 <div class="dashboard-container text-center">
-    <h1>Autorizar Fitbit</h1>
-    <p>Por favor, haz clic en el siguiente enlace para autorizar tu cuenta Fitbit:</p>
+    <h1>{{ _('Authorize Fitbit') }}</h1>
+    <p>{{ _('Please click the following link to authorize your Fitbit account:') }}</p>
     <div class="mt-4">
         <button onclick="window.location.href='{{ auth_url }}'" class="btn btn-primary" id="authButton">
             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-            <span class="button-text">Autorizar Fitbit</span>
+            <span class="button-text">{{ _('Authorize Fitbit') }}</span>
         </button>
     </div>
     <div class="mt-3">
-        <small class="text-muted">Serás redirigido a la página de autorización de Fitbit</small>
+        <small class="text-muted">{{ _('You will be redirected to the Fitbit authorization page') }}</small>
     </div>
 </div>
 
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     authButton.addEventListener('click', function(e) {
         // Show loading state
         spinner.classList.remove('d-none');
-        buttonText.textContent = 'Autorizando...';
+        buttonText.textContent = '{{ _("Authorizing...") }}';
         authButton.disabled = true;
 
         // Get the auth URL from the onclick attribute

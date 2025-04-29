@@ -11,4 +11,5 @@ werkzeug==2.0.2
 Flask-Cors==4.0.0
 cryptography==36.0.0
 Flask_login==0.5.0
-timescaledb==2.0.0
+Flask-Babel==3.1.0
+googletrans==3.1.0a0

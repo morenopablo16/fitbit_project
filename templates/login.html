@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Iniciar sesión - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Login') }} - Lively Ageing{% endblock %}
 
 {% block content %}
 <div class="dashboard-container text-center">
-    <h1>Iniciar sesión</h1>
+    <h1>{{ _('Login to your account') }}</h1>
     
     <!-- Formulario de inicio de sesión -->
     <form method="POST">
         <div class="mb-3">
-            <label for="username" class="form-label">Usuario:</label>
+            <label for="username" class="form-label">{{ _('Username') }}:</label>
             <input type="text" id="username" name="username" class="form-control" required>
         </div>
         <div class="mb-3">
-            <label for="password" class="form-label">Contraseña:</label>
+            <label for="password" class="form-label">{{ _('Password') }}:</label>
             <input type="password" id="password" name="password" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+        <button type="submit" class="btn btn-primary">{{ _('Sign In') }}</button>
     </form>
 
     <!-- Mensajes flash (errores o notificaciones) -->

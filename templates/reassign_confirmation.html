@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Reasignar Dispositivo - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Reassign Device - Fitbit Dashboard') }}{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
-    <h1>Reasignar Dispositivo Fitbit</h1>
+    <h1>{{ _('Reassign Fitbit Device') }}</h1>
     <p>
-        El correo <strong>{{ email }}</strong> ya está siendo usado por <strong>{{ current_user_name }}</strong>.
+        {{ _('The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>.', email=email, current_user_name=current_user_name) }}
     </p>
-    <p>¿Deseas reasignar el reloj a una nueva persona?</p>
+    <p>{{ _('Do you want to reassign the watch to a new person?') }}</p>
     
     <form method="POST" action="{{ url_for('reassign_device') }}">
         <input type="hidden" name="email" value="{{ email }}">
         <div class="mb-3">
-            <label for="new_user_name" class="form-label">Nombre del nuevo usuario:</label>
+            <label for="new_user_name" class="form-label">{{ _('Name of new user:') }}</label>
             <input type="text" name="new_user_name" id="new_user_name" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary">Reasignar</button>
-        <a href="{{ url_for('link_device') }}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">{{ _('Reassign') }}</button>
+        <a href="{{ url_for('link_device') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
     </form>
 </div>
 {% endblock %}

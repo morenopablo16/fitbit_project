@@ -1,0 +1,643 @@
+# Spanish translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-04-29 23:33+0200\n"
+"PO-Revision-Date: 2025-04-29 23:29+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: es\n"
+"Language-Team: es <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:29
+msgid "Welcome"
+msgstr "Bienvenido"
+
+#: templates/base.html:34 templates/home.html:34
+msgid "Dashboard"
+msgstr "Panel"
+
+#: templates/base.html:39 templates/home.html:20 templates/home.html:23
+msgid "Link Device"
+msgstr "Enlazar Dispositivo"
+
+#: templates/base.html:44
+msgid "Logout"
+msgstr "Cierre de sesión"
+
+#: templates/base.html:52
+msgid "Language"
+msgstr "Idioma"
+
+#: templates/base.html:89
+msgid "All rights reserved"
+msgstr "Reservados todos los derechos"
+
+#: templates/home.html:3
+msgid "Home"
+msgstr "Hogar"
+
+#: templates/home.html:9
+msgid "Welcome to Lively Ageing"
+msgstr "Bienvenido a Lively Ageing"
+
+#: templates/home.html:10
+msgid "Monitor and manage Fitbit users physical activity data"
+msgstr "Monitorear y administrar datos de actividad física de los usuarios de Fitbit"
+
+#: templates/home.html:21
+msgid "Connect a new Fitbit device or reassign an existing one to a user"
+msgstr "Conectar un nuevo dispositivo Fitbit o reasignar uno existente a un usuario"
+
+#: templates/home.html:35
+msgid "View a general summary of the most recent data from all users"
+msgstr "Ver un resumen general de los datos más recientes de todos los usuarios"
+
+#: templates/home.html:37
+msgid "View Dashboard"
+msgstr "Ver tablero"
+
+#: templates/home.html:48 templates/user_stats.html:18
+msgid "Users"
+msgstr "Usuarios"
+
+#: templates/home.html:49
+msgid "Access detailed statistics for each individual user"
+msgstr "Acceda a estadísticas detalladas para cada usuario individual"
+
+#: templates/home.html:51
+msgid "View Users"
+msgstr "Ver usuarios"
+
+#: templates/home.html:63
+msgid "Recent Activity"
+msgstr "Actividad reciente"
+
+#: templates/home.html:70
+msgid "User"
+msgstr "Usuario"
+
+#: templates/home.html:71 templates/user_detail.html:24
+#: templates/user_stats.html:26
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: templates/home.html:72
+msgid "Last Update"
+msgstr "Última actualización"
+
+#: templates/home.html:73 templates/user_stats.html:28
+msgid "Actions"
+msgstr "Comportamiento"
+
+#: templates/home.html:81
+msgid "No data"
+msgstr "No data"
+
+#: templates/home.html:84 templates/user_stats.html:38
+msgid "View Details"
+msgstr "Ver detalles"
+
+#: templates/link_device.html:3 templates/link_device.html:11
+msgid "Link Fitbit Device"
+msgstr "Enlazar Dispositivo Fitbit"
+
+#: templates/link_device.html:14
+msgid "Select an email"
+msgstr "Seleccione un correo electrónico"
+
+#: templates/link_device.html:23
+msgid "Authorize Fitbit"
+msgstr "Autorizar Fitbit"
+
+#: templates/login.html:3
+msgid "Login"
+msgstr "Acceso"
+
+#: templates/login.html:7
+msgid "Login to your account"
+msgstr "Inicie sesión en su cuenta"
+
+#: templates/login.html:12
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: templates/login.html:16
+msgid "Password"
+msgstr "Contraseña"
+
+#: templates/login.html:19
+msgid "Sign In"
+msgstr "Iniciar sesión"
+
+#: templates/user_detail.html:3
+msgid "Lively Ageing - User Details"
+msgstr "Lively Ageing - Detalles del usuario"
+
+#: templates/user_detail.html:9
+msgid "User Details"
+msgstr "Detalles del usuario"
+
+#: templates/user_detail.html:10
+msgid "Detailed information for"
+msgstr "Información detallada para"
+
+#: templates/user_detail.html:18
+msgid "User Information"
+msgstr "Información de usuario"
+
+#: templates/user_detail.html:23 templates/user_stats.html:25
+msgid "Name"
+msgstr "Nombre"
+
+#: templates/user_detail.html:27 templates/user_stats.html:27
+msgid "Created At"
+msgstr "Creado a"
+
+#: templates/user_detail.html:39
+msgid "Daily Summaries"
+msgstr "Resúmenes diarios"
+
+#: templates/user_detail.html:46 templates/user_detail.html:96
+msgid "Date"
+msgstr "Fecha"
+
+#: templates/user_detail.html:47 templates/user_detail.html:98
+msgid "Steps"
+msgstr "Pasos"
+
+#: templates/user_detail.html:48 templates/user_detail.html:99
+msgid "Heart Rate"
+msgstr "Ritmo cardíaco"
+
+#: templates/user_detail.html:49
+msgid "Sleep (min)"
+msgstr "Dormir (min)"
+
+#: templates/user_detail.html:50
+msgid "Calories"
+msgstr "Calorías"
+
+#: templates/user_detail.html:51
+msgid "Distance (km)"
+msgstr "Distancia (km)"
+
+#: templates/user_detail.html:52
+msgid "Floors"
+msgstr "Pisos"
+
+#: templates/user_detail.html:53
+msgid "Elevation (m)"
+msgstr "Elevación (M)"
+
+#: templates/user_detail.html:54
+msgid "Active Minutes"
+msgstr "Minutos activos"
+
+#: templates/user_detail.html:55
+msgid "Sedentary Minutes"
+msgstr "Actas sedentarias"
+
+#: templates/user_detail.html:74
+msgid "No daily summaries found."
+msgstr "No se encontraron resúmenes diarios."
+
+#: templates/user_detail.html:89
+msgid "Intraday Metrics"
+msgstr "Métricas intradía"
+
+#: templates/user_detail.html:97
+msgid "Time"
+msgstr "Tiempo"
+
+#: templates/user_detail.html:100
+msgid "Type"
+msgstr "Tipo"
+
+#: templates/user_detail.html:101
+msgid "Value"
+msgstr "Valor"
+
+#: templates/user_detail.html:116
+msgid "No intraday metrics found."
+msgstr "No se encontraron métricas intradía."
+
+#: templates/user_stats.html:3
+msgid "Lively Ageing - User Statistics"
+msgstr "Lively Ageing - Estadísticas de usuario"
+
+#: templates/user_stats.html:9
+msgid "User Statistics"
+msgstr "Estadísticas de usuario"
+
+#: templates/user_stats.html:10
+msgid "View statistics for all users in the system."
+msgstr "Ver estadísticas para todos los usuarios en el sistema."
+
+#: templates/user_stats.html:43
+msgid "No users found."
+msgstr "No se encontraron usuarios."
+
+#: venv/Lib/site-packages/click/_termui_impl.py:556
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr "{Editor}: la edición falló"
+
+#: venv/Lib/site-packages/click/_termui_impl.py:560
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr "{Editor}: la edición falló: {E}"
+
+#: venv/Lib/site-packages/click/core.py:1124
+msgid "Aborted!"
+msgstr "¡Abortado!"
+
+#: venv/Lib/site-packages/click/core.py:1349
+#: venv/Lib/site-packages/click/core.py:1379
+#, python-brace-format
+msgid "(Deprecated) {text}"
+msgstr "(Desaprobado) {texto}"
+
+#: venv/Lib/site-packages/click/core.py:1396
+msgid "Options"
+msgstr "Opción"
+
+#: venv/Lib/site-packages/click/core.py:1422
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/core.py:1438
+#, python-brace-format
+msgid "DeprecationWarning: The command {name!r} is deprecated."
+msgstr "DeprecationWarning: el comando {nombre! R} está en desuso."
+
+#: venv/Lib/site-packages/click/core.py:1645
+msgid "Commands"
+msgstr "Comandos"
+
+#: venv/Lib/site-packages/click/core.py:1677
+msgid "Missing command."
+msgstr "Comando faltante."
+
+#: venv/Lib/site-packages/click/core.py:1755
+#, python-brace-format
+msgid "No such command {name!r}."
+msgstr "No hay tal comando {nombre! R}."
+
+#: venv/Lib/site-packages/click/core.py:2313
+msgid "Value must be an iterable."
+msgstr "El valor debe ser un iterable."
+
+#: venv/Lib/site-packages/click/core.py:2334
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/core.py:2783
+#, python-brace-format
+msgid "env var: {var}"
+msgstr "Env fue: {era}"
+
+#: venv/Lib/site-packages/click/core.py:2813
+msgid "(dynamic)"
+msgstr "(dinámica)"
+
+#: venv/Lib/site-packages/click/core.py:2828
+#, python-brace-format
+msgid "default: {default}"
+msgstr "predeterminado: {predeterminado}"
+
+#: venv/Lib/site-packages/click/core.py:2841
+msgid "required"
+msgstr "requerido"
+
+#: venv/Lib/site-packages/click/decorators.py:457
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr "%(prog)s, versión %(version)s"
+
+#: venv/Lib/site-packages/click/decorators.py:520
+msgid "Show the version and exit."
+msgstr "Muestre la versión y la salida."
+
+#: venv/Lib/site-packages/click/decorators.py:541
+msgid "Show this message and exit."
+msgstr "Muestre este mensaje y salida."
+
+#: venv/Lib/site-packages/click/exceptions.py:49
+#: venv/Lib/site-packages/click/exceptions.py:88
+#, python-brace-format
+msgid "Error: {message}"
+msgstr "Mensaje de error}"
+
+#: venv/Lib/site-packages/click/exceptions.py:80
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr "Pruebe '{comando} {opción}' para obtener ayuda."
+
+#: venv/Lib/site-packages/click/exceptions.py:129
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr "Valor no válido: {mensaje}"
+
+#: venv/Lib/site-packages/click/exceptions.py:131
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr "Valor no válido para {param_hint}: {mensaje}"
+
+#: venv/Lib/site-packages/click/exceptions.py:187
+msgid "Missing argument"
+msgstr "Argumento faltante"
+
+#: venv/Lib/site-packages/click/exceptions.py:189
+msgid "Missing option"
+msgstr "Opción faltante"
+
+#: venv/Lib/site-packages/click/exceptions.py:191
+msgid "Missing parameter"
+msgstr "Parámetro faltante"
+
+#: venv/Lib/site-packages/click/exceptions.py:193
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr "Falta {param_type}"
+
+#: venv/Lib/site-packages/click/exceptions.py:200
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr "Parámetro faltante: {param_name}"
+
+#: venv/Lib/site-packages/click/exceptions.py:220
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr "No hay tal opción: {nombre}"
+
+#: venv/Lib/site-packages/click/exceptions.py:232
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/exceptions.py:270
+msgid "unknown error"
+msgstr "Error desconocido"
+
+#: venv/Lib/site-packages/click/exceptions.py:277
+#, python-brace-format
+msgid "Could not open file {filename!r}: {message}"
+msgstr "No se pudo abrir el archivo {filename!r}: {message}"
+
+#: venv/Lib/site-packages/click/formatting.py:156
+msgid "Usage:"
+msgstr "Uso:"
+
+#: venv/Lib/site-packages/click/parser.py:233
+#, python-brace-format
+msgid "Argument {name!r} takes {nargs} values."
+msgstr "El argumento {name!r} toma {nargs} valores."
+
+#: venv/Lib/site-packages/click/parser.py:415
+#, python-brace-format
+msgid "Option {name!r} does not take a value."
+msgstr "La opción {name!r} no toma un valor."
+
+#: venv/Lib/site-packages/click/parser.py:476
+#, python-brace-format
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] "La opción {name!r} requiere un argumento."
+msgstr[1] "La opción {name!r} requiere {nargs} argumentos."
+
+#: venv/Lib/site-packages/click/shell_completion.py:326
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr "La finalización del shell no es compatible con versiones bash mayores de 4.4."
+
+#: venv/Lib/site-packages/click/shell_completion.py:333
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr "No se pudo detectar la versión bash, la finalización del shell no es compatible."
+
+#: venv/Lib/site-packages/click/termui.py:158
+msgid "Repeat for confirmation"
+msgstr "Repetir para confirmación"
+
+#: venv/Lib/site-packages/click/termui.py:174
+msgid "Error: The value you entered was invalid."
+msgstr "Error: el valor que ingresó no fue válido."
+
+#: venv/Lib/site-packages/click/termui.py:176
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr "Error: {e.message}"
+
+#: venv/Lib/site-packages/click/termui.py:187
+msgid "Error: The two entered values do not match."
+msgstr "Error: los dos valores ingresados ​​no coinciden."
+
+#: venv/Lib/site-packages/click/termui.py:243
+msgid "Error: invalid input"
+msgstr "Error: entrada no válida"
+
+#: venv/Lib/site-packages/click/termui.py:773
+msgid "Press any key to continue..."
+msgstr "Presione cualquier tecla para continuar ..."
+
+#: venv/Lib/site-packages/click/types.py:267
+#, python-brace-format
+msgid "Choose from:\n\t{choices}"
+msgstr "Elija entre:\n\t{choices}"
+
+#: venv/Lib/site-packages/click/types.py:299
+#, python-brace-format
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] "{value!r} no es {choice}."
+msgstr[1] "{value!r} no es una de las opciones {choices}."
+
+#: venv/Lib/site-packages/click/types.py:393
+#, python-brace-format
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] "{value!r} no coincide con el formato {format}."
+msgstr[1] "{value!r} no coincide con los formatos {formats}."
+
+#: venv/Lib/site-packages/click/types.py:415
+#, python-brace-format
+msgid "{value!r} is not a valid {number_type}."
+msgstr "{value!r} no es un {number_type} válido."
+
+#: venv/Lib/site-packages/click/types.py:471
+#, python-brace-format
+msgid "{value} is not in the range {range}."
+msgstr "{value} no está en el rango {range}."
+
+#: venv/Lib/site-packages/click/types.py:612
+#, python-brace-format
+msgid "{value!r} is not a valid boolean."
+msgstr "{value!r} no es un booleano válido."
+
+#: venv/Lib/site-packages/click/types.py:636
+#, python-brace-format
+msgid "{value!r} is not a valid UUID."
+msgstr "{value!r} no es un UUID válido."
+
+#: venv/Lib/site-packages/click/types.py:826
+msgid "file"
+msgstr "archivo"
+
+#: venv/Lib/site-packages/click/types.py:828
+msgid "directory"
+msgstr "directorio"
+
+#: venv/Lib/site-packages/click/types.py:830
+msgid "path"
+msgstr "camino"
+
+#: venv/Lib/site-packages/click/types.py:881
+#, python-brace-format
+msgid "{name} {filename!r} does not exist."
+msgstr "{name} {filename!r} no existe."
+
+#: venv/Lib/site-packages/click/types.py:890
+#, python-brace-format
+msgid "{name} {filename!r} is a file."
+msgstr "{name} {filename!r} es un archivo."
+
+#: venv/Lib/site-packages/click/types.py:898
+#, python-brace-format
+msgid "{name} {filename!r} is a directory."
+msgstr "{name} {filename!r} es un directorio."
+
+#: venv/Lib/site-packages/click/types.py:907
+#, python-brace-format
+msgid "{name} {filename!r} is not readable."
+msgstr "{name} {filename!r} no es legible."
+
+#: venv/Lib/site-packages/click/types.py:916
+#, python-brace-format
+msgid "{name} {filename!r} is not writable."
+msgstr "{name} {filename!r} no es escribible."
+
+#: venv/Lib/site-packages/click/types.py:925
+#, python-brace-format
+msgid "{name} {filename!r} is not executable."
+msgstr "{name} {filename!r} no es ejecutable."
+
+#: venv/Lib/site-packages/click/types.py:992
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] "Se requieren {len_type} valores, pero se proporcionó {len_value}."
+msgstr[1] "Se requieren {len_type} valores, pero se proporcionaron {len_value}."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:408
+#, python-format
+msgid "Content purported to be compressed with %s but failed to decompress."
+msgstr "El contenido pretendía estar comprimido con %s pero no pudo descomprimir."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:572
+#, python-format
+msgid "Unsupported value for qop: %s."
+msgstr "Valor no compatible para QOP: %s."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:576
+#: venv/Lib/site-packages/httplib2/__init__.py:654
+#, python-format
+msgid "Unsupported value for algorithm: %s.algorithm"
+msgstr "Valor no compatible para el algoritmo: %s.algoritmo"
+
+#: venv/Lib/site-packages/httplib2/__init__.py:649
+msgid "The challenge doesn't contain a server nonce, or this one is empty."
+msgstr "El desafío no contiene un servidor Nonce, o este está vacío."
+
+#: venv/Lib/site-packages/httplib2/__init__.py:659
+#, python-format
+msgid "Unsupported value for pw-algorithm: %s.pw-algorithm"
+msgstr "Valor no compatible para PW-Algorithm: %s.pw-algorithm"
+
+#: venv/Lib/site-packages/httplib2/__init__.py:1468
+msgid "Redirected but the response is missing a Location: header."
+msgstr "Redirigido pero a la respuesta le falta una ubicación: encabezado."
+
+#: templates/assign_user.html:3
+msgid "Assign User - Fitbit Dashboard"
+msgstr "Asignar Usuario - Panel de Fitbit"
+
+#: templates/assign_user.html:7
+msgid "Assign New User"
+msgstr "Asignar Nuevo Usuario"
+
+#: templates/assign_user.html:15
+msgid "Name of new user:"
+msgstr "Nombre del nuevo usuario:"
+
+#: templates/assign_user.html:18
+msgid "Assign"
+msgstr "Asignar"
+
+#: templates/assign_user.html:19
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/reassign_confirmation.html:3
+msgid "Reassign Device - Fitbit Dashboard"
+msgstr "Reasignar Dispositivo - Panel de Fitbit"
+
+#: templates/reassign_confirmation.html:7
+msgid "Reassign Fitbit Device"
+msgstr "Reasignar Dispositivo Fitbit"
+
+#: templates/reassign_confirmation.html:9
+msgid "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
+msgstr "El correo <strong>%(email)s</strong> ya está siendo usado por <strong>%(current_user_name)s</strong>."
+
+#: templates/reassign_confirmation.html:11
+msgid "Do you want to reassign the watch to a new person?"
+msgstr "¿Deseas reasignar el reloj a una nueva persona?"
+
+#: templates/reassign_confirmation.html:15
+msgid "Name of new user:"
+msgstr "Nombre del nuevo usuario:"
+
+#: templates/reassign_confirmation.html:18
+msgid "Reassign"
+msgstr "Reasignar"
+
+#: templates/reassign_confirmation.html:19
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/link_auth.html:3
+msgid "Authorize Fitbit - Fitbit Dashboard"
+msgstr "Autorizar Fitbit - Panel de Fitbit"
+
+#: templates/link_auth.html:7
+msgid "Authorize Fitbit"
+msgstr "Autorizar Fitbit"
+
+#: templates/link_auth.html:8
+msgid "Please click the following link to authorize your Fitbit account:"
+msgstr "Por favor, haz clic en el siguiente enlace para autorizar tu cuenta Fitbit:"
+
+#: templates/link_auth.html:16
+msgid "You will be redirected to the Fitbit authorization page"
+msgstr "Serás redirigido a la página de autorización de Fitbit"
+
+#: templates/link_auth.html:31
+msgid "Authorizing..."
+msgstr "Autorizando..."
+

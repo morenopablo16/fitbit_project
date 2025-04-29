@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 
@@ -20,7 +19,8 @@ DB_CONFIG = {
     'user': os.getenv("DB_USER"),
     'password': os.getenv("DB_PASSWORD"),
     'port': os.getenv("DB_PORT"),
-    'database': os.getenv("DB_NAME")
+    'database': os.getenv("DB_NAME"),
+    "sslmode": "require"
 }
 
 

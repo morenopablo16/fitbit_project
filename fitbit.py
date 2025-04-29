@@ -2,7 +2,7 @@ from base64 import b64encode
 from dotenv import load_dotenv
 import requests
 from datetime import datetime
-from db import get_unique_emails, save_to_db, get_user_tokens, get_latest_user_id_by_email, update_users_tokens
+from db import get_unique_emails, save_to_db, get_user_tokens, get_latest_user_id_by_email, update_users_tokens, insert_daily_summary, insert_intraday_metric
 import sys
 import os
 
@@ -98,16 +98,6 @@ def get_fitbit_data(access_token, email):
     water_data = response.json()
     water = water_data.get("summary", {}).get("water", 0)
 
-    # Peso, BMI, grasa corporal
-    # weight_url = f"https://api.fitbit.com/1/user/-/body/log/weight/date/{today}.json"
-    # response = requests.get(weight_url, headers=headers)
-    # print(f"Weight API response status: {response.status_code}")
-    # print(f"Weight API response: {response.json()}")
-    # weight_data = response.json()
-    # weight = weight_data.get("weight", [{}])[0].get("weight", 0)
-    # bmi = weight_data.get("weight", [{}])[0].get("bmi", 0)
-    # fat = weight_data.get("weight", [{}])[0].get("fat", 0)
-
     # Oxígeno en sangre (SpO2)
     spo2_url = f"https://api.fitbit.com/1/user/-/spo2/date/{today}.json"
     response = requests.get(spo2_url, headers=headers)
@@ -134,10 +124,10 @@ def get_fitbit_data(access_token, email):
     temperature_data = response.json()
     temperature = temperature_data.get("value", 0)
 
-    # Guardar en la base de datos
+    # Guardar en la base de datos usando la nueva función insert_daily_summary
     date = datetime.now().strftime("%Y-%m-%d")
-    user_id = get_latest_user_id_by_email(email)  # Obtener el user_id más reciente
-    save_to_db(
+    user_id = get_latest_user_id_by_email(email)
+    insert_daily_summary(
         user_id=user_id,
         date=date,
         steps=steps,

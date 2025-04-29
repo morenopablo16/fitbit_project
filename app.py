@@ -90,8 +90,52 @@ def index():
     Render the dashboard homepage.
     This will display the Fitbit data stored in the database.
     """
-    # TODO: Fetch data from the database and pass it to the template
-    return render_template('dashboard.html')
+    # Fetch data from the database
+    conn = connect_to_db()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                # Get the latest daily summary for each user
+                cur.execute("""
+                    SELECT u.name, u.email, d.*
+                    FROM users u
+                    JOIN daily_summaries d ON u.id = d.user_id
+                    WHERE d.date = (SELECT MAX(date) FROM daily_summaries WHERE user_id = u.id)
+                    ORDER BY d.date DESC
+                """)
+                daily_summaries = cur.fetchall()
+                
+                # Get the latest intraday metrics for each user
+                cur.execute("""
+                    SELECT u.name, u.email, i.type, i.value, i.time
+                    FROM users u
+                    JOIN intraday_metrics i ON u.id = i.user_id
+                    WHERE i.time = (SELECT MAX(time) FROM intraday_metrics WHERE user_id = u.id AND type = i.type)
+                    ORDER BY i.time DESC
+                """)
+                intraday_metrics = cur.fetchall()
+                
+                # Get the latest sleep logs for each user
+                cur.execute("""
+                    SELECT u.name, u.email, s.*
+                    FROM users u
+                    JOIN sleep_logs s ON u.id = s.user_id
+                    WHERE s.start_time = (SELECT MAX(start_time) FROM sleep_logs WHERE user_id = u.id)
+                    ORDER BY s.start_time DESC
+                """)
+                sleep_logs = cur.fetchall()
+                
+                return render_template('dashboard.html', 
+                                      daily_summaries=daily_summaries,
+                                      intraday_metrics=intraday_metrics,
+                                      sleep_logs=sleep_logs)
+        except Exception as e:
+            app.logger.error(f"Error fetching data for dashboard: {e}")
+            return "Error: No se pudieron obtener los datos para el dashboard.", 500
+        finally:
+            conn.close()
+    else:
+        return "Error: No se pudo conectar a la base de datos.", 500
 
 # Route: Link a new Fitbit device
 @app.route('/livelyageing/link', methods=['GET', 'POST'])
@@ -256,7 +300,7 @@ def callback():
                 try:
                     with conn.cursor() as cur:
                         # Query to check if the email is already in use
-                        cur.execute("SELECT id, access_token, refresh_token FROM users WHERE email = %s", (email,))
+                        cur.execute("SELECT id, access_token, refresh_token FROM users WHERE email = %s ORDER BY created_at DESC LIMIT 1", (email,))
                         existing_user = cur.fetchone()
 
                         if existing_user:
@@ -287,7 +331,7 @@ def callback():
                             if new_user_name:
                                 if code:
                                     # Exchange the authorization code for new tokens
-                                    access_token, refresh_token = get_tokens(code)
+                                    access_token, refresh_token = get_tokens(code, code_verifier)
                                     # Add a new user with the new email and name
                                     add_user(new_user_name, email, access_token, refresh_token)
                                     app.logger.info(f"Nuevo usuario {new_user_name} ({email}) añadido.")
@@ -339,7 +383,7 @@ def reassign_device():
         try:
             with conn.cursor() as cur:
                 # Query to check if the email is already in use and has valid tokens
-                cur.execute("SELECT access_token, refresh_token FROM users WHERE email = %s", (email,))
+                cur.execute("SELECT access_token, refresh_token FROM users WHERE email = %s ORDER BY created_at DESC LIMIT 1", (email,))
                 existing_user = cur.fetchone()
                 
                 if existing_user:
@@ -369,7 +413,8 @@ def reassign_device():
         finally:
             conn.close()
     else:
-        return "Error: No se pudo conectar a la base de datos.", 500# Run the Flask app
+        return "Error: No se pudo conectar a la base de datos.", 500
+# Run the Flask app
 if __name__ == '__main__':
     # app.run(host=HOST, port=PORT, debug=DEBUG)
     app.run(debug=True)

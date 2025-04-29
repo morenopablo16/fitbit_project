@@ -3,18 +3,30 @@
 {% block title %}Vincular Dispositivo - Fitbit Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <h1>Vincular un Dispositivo Fitbit</h1>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="email" class="form-label">Selecciona un email:</label>
-            <select name="email" id="email" class="form-select" required>
-                {% for email in emails %}
-                <option value="{{ email }}">{{ email }}</option>
-                {% endfor %}
-            </select>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Vincular un Dispositivo Fitbit</h2>
+                    <form method="POST" action="{{ url_for('link_device') }}" class="link-device-form">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Selecciona un email:</label>
+                            <select name="email" id="email" class="form-select" required>
+                                {% for email in emails %}
+                                <option value="{{ email }}">{{ email }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="this.form.submit();">
+                                Autorizar Fitbit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Autorizar Fitbit</button>
-    </form>
+    </div>
 </div>
 {% endblock %}

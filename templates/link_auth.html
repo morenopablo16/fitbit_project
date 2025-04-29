@@ -6,6 +6,37 @@
 <div class="dashboard-container text-center">
     <h1>Autorizar Fitbit</h1>
     <p>Por favor, haz clic en el siguiente enlace para autorizar tu cuenta Fitbit:</p>
-    <a href="{{ auth_url }}" class="btn btn-primary">Autorizar Fitbit</a>
+    <div class="mt-4">
+        <button onclick="window.location.href='{{ auth_url }}'" class="btn btn-primary" id="authButton">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            <span class="button-text">Autorizar Fitbit</span>
+        </button>
+    </div>
+    <div class="mt-3">
+        <small class="text-muted">Serás redirigido a la página de autorización de Fitbit</small>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const authButton = document.getElementById('authButton');
+    const spinner = authButton.querySelector('.spinner-border');
+    const buttonText = authButton.querySelector('.button-text');
+
+    authButton.addEventListener('click', function(e) {
+        // Show loading state
+        spinner.classList.remove('d-none');
+        buttonText.textContent = 'Autorizando...';
+        authButton.disabled = true;
+
+        // Get the auth URL from the onclick attribute
+        const authUrl = '{{ auth_url }}';
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+            window.location.href = authUrl;
+        }, 500);
+    });
+});
+</script>
 {% endblock %}  

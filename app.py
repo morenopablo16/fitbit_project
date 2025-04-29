@@ -8,6 +8,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager, UserMixin
 import logging
 from logging.handlers import RotatingFileHandler
+from datetime import datetime
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -82,6 +83,15 @@ def logout():
 def require_login():
     if not current_user.is_authenticated and request.endpoint != 'login':
         return redirect(url_for('login'))
+
+# Route: Root URL redirect
+@app.route('/')
+def root():
+    """
+    Redirect from root URL to the dashboard.
+    """
+    return redirect(url_for('index'))
+
 # Route: Homepage (Dashboard)
 @app.route('/livelyageing/')
 @login_required
@@ -99,9 +109,10 @@ def index():
                 cur.execute("""
                     SELECT u.name, u.email, d.*
                     FROM users u
-                    JOIN daily_summaries d ON u.id = d.user_id
+                    LEFT JOIN daily_summaries d ON u.id = d.user_id
                     WHERE d.date = (SELECT MAX(date) FROM daily_summaries WHERE user_id = u.id)
-                    ORDER BY d.date DESC
+                    OR d.date IS NULL
+                    ORDER BY d.date DESC NULLS LAST
                 """)
                 daily_summaries = cur.fetchall()
                 
@@ -109,9 +120,10 @@ def index():
                 cur.execute("""
                     SELECT u.name, u.email, i.type, i.value, i.time
                     FROM users u
-                    JOIN intraday_metrics i ON u.id = i.user_id
+                    LEFT JOIN intraday_metrics i ON u.id = i.user_id
                     WHERE i.time = (SELECT MAX(time) FROM intraday_metrics WHERE user_id = u.id AND type = i.type)
-                    ORDER BY i.time DESC
+                    OR i.time IS NULL
+                    ORDER BY i.time DESC NULLS LAST
                 """)
                 intraday_metrics = cur.fetchall()
                 
@@ -119,9 +131,10 @@ def index():
                 cur.execute("""
                     SELECT u.name, u.email, s.*
                     FROM users u
-                    JOIN sleep_logs s ON u.id = s.user_id
+                    LEFT JOIN sleep_logs s ON u.id = s.user_id
                     WHERE s.start_time = (SELECT MAX(start_time) FROM sleep_logs WHERE user_id = u.id)
-                    ORDER BY s.start_time DESC
+                    OR s.start_time IS NULL
+                    ORDER BY s.start_time DESC NULLS LAST
                 """)
                 sleep_logs = cur.fetchall()
                 
@@ -131,7 +144,130 @@ def index():
                                       sleep_logs=sleep_logs)
         except Exception as e:
             app.logger.error(f"Error fetching data for dashboard: {e}")
-            return "Error: No se pudieron obtener los datos para el dashboard.", 500
+            # Return a more user-friendly error page instead of just an error message
+            return render_template('dashboard.html', 
+                                  daily_summaries=[],
+                                  intraday_metrics=[],
+                                  sleep_logs=[],
+                                  error="No se pudieron obtener los datos para el dashboard.")
+        finally:
+            conn.close()
+    else:
+        # Return a more user-friendly error page instead of just an error message
+        return render_template('dashboard.html', 
+                              daily_summaries=[],
+                              intraday_metrics=[],
+                              sleep_logs=[],
+                              error="No se pudo conectar a la base de datos.")
+
+@app.route('/livelyageing/home')
+@login_required
+def home():
+    """
+    Render the home page with recent activity.
+    """
+    conn = connect_to_db()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                # Get recent users with their latest activity
+                cur.execute("""
+                    SELECT u.id, u.name, u.email, 
+                           MAX(d.date) as last_updated
+                    FROM users u
+                    LEFT JOIN daily_summaries d ON u.id = d.user_id
+                    GROUP BY u.id, u.name, u.email
+                    ORDER BY last_updated DESC NULLS LAST
+                    LIMIT 10
+                """)
+                recent_users = cur.fetchall()
+                
+                return render_template('home.html', recent_users=recent_users)
+        except Exception as e:
+            app.logger.error(f"Error fetching data for home page: {e}")
+            return "Error: No se pudieron obtener los datos para la página de inicio.", 500
+        finally:
+            conn.close()
+    else:
+        return "Error: No se pudo conectar a la base de datos.", 500
+
+@app.route('/livelyageing/user_stats')
+@login_required
+def user_stats():
+    """
+    Display statistics for all users.
+    """
+    conn = connect_to_db()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                # Get all users
+                cur.execute("""
+                    SELECT id, name, email, created_at
+                    FROM users
+                    ORDER BY name
+                """)
+                users = cur.fetchall()
+                
+                return render_template('user_stats.html', users=users)
+        except Exception as e:
+            app.logger.error(f"Error fetching user statistics: {e}")
+            return "Error: No se pudieron obtener las estadísticas de usuarios.", 500
+        finally:
+            conn.close()
+    else:
+        return "Error: No se pudo conectar a la base de datos.", 500
+
+@app.route('/livelyageing/user/<int:user_id>')
+@login_required
+def user_detail(user_id):
+    """
+    Display detailed information for a specific user.
+    """
+    conn = connect_to_db()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                # Get user information
+                cur.execute("""
+                    SELECT id, name, email, created_at
+                    FROM users
+                    WHERE id = %s
+                """, (user_id,))
+                user = cur.fetchone()
+                
+                if not user:
+                    flash('Usuario no encontrado.', 'danger')
+                    return redirect(url_for('user_stats'))
+                
+                # Get daily summaries for the user
+                cur.execute("""
+                    SELECT date, steps, heart_rate, sleep_minutes, calories, 
+                           distance, floors, elevation, active_minutes, sedentary_minutes
+                    FROM daily_summaries
+                    WHERE user_id = %s
+                    ORDER BY date DESC
+                    LIMIT 30
+                """, (user_id,))
+                daily_summaries = cur.fetchall()
+                
+                # Get intraday metrics for the user
+                cur.execute("""
+                    SELECT time, type, value
+                    FROM intraday_metrics
+                    WHERE user_id = %s
+                    ORDER BY time DESC
+                    LIMIT 100
+                """, (user_id,))
+                intraday_metrics = cur.fetchall()
+                
+                return render_template('user_detail.html', 
+                                      user=user, 
+                                      daily_summaries=daily_summaries,
+                                      intraday_metrics=intraday_metrics)
+        except Exception as e:
+            app.logger.error(f"Error fetching user details: {e}")
+            return "Error: No se pudieron obtener los detalles del usuario.", 500
         finally:
             conn.close()
     else:
@@ -143,76 +279,34 @@ def index():
 def link_device():
     """
     Handle the linking of a new Fitbit device.
-    Generates an authorization URL and redirects the user to Fitbit's OAuth page.
     """
-    try:
-        if request.method == 'POST':
-            # Get the selected email from the dropdown
-            email = request.form['email']
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if not email:
+            flash('Por favor, proporciona un email.', 'danger')
+            return redirect(url_for('link_device'))
             
-            # Check if the email is already in use
-            conn = connect_to_db()
-            if conn:
-                try:
-                    with conn.cursor() as cur:
-                        # Query to get the current user associated with the email, ordered by the most recent linked_at timestamp
-                        cur.execute("""
-                            SELECT name, linked_at 
-                            FROM users 
-                            WHERE email = %s 
-                            ORDER BY linked_at DESC 
-                            LIMIT 1
-                        """, (email,))
-                        existing_user = cur.fetchone()
-                        
-                        if existing_user and existing_user[0]:
-                            # If the email is already in use, show a confirmation page with the most recent user
-                            current_user_name = existing_user[0]
-                            last_linked_at = existing_user[1]
-                            return render_template('reassign_confirmation.html', 
-                                                email=email, 
-                                                current_user_name=current_user_name,
-                                                last_linked_at=last_linked_at)
-                        else:
-                            # If the email is not in use assign user name and proceed to authorization
-                            session['pending_email'] = email
-                            return redirect(url_for('assign_user'))
-                except Exception as e:
-                    print(f"Error checking email in database: {e}")
-                    return "Error: No se pudo verificar el correo.", 500
-                finally:
-                    conn.close()
-            else:
-                return "Error: No se pudo conectar a la base de datos.", 500
+        # Store email in session and redirect to assign_user
+        session['pending_email'] = email
+        return redirect(url_for('assign_user'))
+    
+    # GET request - show form with available emails
+    conn = connect_to_db()
+    if not conn:
+        flash('Error de conexión a la base de datos.', 'danger')
+        return redirect(url_for('index'))
         
-        else:
-            # If it's a GET request, fetch the list of emails from the database
-            conn = connect_to_db()
-            if conn:
-                try:
-                    with conn.cursor() as cur:
-                        # Query to get the oldest email entries from the users table
-                        cur.execute("""
-                            SELECT email 
-                            FROM users 
-                            WHERE (email, linked_at) IN (
-                                SELECT email, MIN(linked_at)
-                                FROM users
-                                GROUP BY email
-                            )
-                        """)
-                        emails = [row[0] for row in cur.fetchall()]  # Extract emails from the query result
-                except Exception as e:
-                    print(f"Error fetching emails from database: {e}")
-                    emails = []  # Fallback to an empty list in case of error
-                finally:
-                    conn.close()
-            
-            # Render the link_device.html template with the list of emails
-        return render_template('link_device.html', emails=emails)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT DISTINCT email FROM users")
+            emails = [row[0] for row in cur.fetchall()]
+            return render_template('link_device.html', emails=emails)
     except Exception as e:
-        app.logger.error(f"Unexpected error: {e}")
-        return f"Error: {e}", 500
+        flash(f'Error: {str(e)}', 'danger')
+        return redirect(url_for('index'))
+    finally:
+        conn.close()
+
 @app.route('/livelyageing/assign', methods=['GET', 'POST'])
 @login_required
 def assign_user():
@@ -237,8 +331,14 @@ def assign_user():
                         return render_template('assign_user.html', error=error)
                     else:
                         # If the user name is not in use, proceed to authorization
-                        #Store the new name in the session for later use
+                        # Store the new name in the session for later use
                         session['new_user_name'] = user_name
+                        
+                        # Make sure we have a pending_email in the session
+                        if 'pending_email' not in session:
+                            # If no pending_email, redirect back to link_device
+                            return redirect(url_for('link_device'))
+                        
                         code_verifier = generate_code_verifier()
                         code_challenge = generate_code_challenge(code_verifier)
                         state = generate_state()
@@ -247,7 +347,6 @@ def assign_user():
                         print(f"Generated code challenge: {code_challenge}")
                         auth_url = generate_auth_url(code_challenge, state)
                         print(f"Generated auth URL: {auth_url}")
-                        session['pending_user_name'] = user_name
                         session['code_verifier'] = code_verifier
                         session['state'] = state
                         return render_template('link_auth.html', auth_url=auth_url)
@@ -260,7 +359,12 @@ def assign_user():
             return "Error: No se pudo conectar a la base de datos.", 500
     
     else:
-        # If it's a GET request, render the assign_user.html template
+        # If it's a GET request, check if we have a pending_email in the session
+        if 'pending_email' not in session:
+            # If no pending_email, redirect back to link_device
+            return redirect(url_for('link_device'))
+        
+        # Render the assign_user.html template
         return render_template('assign_user.html')
 
 # Configurar el registro
@@ -282,88 +386,116 @@ def callback():
         # Get the authorization code from the query parameters
         code = request.args.get('code')
         returned_state = request.args.get('state')
+        
         # Get the stored state from the session
         stored_state = session.get('state')
+        
         # Verify that the returned state matches the stored state
         if returned_state != stored_state:
             app.logger.error("Invalid state parameter. Possible CSRF attack.")
-            return "Error: Invalid state parameter. Possible CSRF attack.", 400
-
+            flash("Error: Invalid state parameter. Possible CSRF attack.", "danger")
+            return redirect(url_for('link_device'))
+        
         # Get the pending email and new user name from the session
         email = session.get('pending_email')
         new_user_name = session.get('new_user_name')
         code_verifier = session.get('code_verifier')
+        
+        # Check if we have all the required session variables
+        if not email:
+            app.logger.error("No se proporcionó un correo electrónico en la sesión.")
+            flash("Error: No se proporcionó un correo electrónico. Por favor, inténtalo de nuevo.", "danger")
+            return redirect(url_for('link_device'))
+        
+        if not new_user_name:
+            app.logger.error("No se proporcionó un nombre de usuario en la sesión.")
+            flash("Error: No se proporcionó un nombre de usuario. Por favor, inténtalo de nuevo.", "danger")
+            return redirect(url_for('assign_user'))
+        
+        if not code_verifier:
+            app.logger.error("No se proporcionó un code_verifier en la sesión.")
+            flash("Error: Problema de autorización. Por favor, inténtalo de nuevo.", "danger")
+            return redirect(url_for('link_device'))
+        
+        if not code:
+            app.logger.error("No se proporcionó un código de autorización.")
+            flash("Error: No se proporcionó un código de autorización. Por favor, inténtalo de nuevo.", "danger")
+            return redirect(url_for('link_device'))
 
-        if email:
-            conn = connect_to_db()
-            if conn:
-                try:
-                    with conn.cursor() as cur:
-                        # Query to check if the email is already in use
-                        cur.execute("SELECT id, access_token, refresh_token FROM users WHERE email = %s ORDER BY created_at DESC LIMIT 1", (email,))
-                        existing_user = cur.fetchone()
+        conn = connect_to_db()
+        if conn:
+            try:
+                with conn.cursor() as cur:
+                    # Query to check if the email is already in use
+                    cur.execute("SELECT id, access_token, refresh_token FROM users WHERE email = %s ORDER BY created_at DESC LIMIT 1", (email,))
+                    existing_user = cur.fetchone()
 
-                        if existing_user:
-                            user_id, existing_access_token, existing_refresh_token = existing_user
+                    if existing_user:
+                        user_id, existing_access_token, existing_refresh_token = existing_user
 
-                            # Flow 2: Reassign the device to a new user
-                            if new_user_name:
-                                if not existing_access_token or not existing_refresh_token:
-                                    # If tokens are missing, require reauthorization
-                                    if code:
-                                        # Exchange the authorization code for new tokens
-                                        access_token, refresh_token = get_tokens(code, code_verifier)
-                                        # Add a new user with the same email and new name
-                                        add_user(new_user_name, email, access_token, refresh_token)
-                                        app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) con nuevos tokens.")
-                                    else:
-                                        app.logger.error("Se requiere autorización para reasignar el dispositivo.")
-                                        return "Error: Se requiere autorización para reasignar el dispositivo.", 400
-                                else:
-                                    # If tokens are valid, simply add a new user with the same email and new name
-                                    add_user(new_user_name, email, existing_access_token, existing_refresh_token)
-                                    app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) sin necesidad de reautorización.")
-                            else:
-                                app.logger.error("Se requiere un nombre de usuario para reasignar el dispositivo.")
-                                return "Error: Se requiere un nombre de usuario para reasignar el dispositivo.", 400
-                        else:
-                            # Flow 1: Link a new email to a user
-                            if new_user_name:
+                        # Flow 2: Reassign the device to a new user
+                        if new_user_name:
+                            if not existing_access_token or not existing_refresh_token:
+                                # If tokens are missing, require reauthorization
                                 if code:
                                     # Exchange the authorization code for new tokens
                                     access_token, refresh_token = get_tokens(code, code_verifier)
-                                    # Add a new user with the new email and name
+                                    # Add a new user with the same email and new name
                                     add_user(new_user_name, email, access_token, refresh_token)
-                                    app.logger.info(f"Nuevo usuario {new_user_name} ({email}) añadido.")
+                                    app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) con nuevos tokens.")
                                 else:
-                                    app.logger.error("Se requiere autorización para vincular un nuevo correo.")
-                                    return "Error: Se requiere autorización para vincular un nuevo correo.", 400
+                                    app.logger.error("Se requiere autorización para reasignar el dispositivo.")
+                                    flash("Error: Se requiere autorización para reasignar el dispositivo.", "danger")
+                                    return redirect(url_for('link_device'))
                             else:
-                                app.logger.error("Se requiere un nombre de usuario para vincular un nuevo correo.")
-                                return "Error: Se requiere un nombre de usuario para vincular un nuevo correo.", 400
+                                # If tokens are valid, simply add a new user with the same email and new name
+                                add_user(new_user_name, email, existing_access_token, existing_refresh_token)
+                                app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) sin necesidad de reautorización.")
+                        else:
+                            app.logger.error("Se requiere un nombre de usuario para reasignar el dispositivo.")
+                            flash("Error: Se requiere un nombre de usuario para reasignar el dispositivo.", "danger")
+                            return redirect(url_for('assign_user'))
+                    else:
+                        # Flow 1: Link a new email to a user
+                        if new_user_name:
+                            if code:
+                                # Exchange the authorization code for new tokens
+                                access_token, refresh_token = get_tokens(code, code_verifier)
+                                # Add a new user with the new email and name
+                                add_user(new_user_name, email, access_token, refresh_token)
+                                app.logger.info(f"Nuevo usuario {new_user_name} ({email}) añadido.")
+                            else:
+                                app.logger.error("Se requiere autorización para vincular un nuevo correo.")
+                                flash("Error: Se requiere autorización para vincular un nuevo correo.", "danger")
+                                return redirect(url_for('link_device'))
+                        else:
+                            app.logger.error("Se requiere un nombre de usuario para vincular un nuevo correo.")
+                            flash("Error: Se requiere un nombre de usuario para vincular un nuevo correo.", "danger")
+                            return redirect(url_for('assign_user'))
 
-                        # Clear the session data
-                        session.pop('pending_email', None)
-                        session.pop('new_user_name', None)
-                        session.pop('code_verifier', None)
-                        session.pop('state', None)
+                    # Clear the session data
+                    session.pop('pending_email', None)
+                    session.pop('new_user_name', None)
+                    session.pop('code_verifier', None)
+                    session.pop('state', None)
 
-                        # Redirect to the confirmation page
-                        return render_template('confirmation.html', user_name=new_user_name, email=email)
-                except Exception as e:
-                    app.logger.error(f"Error during token exchange: {e}")
-                    return f"Error: {e}", 400
-                finally:
-                    conn.close()
-            else:
-                app.logger.error("No se pudo conectar a la base de datos.")
-                return "Error: No se pudo conectar a la base de datos.", 500
+                    # Redirect to the confirmation page
+                    return render_template('confirmation.html', user_name=new_user_name, email=email)
+            except Exception as e:
+                app.logger.error(f"Error during token exchange: {e}")
+                flash(f"Error durante el intercambio de tokens: {e}", "danger")
+                return redirect(url_for('link_device'))
+            finally:
+                conn.close()
         else:
-            app.logger.error("No se proporcionó un correo electrónico.")
-            return "Error: No se proporcionó un correo electrónico.", 400
+            app.logger.error("No se pudo conectar a la base de datos.")
+            flash("Error: No se pudo conectar a la base de datos.", "danger")
+            return redirect(url_for('link_device'))
     except Exception as e:
         app.logger.error(f"Unexpected error: {e}")
-        return f"Error: {e}", 500
+        flash(f"Error inesperado: {e}", "danger")
+        return redirect(url_for('link_device'))
+
 @app.route('/livelyageing/reassign', methods=['POST'])
 @login_required
 def reassign_device():
@@ -414,6 +546,30 @@ def reassign_device():
             conn.close()
     else:
         return "Error: No se pudo conectar a la base de datos.", 500
+
+# Template filters
+@app.template_filter('number')
+def format_number(value):
+    """Format a number with thousands separator."""
+    if value is None:
+        return '-'
+    try:
+        return f"{int(value):,}"
+    except (ValueError, TypeError):
+        return value
+
+@app.template_filter('datetime')
+def format_datetime(value):
+    """Format a datetime value."""
+    if value is None:
+        return '-'
+    try:
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return value.strftime('%Y-%m-%d %H:%M:%S')
+    except (ValueError, TypeError):
+        return value
+
 # Run the Flask app
 if __name__ == '__main__':
     # app.run(host=HOST, port=PORT, debug=DEBUG)

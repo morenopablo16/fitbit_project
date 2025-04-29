@@ -1,1 +1,101 @@
 2025-03-10 10:18:48,240 INFO: Dispositivo reasignado a bnbn (Wearable4LivelyAgeign@gmail.com) con nuevos tokens. [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:274]
+2025-04-29 17:47:04,869 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     JOIN sleep_logs s ON u.id = s.user_id
+                                 ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:133]
+2025-04-29 17:47:05,855 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     JOIN sleep_logs s ON u.id = s.user_id
+                                 ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:133]
+2025-04-29 17:52:25,594 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:145]
+2025-04-29 17:52:27,406 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:145]
+2025-04-29 17:52:40,916 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:186]
+2025-04-29 17:52:41,700 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:186]
+2025-04-29 17:52:48,597 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:145]
+2025-04-29 17:52:49,555 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:145]
+2025-04-29 18:04:04,694 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:04:06,679 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:04:14,837 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:187]
+2025-04-29 18:04:15,667 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:187]
+2025-04-29 18:09:18,212 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:09:19,280 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:49:27,521 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:49:30,066 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:54:20,197 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:54:22,012 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:54:22,418 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:332]
+2025-04-29 18:54:23,066 INFO: Found 1 emails [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:349]
+2025-04-29 18:54:23,373 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:332]
+2025-04-29 18:54:23,854 INFO: Found 1 emails [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:349]
+2025-04-29 18:54:54,164 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:332]
+2025-04-29 18:54:54,832 INFO: Found 1 emails [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:349]
+2025-04-29 18:54:55,208 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:332]
+2025-04-29 18:54:55,761 INFO: Found 1 emails [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:349]
+2025-04-29 18:58:54,275 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:187]
+2025-04-29 18:58:56,149 ERROR: Error fetching data for home page: 'tuple object' has no attribute 'id' [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:187]
+2025-04-29 18:59:00,138 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:59:01,339 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:59:04,453 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:59:05,503 ERROR: Error fetching data for dashboard: relation "sleep_logs" does not exist
+LINE 4:                     LEFT JOIN sleep_logs s ON u.id = s.user_...
+                                      ^
+ [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:146]
+2025-04-29 18:59:06,250 INFO: Request method: GET [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:285]
+2025-04-29 18:59:06,253 INFO: Form data: ImmutableMultiDict([]) [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:286]
+2025-04-29 18:59:06,254 INFO: Current session: <SecureCookieSession {'_fresh': True, '_id': '151da288189eb76a5557fc269cbde810580a34f23ed8ebf96cfcdaa0db71dc26be3293598e88ae35001ea9357dd0d7ea1afd93540bea07081cdd757d5f323245', '_user_id': 'admin'}> [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:287]
+2025-04-29 18:59:06,254 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:343]
+2025-04-29 18:59:06,743 INFO: Found 1 emails: ['Wearable4LivelyAgeign@gmail.com'] [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:359]
+2025-04-29 18:59:07,277 INFO: Request method: GET [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:285]
+2025-04-29 18:59:07,278 INFO: Form data: ImmutableMultiDict([]) [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:286]
+2025-04-29 18:59:07,278 INFO: Current session: <SecureCookieSession {'_fresh': True, '_id': '151da288189eb76a5557fc269cbde810580a34f23ed8ebf96cfcdaa0db71dc26be3293598e88ae35001ea9357dd0d7ea1afd93540bea07081cdd757d5f323245', '_user_id': 'admin'}> [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:287]
+2025-04-29 18:59:07,279 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:343]
+2025-04-29 18:59:07,824 INFO: Found 1 emails: ['Wearable4LivelyAgeign@gmail.com'] [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:359]
+2025-04-29 18:59:25,178 INFO: Request method: GET [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:285]
+2025-04-29 18:59:25,179 INFO: Form data: ImmutableMultiDict([]) [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:286]
+2025-04-29 18:59:25,180 INFO: Current session: <SecureCookieSession {'_fresh': True, '_id': '151da288189eb76a5557fc269cbde810580a34f23ed8ebf96cfcdaa0db71dc26be3293598e88ae35001ea9357dd0d7ea1afd93540bea07081cdd757d5f323245', '_user_id': 'admin'}> [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:287]
+2025-04-29 18:59:25,180 INFO: GET request received at /livelyageing/link [in C:\Users\moren\Desktop\UNIVERSIDAD\TFG\fitbit_project\app.py:343]

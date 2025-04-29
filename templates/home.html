@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Lively Ageing - Home{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center mb-4">
+            <h1 class="display-4">Lively Ageing Dashboard</h1>
+            <p class="lead">Welcome to the Lively Ageing platform. Select an option below to get started.</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">Link New Device</h3>
+                    <p class="card-text">Connect a new Fitbit device to the platform.</p>
+                    <a href="{{ url_for('link_device') }}" class="btn btn-primary">Link Device</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x mb-3 text-success"></i>
+                    <h3 class="card-title">View Dashboard</h3>
+                    <p class="card-text">See an overview of all connected devices and their data.</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-success">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-chart fa-3x mb-3 text-info"></i>
+                    <h3 class="card-title">User Statistics</h3>
+                    <p class="card-text">View detailed statistics for specific users.</p>
+                    <a href="{{ url_for('user_stats') }}" class="btn btn-info">User Stats</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4>Recent Activity</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.last_updated }}</td>
+                                    <td>
+                                        <a href="{{ url_for('user_detail', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No recent activity found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

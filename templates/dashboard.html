@@ -1,15 +1,191 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - Fitbit Dashboard{% endblock %}
+{% block title %}Lively Ageing - Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container text-center">
-    <h1>Bienvenido al Dashboard de Fitbit</h1>
-    <p>Aquí puedes ver y gestionar los datos de tus dispositivos Fitbit vinculados.</p>
-    
-    <!-- Botón para redirigir a /link -->
-    <a href="{{ url_for('link_device') }}" class="btn btn-primary">
-        Vincular un Dispositivo Fitbit
-    </a>
+<div class="container mt-4">
+    <!-- Header with refresh button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Dashboard</h1>
+        <button id="refreshBtn" class="btn btn-primary">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            Refresh Data
+        </button>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Daily Summaries -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Daily Summaries</h5>
+            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Steps</th>
+                            <th>Heart Rate</th>
+                            <th>Sleep (min)</th>
+                            <th>Calories</th>
+                            <th>Distance (km)</th>
+                            <th>Floors</th>
+                            <th>Active (min)</th>
+                            <th>Sedentary (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for summary in daily_summaries %}
+                        <tr>
+                            <td>{{ summary.name }}</td>
+                            <td>{{ summary.date|datetime }}</td>
+                            <td>{{ summary.steps|number }}</td>
+                            <td>{{ summary.heart_rate|number }}</td>
+                            <td>{{ summary.sleep_minutes|number }}</td>
+                            <td>{{ summary.calories|number }}</td>
+                            <td>{{ "%.2f"|format(summary.distance) }}</td>
+                            <td>{{ summary.floors|number }}</td>
+                            <td>{{ summary.active_minutes|number }}</td>
+                            <td>{{ summary.sedentary_minutes|number }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intraday Metrics -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Intraday Metrics</h5>
+            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Value</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for metric in intraday_metrics %}
+                        <tr>
+                            <td>{{ metric.name }}</td>
+                            <td>{{ metric.type }}</td>
+                            <td>{{ metric.value|number }}</td>
+                            <td>{{ metric.time|datetime }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Logs -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Sleep Logs</h5>
+            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Duration (min)</th>
+                            <th>Efficiency (%)</th>
+                            <th>Deep Sleep (min)</th>
+                            <th>Light Sleep (min)</th>
+                            <th>REM Sleep (min)</th>
+                            <th>Awake (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sleep in sleep_logs %}
+                        <tr>
+                            <td>{{ sleep.name }}</td>
+                            <td>{{ sleep.start_time|datetime }}</td>
+                            <td>{{ sleep.end_time|datetime }}</td>
+                            <td>{{ sleep.duration|number }}</td>
+                            <td>{{ sleep.efficiency|number }}%</td>
+                            <td>{{ sleep.deep_sleep|number }}</td>
+                            <td>{{ sleep.light_sleep|number }}</td>
+                            <td>{{ sleep.rem_sleep|number }}</td>
+                            <td>{{ sleep.awake|number }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Scroll to top button -->
+<button id="scrollTopBtn" class="btn btn-primary position-fixed bottom-0 end-0 m-4 d-none" style="z-index: 1000;">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Refresh button functionality
+    const refreshBtn = document.getElementById('refreshBtn');
+    const spinners = document.querySelectorAll('.spinner-border');
+    
+    refreshBtn.addEventListener('click', function() {
+        // Show loading state
+        refreshBtn.disabled = true;
+        refreshBtn.querySelector('.spinner-border').classList.remove('d-none');
+        spinners.forEach(spinner => spinner.classList.remove('d-none'));
+        
+        // Reload the page
+        window.location.reload();
+    });
+
+    // Scroll to top button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 100) {
+            scrollTopBtn.classList.remove('d-none');
+        } else {
+            scrollTopBtn.classList.add('d-none');
+        }
+    });
+    
+    scrollTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
+</script>
 {% endblock %}

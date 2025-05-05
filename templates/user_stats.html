@@ -35,7 +35,9 @@
                                     <td>{{ user[2] }}</td>
                                     <td>{{ user[3] }}</td>
                                     <td>
-                                        <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-sm btn-outline-primary">{{ _('View Details') }}</a>
+                                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                                            <i class="bi bi-eye"></i> {{ _('View Details') }} (Coming Soon)
+                                        </button>
                                     </td>
                                 </tr>
                                 {% else %}
@@ -51,4 +53,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

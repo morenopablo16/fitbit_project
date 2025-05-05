@@ -30,6 +30,11 @@ body {
     border: none;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
 }
 
 .card-header {
@@ -43,10 +48,7 @@ body {
     border-radius: 5px;
     padding: 0.5rem 1rem;
     font-weight: 500;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    position: relative;
-    z-index: 1;
+    transition: all 0.2s ease-in-out;
 }
 
 .btn-primary {
@@ -71,27 +73,6 @@ body {
     box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
 }
 
-/* Form specific */
-form {
-    position: relative;
-    z-index: 1;
-}
-
-button[type="submit"] {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    position: relative;
-    z-index: 2;
-}
-
-/* Alerts */
-.alert {
-    border-radius: 5px;
-    border: none;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
 /* Tables */
 .table {
     background-color: #fff;
@@ -105,72 +86,60 @@ button[type="submit"] {
     font-weight: 600;
 }
 
-/* Scroll to top button */
-.scroll-to-top {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+/* Select2 Customization */
+.select2-container--bootstrap-5 .select2-selection {
+    min-height: 38px;
+    border: 1px solid #ced4da;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.8;
-    transition: opacity 0.2s ease-in-out;
+    flex-wrap: wrap;
+    gap: 0.25rem;
 }
 
-.scroll-to-top:hover {
-    opacity: 1;
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
 }
 
-/* Loading spinner */
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+    color: white;
+    margin-right: 0.5rem;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin: 1rem 0;
+}
+
+/* Loading Spinner */
 .spinner-border {
     width: 1rem;
     height: 1rem;
     border-width: 0.2em;
 }
 
-/* Link Device Form Specific Styles */
-.link-device-form {
-    max-width: 100%;
-    position: relative;
-    z-index: 1;
-}
-
-.link-device-form .btn {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    position: relative;
-    z-index: 2;
-    width: 100%;
+/* Alert Messages */
+.alert {
+    border-radius: 5px;
+    border: none;
     padding: 1rem;
-    font-size: 1.1rem;
+    margin-bottom: 1rem;
 }
 
-.link-device-form .form-select {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 1rem;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    cursor: pointer;
+/* Utility Classes */
+.text-primary {
+    color: #0d6efd !important;
 }
 
-.link-device-form .form-select:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
-    outline: 0;
-}
-
-/* Utility classes */
-.pointer-events-auto {
-    pointer-events: auto !important;
-}
-
-.cursor-pointer {
-    cursor: pointer !important;
+.bg-primary {
+    background-color: #0d6efd !important;
 }
 
 /* Responsive adjustments */
@@ -189,15 +158,6 @@ button[type="submit"] {
     }
 }
 
-/* Custom utility classes */
-.text-primary {
-    color: #0d6efd !important;
-}
-
-.bg-primary {
-    background-color: #0d6efd !important;
-}
-
 /* Animation classes */
 .fade-in {
     animation: fadeIn 0.5s ease-in;
@@ -212,4 +172,51 @@ button[type="submit"] {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Ensure clickable elements remain clickable */
+.btn,
+.form-control,
+.select2-container--bootstrap-5 .select2-selection,
+.table tbody tr {
+    cursor: pointer;
+}
+
+/* Ensure form elements are properly interactive */
+input[type="text"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    pointer-events: auto !important;
+}
+
+/* Ensure buttons remain clickable */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Ensure links remain clickable */
+a {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Ensure table rows remain clickable */
+.table tbody tr {
+    pointer-events: auto !important;
+}
+
+/* Ensure select2 elements remain clickable */
+.select2-container--bootstrap-5 {
+    pointer-events: auto !important;
+}
+
+/* Ensure chart elements remain interactive */
+.chart-container canvas {
+    pointer-events: auto !important;
 } 

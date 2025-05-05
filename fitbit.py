@@ -5,6 +5,7 @@ from datetime import datetime
 from db import get_unique_emails, save_to_db, get_user_tokens, get_latest_user_id_by_email, update_users_tokens, insert_daily_summary, insert_intraday_metric
 import sys
 import os
+from alert_rules import evaluate_all_alerts
 
 load_dotenv()
 
@@ -145,6 +146,11 @@ def get_fitbit_data(access_token, email):
         respiratory_rate=respiratory_rate,
         temperature=temperature
     )
+
+    # Evaluar alertas después de guardar los datos
+    alerts = evaluate_all_alerts(user_id)
+    if alerts:
+        print(f"Alertas generadas para {email}: {alerts}")
 
     # Imprimir los datos recopilados
     print(f"Email: {email}")

@@ -3,159 +3,33 @@
 {% block title %}{{ get_text('common.dashboard') }} - Lively Ageing{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Header with refresh button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>{{ get_text('common.dashboard') }}</h1>
-        <button id="refreshBtn" class="btn btn-primary">
-            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-            {{ get_text('dashboard.refresh_data') }}
-        </button>
-    </div>
+<div id="dashboard-root"></div>
 
-    {% if error %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        {{ error }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endif %}
+<!-- Material-UI -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
-    <!-- Daily Summaries -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ get_text('dashboard.daily_summary') }}</h5>
-            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>{{ get_text('common.user') }}</th>
-                            <th>{{ get_text('common.date') }}</th>
-                            <th>{{ get_text('dashboard.steps') }}</th>
-                            <th>{{ get_text('dashboard.heart_rate') }}</th>
-                            <th>{{ get_text('dashboard.sleep') }} (min)</th>
-                            <th>{{ get_text('dashboard.calories') }}</th>
-                            <th>{{ get_text('dashboard.distance') }} (km)</th>
-                            <th>{{ get_text('dashboard.floors') }}</th>
-                            <th>{{ get_text('dashboard.active_minutes') }}</th>
-                            <th>{{ get_text('dashboard.sedentary_minutes') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for summary in daily_summaries %}
-                        <tr>
-                            <td>{{ summary.name }}</td>
-                            <td>{{ summary.date|datetime }}</td>
-                            <td>{{ summary.steps|number }}</td>
-                            <td>{{ summary.heart_rate|number }}</td>
-                            <td>{{ summary.sleep_minutes|number }}</td>
-                            <td>{{ summary.calories|number }}</td>
-                            <td>{{ "%.2f"|format(summary.distance) }}</td>
-                            <td>{{ summary.floors|number }}</td>
-                            <td>{{ summary.active_minutes|number }}</td>
-                            <td>{{ summary.sedentary_minutes|number }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="10" class="text-center">{{ get_text('dashboard.no_data') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<!-- React and ReactDOM -->
+<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
 
-    <!-- Intraday Metrics -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ get_text('dashboard.intraday_metrics') }}</h5>
-            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>{{ get_text('common.user') }}</th>
-                            <th>{{ get_text('common.type') }}</th>
-                            <th>{{ get_text('common.value') }}</th>
-                            <th>{{ get_text('common.time') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for metric in intraday_metrics %}
-                        <tr>
-                            <td>{{ metric.name }}</td>
-                            <td>{{ metric.type }}</td>
-                            <td>{{ metric.value|number }}</td>
-                            <td>{{ metric.time|datetime }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center">{{ get_text('dashboard.no_data') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<!-- Babel -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Sleep Logs -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ get_text('dashboard.sleep') }}</h5>
-            <div class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>{{ get_text('common.user') }}</th>
-                            <th>{{ get_text('dashboard.sleep_start') }}</th>
-                            <th>{{ get_text('dashboard.sleep_end') }}</th>
-                            <th>{{ get_text('dashboard.sleep_duration') }} (min)</th>
-                            <th>{{ get_text('dashboard.sleep_efficiency') }} (%)</th>
-                            <th>{{ get_text('dashboard.deep_sleep') }} (min)</th>
-                            <th>{{ get_text('dashboard.light_sleep') }} (min)</th>
-                            <th>{{ get_text('dashboard.rem_sleep') }} (min)</th>
-                            <th>{{ get_text('dashboard.awake') }} (min)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sleep in sleep_logs %}
-                        <tr>
-                            <td>{{ sleep.name }}</td>
-                            <td>{{ sleep.start_time|datetime }}</td>
-                            <td>{{ sleep.end_time|datetime }}</td>
-                            <td>{{ sleep.duration|number }}</td>
-                            <td>{{ sleep.efficiency|number }}%</td>
-                            <td>{{ sleep.deep_sleep|number }}</td>
-                            <td>{{ sleep.light_sleep|number }}</td>
-                            <td>{{ sleep.rem_sleep|number }}</td>
-                            <td>{{ sleep.awake|number }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="9" class="text-center">{{ get_text('dashboard.no_data') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Material-UI -->
+<script src="https://unpkg.com/@mui/material@5.0.0/umd/material-ui.development.js"></script>
+<script src="https://unpkg.com/@mui/icons-material@5.0.0/index.js"></script>
 
-<!-- Scroll to top button -->
-<button id="scrollTopBtn" class="btn btn-primary position-fixed bottom-0 end-0 m-4 d-none" style="z-index: 1000;">
-    <i class="bi bi-arrow-up"></i>
-</button>
+<!-- Dashboard Component -->
+<script type="text/babel" src="{{ url_for('static', filename='js/components/Dashboard.jsx') }}"></script>
 
+<!-- Initialize Dashboard -->
+<script type="text/babel">
+    ReactDOM.render(
+        <Dashboard />,
+        document.getElementById('dashboard-root')
+    );
+</script>
 {% endblock %}
 
 {% block scripts %}
@@ -177,8 +51,36 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshBtn.querySelector('.spinner-border').classList.remove('d-none');
         spinners.forEach(spinner => spinner.classList.remove('d-none'));
         
-        // Reload the page
-        window.location.reload();
+        // Make an AJAX call to refresh the data
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Replace the content of the dashboard
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('.container');
+            document.querySelector('.container').innerHTML = newContent.innerHTML;
+            
+            // Reinitialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        })
+        .catch(error => {
+            console.error('Error refreshing data:', error);
+            alert('Error refreshing data. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            refreshBtn.disabled = false;
+            refreshBtn.querySelector('.spinner-border').classList.add('d-none');
+            spinners.forEach(spinner => spinner.classList.add('d-none'));
+        });
     });
 
     // Scroll to top button

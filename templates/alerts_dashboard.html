@@ -222,12 +222,21 @@
                         <p><strong>Valor Disparador:</strong> <span id="modal-trigger"></span></p>
                         <p><strong>Umbral:</strong> <span id="modal-threshold"></span></p>
                         <p><strong>Estado:</strong> <span id="modal-status"></span></p>
+                        <p><strong>Tiempo desde alerta:</strong> <span id="modal-time-since"></span></p>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-12">
                         <p><strong>Detalles:</strong></p>
                         <p id="modal-details" class="p-3 bg-light rounded"></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div id="intraday-chart-container" style="display: none;">
+                            <h5>Datos Intradía (Últimas 24h)</h5>
+                            <canvas id="intraday-chart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,9 +270,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 let alertDetailsModal;
 let acknowledgeModal;
+let intradayChart = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     alertDetailsModal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
@@ -273,22 +284,91 @@ document.addEventListener('DOMContentLoaded', function() {
 function showAlertDetails(alertId) {
     // Obtener los datos de la alerta
     fetch(`/livelyageing/api/alerts/${alertId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar los detalles de la alerta');
+            }
+            return response.json();
+        })
         .then(data => {
-            document.getElementById('modal-time').textContent = new Date(data.time).toLocaleString();
-            document.getElementById('modal-user').textContent = `${data.user_name} (${data.user_email})`;
-            document.getElementById('modal-type').textContent = data.type;
-            document.getElementById('modal-priority').textContent = data.priority;
-            document.getElementById('modal-trigger').textContent = data.triggering_value || '—';
-            document.getElementById('modal-threshold').textContent = data.threshold_value || '—';
-            document.getElementById('modal-status').textContent = data.acknowledged ? 'Reconocida' : 'Pendiente';
-            document.getElementById('modal-details').textContent = data.details || '—';
+            if (!data.alert) {
+                throw new Error('Datos de alerta no válidos');
+            }
+            
+            const alert = data.alert;
+            document.getElementById('modal-time').textContent = new Date(alert.time).toLocaleString();
+            document.getElementById('modal-user').textContent = `${alert.user_name} (${alert.user_email})`;
+            document.getElementById('modal-type').textContent = alert.type;
+            document.getElementById('modal-priority').textContent = alert.priority;
+            document.getElementById('modal-trigger').textContent = alert.triggering_value || '—';
+            document.getElementById('modal-threshold').textContent = alert.threshold_value || '—';
+            document.getElementById('modal-status').textContent = alert.acknowledged ? 'Reconocida' : 'Pendiente';
+            document.getElementById('modal-details').textContent = alert.details || '—';
+            document.getElementById('modal-time-since').textContent = `${data.hours_since_alert} horas`;
+            
+            // Actualizar estilo según nivel de escalada
+            const statusElement = document.getElementById('modal-status');
+            statusElement.className = ''; // Limpiar clases anteriores
+            if (!alert.acknowledged) {
+                if (data.escalation_level === 2) {
+                    statusElement.classList.add('text-danger', 'fw-bold');
+                    statusElement.textContent += ' ⚠️ URGENTE';
+                } else if (data.escalation_level === 1) {
+                    statusElement.classList.add('text-warning');
+                    statusElement.textContent += ' ⏰';
+                }
+            }
+            
+            // Mostrar gráfico si hay datos intradía
+            const chartContainer = document.getElementById('intraday-chart-container');
+            if (data.intraday_data && data.intraday_data.length > 0) {
+                chartContainer.style.display = 'block';
+                
+                // Destruir gráfico anterior si existe
+                if (intradayChart) {
+                    intradayChart.destroy();
+                }
+                
+                // Crear nuevo gráfico
+                const ctx = document.getElementById('intraday-chart').getContext('2d');
+                intradayChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.intraday_data.map(d => new Date(d.time).toLocaleTimeString()),
+                        datasets: [{
+                            label: alert.type,
+                            data: data.intraday_data.map(d => d.value),
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hora'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Valor'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                chartContainer.style.display = 'none';
+            }
             
             alertDetailsModal.show();
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los detalles de la alerta');
+            alert(error.message || 'Error al cargar los detalles de la alerta');
         });
 }
 

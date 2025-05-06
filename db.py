@@ -231,10 +231,19 @@ class DatabaseManager:
 # Función de conveniencia para mantener compatibilidad con el código existente
 def connect_to_db():
     """Función de conveniencia para mantener compatibilidad con el código existente."""
-    db = DatabaseManager()
-    if db.connect():
-        return db
-    return None
+    try:
+        connection = psycopg2.connect(
+            host=DB_CONFIG["host"],
+            database=DB_CONFIG["database"],
+            user=DB_CONFIG["user"],
+            password=DB_CONFIG["password"],
+            port=DB_CONFIG["port"],
+            sslmode=DB_CONFIG["sslmode"]
+        )
+        return connection
+    except Exception as e:
+        print(f"Error al conectar a la base de datos: {e}")
+        return None
 
 def init_db():
     """
@@ -1172,153 +1181,114 @@ def reset_database():
             connection.close()
 
 def create_test_data():
-    """Create test data for development and testing purposes."""
+    """Crea datos de prueba para desarrollo"""
     conn = connect_to_db()
     if not conn:
         return False
-
+        
     try:
-        with conn.cursor() as cur:
-            print("Clearing existing test data...")
-            # Clear existing test data
-            cur.execute("DELETE FROM alerts")
-            cur.execute("DELETE FROM daily_summaries")
-            cur.execute("DELETE FROM intraday_metrics")
-            cur.execute("DELETE FROM sleep_logs")
-            cur.execute("DELETE FROM users")
-
-            print("Adding test users...")
-            # Add test users
-            cur.execute("""
-                INSERT INTO users (name, email, access_token, refresh_token, created_at)
-                VALUES 
-                    ('Test User 1', 'test1@example.com', 'test_token_1', 'test_refresh_1', NOW()),
-                    ('Test User 2', 'test2@example.com', 'test_token_2', 'test_refresh_2', NOW()),
-                    ('Test User 3', 'test3@example.com', 'test_token_3', 'test_refresh_3', NOW())
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO users (name, email, access_token, refresh_token)
+                VALUES ('Test User', 'test@example.com', 'test_token', 'test_refresh')
                 RETURNING id
             """)
-            user_ids = [row[0] for row in cur.fetchall()]
-
-            print("Generating test data for the last 7 days...")
-            # Generate test data for the last 7 days instead of 30
-            base_date = datetime.now().date()
-            for user_id in user_ids:
-                for i in range(7):  # Changed from 30 to 7 days
-                    date = base_date - timedelta(days=i)
-                    print(f"Generating data for user {user_id}, date {date}")
-                    
-                    # Generate daily summary with varying patterns
-                    steps = random.randint(5000, 15000)
-                    heart_rate = random.randint(60, 100)
-                    sleep_minutes = random.randint(360, 540)  # 6-9 hours
-                    calories = random.randint(1800, 2500)
-                    distance = round(random.uniform(3.0, 8.0), 2)
-                    floors = random.randint(5, 20)
-                    elevation = random.randint(100, 500)
-                    active_minutes = random.randint(30, 120)
-                    sedentary_minutes = random.randint(300, 600)
-                    
-                    # Add some anomalies for testing alerts
-                    if i == 0:  # Today
-                        steps = 2000  # Low steps for activity drop alert
-                        heart_rate = 120  # High heart rate for anomaly
-                        sleep_minutes = 300  # Low sleep for pattern change
-                        sedentary_minutes = 800  # High sedentary time
-                    elif i == 1:  # Yesterday
-                        steps = 15000  # High steps for comparison
-                        heart_rate = 65  # Normal heart rate
-                        sleep_minutes = 480  # Normal sleep
-                        sedentary_minutes = 400  # Normal sedentary time
-                    
-                    cur.execute("""
-                        INSERT INTO daily_summaries 
-                        (user_id, date, steps, heart_rate, sleep_minutes, calories, 
-                         distance, floors, elevation, active_minutes, sedentary_minutes)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """, (user_id, date, steps, heart_rate, sleep_minutes, calories, 
-                          distance, floors, elevation, active_minutes, sedentary_minutes))
-
-                    print(f"  - Added daily summary for {date}")
-                    
-                    # Generate intraday metrics for each hour (only for today and yesterday)
-                    if i <= 1:  # Only generate for today and yesterday
-                        print(f"  - Adding hourly metrics for {date}")
-                        for hour in range(24):
-                            time = datetime.combine(date, datetime.min.time()) + timedelta(hours=hour)
-                            
-                            # Generate different types of metrics
-                            # Steps
-                            cur.execute("""
-                                INSERT INTO intraday_metrics (user_id, time, type, value)
-                                VALUES (%s, %s, 'steps', %s)
-                            """, (user_id, time, random.randint(100, 1000)))
-                            
-                            # Heart rate with some anomalies
-                            hr_value = random.randint(60, 100)
-                            if hour == 12:  # Midday anomaly
-                                hr_value = random.randint(120, 150)
-                            cur.execute("""
-                                INSERT INTO intraday_metrics (user_id, time, type, value)
-                                VALUES (%s, %s, 'heart_rate', %s)
-                            """, (user_id, time, hr_value))
-                            
-                            # Activity level (0: sedentary, 1: light, 2: moderate, 3: intense)
-                            activity_value = random.randint(0, 3)
-                            cur.execute("""
-                                INSERT INTO intraday_metrics (user_id, time, type, value)
-                                VALUES (%s, %s, 'activity_level', %s)
-                            """, (user_id, time, activity_value))
-                            
-                            # Calories
-                            cur.execute("""
-                                INSERT INTO intraday_metrics (user_id, time, type, value)
-                                VALUES (%s, %s, 'calories', %s)
-                            """, (user_id, time, random.randint(50, 200)))
-
-                    # Generate sleep logs
-                    print(f"  - Adding sleep data for {date}")
-                    sleep_start = datetime.combine(date, datetime.min.time()) + timedelta(hours=22)
-                    sleep_end = sleep_start + timedelta(minutes=sleep_minutes)
-                    
-                    cur.execute("""
-                        INSERT INTO sleep_logs 
-                        (user_id, start_time, end_time, duration_ms, efficiency, 
-                         minutes_asleep, minutes_awake, minutes_in_rem, minutes_in_light, minutes_in_deep)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """, (user_id, sleep_start, sleep_end, 
-                          sleep_minutes * 60000,  # duration_ms (convert minutes to milliseconds)
-                          random.randint(80, 95),  # efficiency
-                          sleep_minutes - random.randint(30, 60),  # minutes_asleep
-                          random.randint(20, 40),  # minutes_awake
-                          random.randint(60, 120),  # minutes_in_rem
-                          random.randint(120, 240),  # minutes_in_light
-                          random.randint(60, 120)))  # minutes_in_deep
-
-            print("Generating test alerts...")
-            # Generate test alerts for various scenarios
+            user_id = cursor.fetchone()[0]
+            
+            # Fecha de la alerta (hoy)
+            alert_date = datetime.now().date()
+            
+            # Crear datos de actividad para los últimos 7 días
+            for i in range(7):
+                date = alert_date - timedelta(days=i)
+                cursor.execute("""
+                    INSERT INTO daily_summaries (
+                        user_id, date, steps, heart_rate, sleep_minutes,
+                        calories, distance, floors, elevation, active_minutes,
+                        sedentary_minutes
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (user_id, date) DO UPDATE SET
+                        steps = EXCLUDED.steps,
+                        heart_rate = EXCLUDED.heart_rate,
+                        sleep_minutes = EXCLUDED.sleep_minutes,
+                        calories = EXCLUDED.calories,
+                        distance = EXCLUDED.distance,
+                        floors = EXCLUDED.floors,
+                        elevation = EXCLUDED.elevation,
+                        active_minutes = EXCLUDED.active_minutes,
+                        sedentary_minutes = EXCLUDED.sedentary_minutes
+                """, (
+                    user_id, date,
+                    8000 + random.randint(-500, 500),  # steps
+                    70 + random.randint(-5, 5),        # heart_rate
+                    420 + random.randint(-30, 30),     # sleep_minutes
+                    2000 + random.randint(-200, 200),  # calories
+                    5.5 + random.uniform(-0.5, 0.5),   # distance
+                    10 + random.randint(-2, 2),        # floors
+                    100 + random.randint(-10, 10),     # elevation
+                    45 + random.randint(-10, 10),      # active_minutes
+                    600 + random.randint(-30, 30)      # sedentary_minutes
+                ))
+                
+                # Crear datos intradía SOLO para el día de la alerta (hoy)
+                if date == alert_date:
+                    for hour in range(24):
+                        # Pasos cada hora
+                        time = datetime.combine(date, datetime.min.time()) + timedelta(hours=hour)
+                        steps = random.randint(0, 1000)
+                        cursor.execute("""
+                            INSERT INTO intraday_metrics (user_id, time, type, value)
+                            VALUES (%s, %s, %s, %s)
+                        """, (user_id, time, 'steps', steps))
+                        # Frecuencia cardíaca cada hora
+                        hr = random.randint(60, 120)
+                        cursor.execute("""
+                            INSERT INTO intraday_metrics (user_id, time, type, value)
+                            VALUES (%s, %s, %s, %s)
+                        """, (user_id, time, 'heart_rate', hr))
+                        # Calorías cada hora
+                        calories = random.randint(50, 200)
+                        cursor.execute("""
+                            INSERT INTO intraday_metrics (user_id, time, type, value)
+                            VALUES (%s, %s, %s, %s)
+                        """, (user_id, time, 'calories', calories))
+            
+            # Crear alertas de prueba para la fecha de hoy
             alert_types = [
-                ('activity_drop', 'high', 'Significant drop in daily steps detected'),
-                ('heart_rate_anomaly', 'high', 'Abnormal heart rate detected'),
-                ('sleep_duration_change', 'medium', 'Unusual sleep duration detected'),
-                ('sedentary_increase', 'medium', 'Increased sedentary time detected'),
-                ('data_quality', 'low', 'Missing data points detected')
+                ('activity_drop', 'Bajo nivel de actividad detectado'),
+                ('sedentary_increase', 'Aumento significativo en tiempo sedentario'),
+                ('sleep_duration_change', 'Cambio significativo en la duración del sueño'),
+                ('heart_rate_anomaly', 'Anomalía en la frecuencia cardíaca detectada')
             ]
-
-            for user_id in user_ids:
-                for alert_type, priority, message in alert_types:
-                    cur.execute("""
-                        INSERT INTO alerts 
-                        (user_id, alert_time, alert_type, priority, details)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, (user_id, datetime.now(), alert_type, priority, message))
-
+            for i in range(3):
+                alert_time = datetime.combine(alert_date, datetime.min.time()) + timedelta(hours=8*i)
+                alert_type, message = random.choice(alert_types)
+                cursor.execute("""
+                    INSERT INTO alerts (
+                        user_id, alert_time, alert_type, priority, details
+                    ) VALUES (%s, %s, %s, %s, %s)
+                """, (
+                    user_id, alert_time, alert_type,
+                    random.choice(['low', 'medium', 'high']),
+                    message
+                ))
+            # Alerta de alta prioridad no reconocida para hoy
+            cursor.execute("""
+                INSERT INTO alerts (
+                    user_id, alert_time, alert_type, priority, details, acknowledged
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                user_id, datetime.combine(alert_date, datetime.min.time()) + timedelta(hours=17),
+                'heart_rate_anomaly', 'high',
+                'Frecuencia cardíaca anormalmente alta',
+                False
+            ))
             conn.commit()
-            print("Test data generation completed successfully!")
+            print("Datos de prueba creados exitosamente")
             return True
-
     except Exception as e:
-        print(f"Error creating test data: {e}")
         conn.rollback()
+        print(f"Error creando datos de prueba: {str(e)}")
         return False
     finally:
         conn.close()

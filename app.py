@@ -794,6 +794,7 @@ def get_alert_details(alert_id):
             SELECT 
                 a.id,
                 a.alert_time,
+                a.user_id,
                 a.alert_type,
                 a.priority,
                 a.triggering_value,
@@ -812,21 +813,85 @@ def get_alert_details(alert_id):
             return jsonify({'error': 'Alerta no encontrada'}), 404
 
         alert = result[0]
+        
+        # Determinar el tipo de métrica basado en el tipo de alerta
+        metric_type = None
+        alert_type = alert[3].lower()
+        
+        if 'heart_rate' in alert_type:
+            metric_type = 'heart_rate'
+        elif 'steps' in alert_type:
+            metric_type = 'steps'
+        elif 'active_zone_minutes' in alert_type:
+            metric_type = 'active_zone_minutes'
+        elif 'calories' in alert_type:
+            metric_type = 'calories'
+        elif 'activity_drop' in alert_type:
+            metric_type = 'steps'  # activity_drop está relacionado con pasos
+        elif 'sedentary_increase' in alert_type:
+            metric_type = 'active_zone_minutes'  # sedentary está relacionado con minutos activos
+        elif 'sleep_duration_change' in alert_type:
+            metric_type = 'sleep'  # sleep tiene su propia métrica
+        
+        # Si tenemos un tipo de métrica válido, obtener datos intradía
+        intraday_data = None
+        if metric_type:
+            # Obtener datos del día de la alerta
+            alert_date = alert[1].date()
+            start_time = datetime.combine(alert_date, datetime.min.time())
+            end_time = datetime.combine(alert_date, datetime.max.time())
+            
+            intraday_query = """
+                SELECT time, value
+                FROM intraday_metrics
+                WHERE user_id = %s AND type = %s AND time BETWEEN %s AND %s
+                ORDER BY time
+            """
+            intraday_data = db.execute_query(
+                intraday_query,
+                (alert[2], metric_type, start_time, end_time)
+            )
+            
+            # Convertir a formato para el gráfico
+            if intraday_data:
+                intraday_data = [
+                    {'time': row[0].strftime('%Y-%m-%d %H:%M:%S'), 'value': float(row[1])}
+                    for row in intraday_data
+                ]
+        
+        # Calcular tiempo desde que se generó la alerta
+        current_time = datetime.now(alert[1].tzinfo) if alert[1].tzinfo else datetime.now()
+        time_since_alert = current_time - alert[1]
+        hours_since_alert = time_since_alert.total_seconds() / 3600
+        
+        # Determinar nivel de escalada
+        escalation_level = 0
+        if not alert[8]:  # Si no está reconocida
+            if hours_since_alert >= 4 and alert[4] == 'high':
+                escalation_level = 2
+            elif hours_since_alert >= 1:
+                escalation_level = 1
+        
         return jsonify({
-            'id': alert[0],
-            'time': alert[1].isoformat(),
-            'type': alert[2],
-            'priority': alert[3],
-            'triggering_value': alert[4],
-            'threshold_value': alert[5],
-            'details': alert[6],
-            'acknowledged': alert[7],
-            'user_name': alert[8],
-            'user_email': alert[9]
+            'alert': {
+                'id': alert[0],
+                'time': alert[1].isoformat(),
+                'type': alert[3],
+                'priority': alert[4],
+                'triggering_value': alert[5],
+                'threshold_value': alert[6],
+                'details': alert[7],
+                'acknowledged': alert[8],
+                'user_name': alert[9],
+                'user_email': alert[10]
+            },
+            'intraday_data': intraday_data,
+            'escalation_level': escalation_level,
+            'hours_since_alert': round(hours_since_alert, 1)
         })
 
     except Exception as e:
-        app.logger.error(f"Error al obtener detalles de la alerta: {e}")
+        app.logger.error(f"Error getting alert details: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/livelyageing/api/alerts/<int:alert_id>/acknowledge', methods=['POST'])

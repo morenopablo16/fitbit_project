@@ -689,6 +689,7 @@ def alerts_dashboard():
         date_to = request.args.get('date_to')
         priority = request.args.get('priority')
         acknowledged = request.args.get('acknowledged')
+        user_query = request.args.get('user_query')
         page = request.args.get('page', 1, type=int)
         per_page = 10  # Número de alertas por página
 
@@ -725,6 +726,10 @@ def alerts_dashboard():
         if acknowledged is not None and acknowledged != '':
             query += " AND a.acknowledged = %s"
             params.append(acknowledged == 'true')
+        if user_query:
+            query += " AND (LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s))"
+            search_term = f"%{user_query}%"
+            params.extend([search_term, search_term])
 
         # Ordenar por fecha descendente
         query += " ORDER BY a.alert_time DESC"
@@ -776,6 +781,54 @@ def alerts_dashboard():
         app.logger.error(f"Error al cargar el dashboard de alertas: {e}")
         return render_template('alerts_dashboard.html', alerts=[], pagination=None)
 
+@app.route('/livelyageing/api/alerts/<int:alert_id>')
+@login_required
+def get_alert_details(alert_id):
+    try:
+        db = DatabaseManager()
+        if not db.connect():
+            return jsonify({'error': 'Database connection error'}), 500
+
+        # Obtener los detalles de la alerta
+        query = """
+            SELECT 
+                a.id,
+                a.alert_time,
+                a.alert_type,
+                a.priority,
+                a.triggering_value,
+                a.threshold_value,
+                a.details,
+                a.acknowledged,
+                u.name AS user_name,
+                u.email AS user_email
+            FROM alerts a
+            JOIN users u ON a.user_id = u.id
+            WHERE a.id = %s
+        """
+        result = db.execute_query(query, (alert_id,))
+
+        if not result:
+            return jsonify({'error': 'Alerta no encontrada'}), 404
+
+        alert = result[0]
+        return jsonify({
+            'id': alert[0],
+            'time': alert[1].isoformat(),
+            'type': alert[2],
+            'priority': alert[3],
+            'triggering_value': alert[4],
+            'threshold_value': alert[5],
+            'details': alert[6],
+            'acknowledged': alert[7],
+            'user_name': alert[8],
+            'user_email': alert[9]
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error al obtener detalles de la alerta: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/livelyageing/api/alerts/<int:alert_id>/acknowledge', methods=['POST'])
 @login_required
 def acknowledge_alert(alert_id):
@@ -784,10 +837,23 @@ def acknowledge_alert(alert_id):
         if not db.connect():
             return jsonify({'error': 'Database connection error'}), 500
 
-        # Actualizar el estado de la alerta
+        # Obtener la nota del médico del cuerpo de la petición
+        data = request.get_json()
+        note = data.get('note', '')
+
+        # Actualizar el estado de la alerta y añadir la nota
         result = db.execute_query(
-            "UPDATE alerts SET acknowledged = TRUE WHERE id = %s RETURNING id",
-            (alert_id,)
+            """
+            UPDATE alerts 
+            SET acknowledged = TRUE,
+                details = CASE 
+                    WHEN details IS NULL THEN %s
+                    ELSE details || E'\n\nNota del médico (' || CURRENT_TIMESTAMP || '): ' || %s
+                END
+            WHERE id = %s 
+            RETURNING id
+            """,
+            (note, note, alert_id)
         )
 
         if result and result[0][0]:

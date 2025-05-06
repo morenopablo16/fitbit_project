@@ -6,14 +6,57 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <style>
-        .priority-high { background-color: #f8d7da; }   /* rojo claro */
-        .priority-medium { background-color: #fff3cd; } /* amarillo */
-        .priority-low { background-color: #d1e7dd; }    /* verde claro */
-        .filter-section { background-color: #f8f9fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-        .stats-card { background-color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stats-number { font-size: 1.5rem; font-weight: bold; }
-        .acknowledge-btn { cursor: pointer; }
-        .acknowledge-btn:hover { opacity: 0.8; }
+        .priority-high { 
+            background-color: #f8d7da;
+            border-left: 5px solid #dc3545 !important;
+        }
+        .priority-medium { 
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107 !important;
+        }
+        .priority-low { 
+            background-color: #d1e7dd;
+            border-left: 5px solid #198754 !important;
+        }
+        .filter-section { 
+            background-color: #f8f9fa; 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            margin-bottom: 1rem; 
+        }
+        .stats-card { 
+            background-color: white; 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            margin-bottom: 1rem; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .stats-number { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+        }
+        .acknowledge-btn { 
+            cursor: pointer; 
+        }
+        .acknowledge-btn:hover { 
+            opacity: 0.8; 
+        }
+        .alert-row { 
+            cursor: pointer; 
+        }
+        .alert-row:hover { 
+            background-color: rgba(0,0,0,0.05); 
+        }
+        .severity-indicator {
+            width: 4px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .modal-lg {
+            max-width: 800px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -51,13 +94,17 @@
     <!-- Filtros -->
     <div class="filter-section">
         <form method="GET" class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Fecha Desde</label>
                 <input type="date" class="form-control" name="date_from" value="{{ request.args.get('date_from', '') }}">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Fecha Hasta</label>
                 <input type="date" class="form-control" name="date_to" value="{{ request.args.get('date_to', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Usuario</label>
+                <input type="text" class="form-control" name="user_query" placeholder="Nombre o email" value="{{ request.args.get('user_query', '') }}">
             </div>
             <div class="col-md-2">
                 <label class="form-label">Prioridad</label>
@@ -91,24 +138,18 @@
                     <th>Fecha/Hora</th>
                     <th>Usuario</th>
                     <th>Tipo de Alerta</th>
-                    <th>Valor Disparador</th>
-                    <th>Umbral</th>
                     <th>Prioridad</th>
-                    <th>Detalles</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for alert in alerts %}
-                <tr class="priority-{{ alert.priority|lower }}">
+                <tr class="priority-{{ alert.priority|lower }} alert-row" onclick="showAlertDetails({{ alert.id }})">
                     <td>{{ alert.alert_time.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>{{ alert.user_name }} ({{ alert.user_email }})</td>
                     <td>{{ alert.alert_type }}</td>
-                    <td>{{ alert.triggering_value or '—' }}</td>
-                    <td>{{ alert.threshold_value or '—' }}</td>
                     <td><strong>{{ alert.priority }}</strong></td>
-                    <td>{{ alert.details or '—' }}</td>
                     <td>
                         {% if alert.acknowledged %}
                             <span class="badge bg-success">Reconocida</span>
@@ -119,7 +160,7 @@
                     <td>
                         {% if not alert.acknowledged %}
                         <button class="btn btn-sm btn-outline-success acknowledge-btn" 
-                                onclick="acknowledgeAlert({{ alert.id }})"
+                                onclick="showAcknowledgeModal({{ alert.id }})"
                                 title="Marcar como reconocida">
                             <i class="bi bi-check-circle"></i>
                         </button>
@@ -161,29 +202,127 @@
     {% endif %}
 </div>
 
+<!-- Modal de Detalles de Alerta -->
+<div class="modal fade" id="alertDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Fecha/Hora:</strong> <span id="modal-time"></span></p>
+                        <p><strong>Usuario:</strong> <span id="modal-user"></span></p>
+                        <p><strong>Tipo de Alerta:</strong> <span id="modal-type"></span></p>
+                        <p><strong>Prioridad:</strong> <span id="modal-priority"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Valor Disparador:</strong> <span id="modal-trigger"></span></p>
+                        <p><strong>Umbral:</strong> <span id="modal-threshold"></span></p>
+                        <p><strong>Estado:</strong> <span id="modal-status"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <p><strong>Detalles:</strong></p>
+                        <p id="modal-details" class="p-3 bg-light rounded"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Reconocimiento -->
+<div class="modal fade" id="acknowledgeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reconocer Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="acknowledgeForm">
+                    <input type="hidden" id="alertId" name="alertId">
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Nota del médico:</label>
+                        <textarea class="form-control" id="note" name="note" rows="3" placeholder="Añade una nota sobre la acción tomada..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="acknowledgeAlert()">Reconocer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function acknowledgeAlert(alertId) {
-    if (confirm('¿Estás seguro de que deseas marcar esta alerta como reconocida?')) {
-        fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
+let alertDetailsModal;
+let acknowledgeModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    alertDetailsModal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
+    acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));
+});
+
+function showAlertDetails(alertId) {
+    // Obtener los datos de la alerta
+    fetch(`/livelyageing/api/alerts/${alertId}`)
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error al reconocer la alerta: ' + data.error);
-            }
+            document.getElementById('modal-time').textContent = new Date(data.time).toLocaleString();
+            document.getElementById('modal-user').textContent = `${data.user_name} (${data.user_email})`;
+            document.getElementById('modal-type').textContent = data.type;
+            document.getElementById('modal-priority').textContent = data.priority;
+            document.getElementById('modal-trigger').textContent = data.triggering_value || '—';
+            document.getElementById('modal-threshold').textContent = data.threshold_value || '—';
+            document.getElementById('modal-status').textContent = data.acknowledged ? 'Reconocida' : 'Pendiente';
+            document.getElementById('modal-details').textContent = data.details || '—';
+            
+            alertDetailsModal.show();
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al reconocer la alerta');
+            alert('Error al cargar los detalles de la alerta');
         });
-    }
+}
+
+function showAcknowledgeModal(alertId) {
+    event.stopPropagation(); // Evitar que se abra el modal de detalles
+    document.getElementById('alertId').value = alertId;
+    document.getElementById('note').value = '';
+    acknowledgeModal.show();
+}
+
+function acknowledgeAlert() {
+    const alertId = document.getElementById('alertId').value;
+    const note = document.getElementById('note').value;
+
+    fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ note: note })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            acknowledgeModal.hide();
+            location.reload();
+        } else {
+            alert('Error al reconocer la alerta: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al reconocer la alerta');
+    });
 }
 </script>
 </body>

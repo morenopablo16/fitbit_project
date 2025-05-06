@@ -640,4 +640,3 @@ msgstr "Serás redirigido a la página de autorización de Fitbit"
 #: templates/link_auth.html:31
 msgid "Authorizing..."
 msgstr "Autorizando..."
-

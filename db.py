@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 class DatabaseManager:
     def __init__(self):
         self.connection = None
+        self.cursor = None
 
     def connect(self):
         """Establece la conexión con la base de datos."""
@@ -20,6 +21,7 @@ class DatabaseManager:
                 port=DB_CONFIG["port"],
                 sslmode=DB_CONFIG["sslmode"]
             )
+            self.cursor = self.connection.cursor()
             return True
         except Exception as e:
             print(f"Error al conectar a la base de datos: {e}")
@@ -27,23 +29,52 @@ class DatabaseManager:
 
     def close(self):
         """Cierra la conexión con la base de datos."""
-        if self.connection:
-            self.connection.close()
+        try:
+            if self.cursor:
+                self.cursor.close()
+            if self.connection:
+                self.connection.close()
+        except Exception as e:
+            print(f"Error al cerrar la conexión: {e}")
+        finally:
+            self.cursor = None
             self.connection = None
+
+    def commit(self):
+        """Realiza commit de la transacción actual."""
+        if self.connection:
+            self.connection.commit()
+
+    def rollback(self):
+        """Realiza rollback de la transacción actual."""
+        if self.connection:
+            self.connection.rollback()
 
     def execute_query(self, query, params=None):
         """Ejecuta una consulta y retorna los resultados."""
         try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(query, params or ())
-                if cursor.description:  # Si la consulta retorna resultados
-                    return cursor.fetchall()
-                self.connection.commit()
-                return True
+            self.cursor.execute(query, params or ())
+            if self.cursor.description:  # Si la consulta retorna resultados
+                result = self.cursor.fetchall()
+                self.commit()
+                return result
+            self.commit()
+            return True
         except Exception as e:
             print(f"Error al ejecutar consulta: {e}")
-            self.connection.rollback()
+            self.rollback()
             return None
+
+    def execute_many(self, query, params_list):
+        """Ejecuta una consulta múltiple veces con diferentes parámetros."""
+        try:
+            self.cursor.executemany(query, params_list)
+            self.commit()
+            return True
+        except Exception as e:
+            print(f"Error al ejecutar consulta múltiple: {e}")
+            self.rollback()
+            return False
 
     def get_user_by_email(self, email):
         """Obtiene un usuario por su email."""
@@ -75,7 +106,17 @@ class DatabaseManager:
         return result[0][0] if result else None
 
     def get_daily_summaries(self, user_id, start_date=None, end_date=None):
-        """Obtiene los resúmenes diarios de un usuario."""
+        """
+        Obtiene los resúmenes diarios de un usuario en un rango de fechas.
+        
+        Args:
+            user_id (int): ID del usuario
+            start_date (datetime): Fecha de inicio (inclusive)
+            end_date (datetime): Fecha de fin (inclusive)
+            
+        Returns:
+            list: Lista de tuplas con los datos diarios, ordenados por fecha
+        """
         query = """
             SELECT * FROM daily_summaries 
             WHERE user_id = %s
@@ -91,7 +132,8 @@ class DatabaseManager:
             
         query += " ORDER BY date ASC"
         
-        return self.execute_query(query, params)
+        result = self.execute_query(query, params)
+        return result if result else []
 
     def get_intraday_metrics(self, user_id, metric_type, start_time=None, end_time=None):
         """Obtiene las métricas intradía de un usuario."""
@@ -162,11 +204,17 @@ class DatabaseManager:
                 user_id, alert_type, priority,
                 triggering_value, threshold_value, details
             ) VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
         """
-        return self.execute_query(query, (
+        result = self.execute_query(query, (
             user_id, alert_type, priority,
             triggering_value, threshold_value, details
         ))
+        
+        if result:
+            print(f"Alerta {alert_type} insertada para usuario {user_id}")
+            return True
+        return False
 
     def update_user_tokens(self, email, access_token, refresh_token):
         """Actualiza los tokens de un usuario."""
@@ -192,146 +240,145 @@ def init_db():
     """
     Inicializa la base de datos creando las tablas si no existen y configurando TimeScaleDB.
     """
-    connection = connect_to_db()
-    if connection:
-        try:
-            with connection.cursor() as cursor:
-                # Verificar si TimeScaleDB está instalado
-                cursor.execute("SELECT extversion FROM pg_extension WHERE extname = 'timescaledb';")
-                if cursor.fetchone() is None:
-                    print("TimeScaleDB no está instalado. Por favor, instala la extensión primero.")
-                    print("Visita: https://docs.timescale.com/install/latest/self-hosted/windows/installation/")
-                    return False
-                
-                # Enable TimeScaleDB extension
-                cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-                
-                # Crear tabla de usuarios
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        id SERIAL PRIMARY KEY,
-                        name VARCHAR(255) NOT NULL,
-                        email VARCHAR(255) NOT NULL,
-                        access_token TEXT,
-                        refresh_token TEXT,
-                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-                    );
-                """)
-                
-                # Crear tabla de resúmenes diarios
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS daily_summaries (
-                        id SERIAL,
-                        user_id INTEGER REFERENCES users(id),
-                        date DATE NOT NULL,
-                        steps INTEGER,
-                        heart_rate INTEGER,
-                        sleep_minutes INTEGER,
-                        calories INTEGER,
-                        distance FLOAT,
-                        floors INTEGER,
-                        elevation FLOAT,
-                        active_minutes INTEGER,
-                        sedentary_minutes INTEGER,
-                        nutrition_calories INTEGER,
-                        water FLOAT,
-                        weight FLOAT,
-                        bmi FLOAT,
-                        fat FLOAT,
-                        oxygen_saturation FLOAT,
-                        respiratory_rate FLOAT,
-                        temperature FLOAT,
-                        UNIQUE(user_id, date)
-                    );
-                """)
-                
-                # Convertir a hipertabla
-                cursor.execute("""
-                    SELECT create_hypertable('daily_summaries', 'date', 
-                        if_not_exists => TRUE,
-                        migrate_data => TRUE
-                    );
-                """)
-                
-                # Crear tabla de métricas intradía
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS intraday_metrics (
-                        id SERIAL,
-                        user_id INTEGER REFERENCES users(id),
-                        time TIMESTAMPTZ NOT NULL,
-                        type VARCHAR(50) NOT NULL,
-                        value FLOAT NOT NULL
-                    );
-                """)
-                
-                # Convertir a hipertabla
-                cursor.execute("""
-                    SELECT create_hypertable('intraday_metrics', 'time',
-                        if_not_exists => TRUE,
-                        migrate_data => TRUE
-                    );
-                """)
+    db = DatabaseManager()
+    if not db.connect():
+        print("Error al conectar a la base de datos")
+        return False
 
-                # Crear tabla de registros de sueño
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS sleep_logs (
-                        id SERIAL,
-                        user_id INTEGER REFERENCES users(id),
-                        start_time TIMESTAMPTZ NOT NULL,
-                        end_time TIMESTAMPTZ NOT NULL,
-                        duration_ms INTEGER,
-                        efficiency INTEGER,
-                        minutes_asleep INTEGER,
-                        minutes_awake INTEGER,
-                        minutes_in_rem INTEGER,
-                        minutes_in_light INTEGER,
-                        minutes_in_deep INTEGER
-                    );
-                """)
-                
-                # Convertir a hipertabla
-                cursor.execute("""
-                    SELECT create_hypertable('sleep_logs', 'start_time',
-                        if_not_exists => TRUE,
-                        migrate_data => TRUE
-                    );
-                """)
-
-                # Crear tabla de alertas
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS alerts (
-                        id SERIAL,
-                        alert_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-                        user_id INTEGER REFERENCES users(id),
-                        alert_type VARCHAR(100) NOT NULL,
-                        priority VARCHAR(20) NOT NULL,
-                        triggering_value DOUBLE PRECISION,
-                        threshold_value DOUBLE PRECISION,
-                        details TEXT,
-                        acknowledged BOOLEAN DEFAULT FALSE,
-                        PRIMARY KEY (id, alert_time)
-                    );
-                """)
-                
-                # Convertir a hipertabla
-                cursor.execute("""
-                    SELECT create_hypertable('alerts', 'alert_time',
-                        if_not_exists => TRUE,
-                        migrate_data => TRUE
-                    );
-                """)
-                
-                connection.commit()
-                print("Base de datos inicializada correctamente con TimeScaleDB.")
-                return True
-                
-        except Exception as e:
-            print(f"Error al inicializar la base de datos: {e}")
-            connection.rollback()
+    try:
+        # Verificar si TimeScaleDB está instalado
+        result = db.execute_query("SELECT extversion FROM pg_extension WHERE extname = 'timescaledb';")
+        if not result:
+            print("TimeScaleDB no está instalado. Por favor, instala la extensión primero.")
+            print("Visita: https://docs.timescale.com/install/latest/self-hosted/windows/installation/")
             return False
-        finally:
-            connection.close()
-    return False
+        
+        # Enable TimeScaleDB extension
+        db.execute_query("CREATE EXTENSION IF NOT EXISTS timescaledb;")
+        
+        # Crear tabla de usuarios
+        db.execute_query("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                access_token TEXT,
+                refresh_token TEXT,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        
+        # Crear tabla de resúmenes diarios
+        db.execute_query("""
+            CREATE TABLE IF NOT EXISTS daily_summaries (
+                id SERIAL,
+                user_id INTEGER REFERENCES users(id),
+                date DATE NOT NULL,
+                steps INTEGER,
+                heart_rate INTEGER,
+                sleep_minutes INTEGER,
+                calories INTEGER,
+                distance FLOAT,
+                floors INTEGER,
+                elevation FLOAT,
+                active_minutes INTEGER,
+                sedentary_minutes INTEGER,
+                nutrition_calories INTEGER,
+                water FLOAT,
+                weight FLOAT,
+                bmi FLOAT,
+                fat FLOAT,
+                oxygen_saturation FLOAT,
+                respiratory_rate FLOAT,
+                temperature FLOAT,
+                UNIQUE(user_id, date)
+            );
+        """)
+        
+        # Convertir a hipertabla
+        db.execute_query("""
+            SELECT create_hypertable('daily_summaries', 'date', 
+                if_not_exists => TRUE,
+                migrate_data => TRUE
+            );
+        """)
+        
+        # Crear tabla de métricas intradía
+        db.execute_query("""
+            CREATE TABLE IF NOT EXISTS intraday_metrics (
+                id SERIAL,
+                user_id INTEGER REFERENCES users(id),
+                time TIMESTAMPTZ NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                value FLOAT NOT NULL
+            );
+        """)
+        
+        # Convertir a hipertabla
+        db.execute_query("""
+            SELECT create_hypertable('intraday_metrics', 'time',
+                if_not_exists => TRUE,
+                migrate_data => TRUE
+            );
+        """)
+
+        # Crear tabla de registros de sueño
+        db.execute_query("""
+            CREATE TABLE IF NOT EXISTS sleep_logs (
+                id SERIAL,
+                user_id INTEGER REFERENCES users(id),
+                start_time TIMESTAMPTZ NOT NULL,
+                end_time TIMESTAMPTZ NOT NULL,
+                duration_ms INTEGER,
+                efficiency INTEGER,
+                minutes_asleep INTEGER,
+                minutes_awake INTEGER,
+                minutes_in_rem INTEGER,
+                minutes_in_light INTEGER,
+                minutes_in_deep INTEGER
+            );
+        """)
+        
+        # Convertir a hipertabla
+        db.execute_query("""
+            SELECT create_hypertable('sleep_logs', 'start_time',
+                if_not_exists => TRUE,
+                migrate_data => TRUE
+            );
+        """)
+
+        # Crear tabla de alertas
+        db.execute_query("""
+            CREATE TABLE IF NOT EXISTS alerts (
+                id SERIAL,
+                alert_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                user_id INTEGER REFERENCES users(id),
+                alert_type VARCHAR(100) NOT NULL,
+                priority VARCHAR(20) NOT NULL,
+                triggering_value DOUBLE PRECISION,
+                threshold_value DOUBLE PRECISION,
+                details TEXT,
+                acknowledged BOOLEAN DEFAULT FALSE,
+                PRIMARY KEY (id, alert_time)
+            );
+        """)
+        
+        # Convertir a hipertabla
+        db.execute_query("""
+            SELECT create_hypertable('alerts', 'alert_time',
+                if_not_exists => TRUE,
+                migrate_data => TRUE
+            );
+        """)
+        
+        print("Base de datos inicializada correctamente con TimeScaleDB.")
+        return True
+                
+    except Exception as e:
+        print(f"Error al inicializar la base de datos: {e}")
+        return False
+    finally:
+        db.close()
 
 def get_latest_user_id_by_email(email):
     """
@@ -752,66 +799,69 @@ def insert_daily_summary(user_id, date, **data):
         date (str): Fecha de los datos (YYYY-MM-DD).
         data (dict): Diccionario con los datos de Fitbit.
     """
-    connection = connect_to_db()
-    if connection:
-        try:
-            with connection.cursor() as cursor:
-                # Insertar datos en la tabla daily_summaries
-                insert_query = """
-                INSERT INTO daily_summaries (
-                    user_id, date, steps, heart_rate, sleep_minutes,
-                    calories, distance, floors, elevation, active_minutes,
-                    sedentary_minutes, nutrition_calories, water, weight,
-                    bmi, fat, oxygen_saturation, respiratory_rate, temperature
-                ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                )
-                ON CONFLICT (date, user_id) DO UPDATE SET
-                    steps = EXCLUDED.steps,
-                    heart_rate = EXCLUDED.heart_rate,
-                    sleep_minutes = EXCLUDED.sleep_minutes,
-                    calories = EXCLUDED.calories,
-                    distance = EXCLUDED.distance,
-                    floors = EXCLUDED.floors,
-                    elevation = EXCLUDED.elevation,
-                    active_minutes = EXCLUDED.active_minutes,
-                    sedentary_minutes = EXCLUDED.sedentary_minutes,
-                    nutrition_calories = EXCLUDED.nutrition_calories,
-                    water = EXCLUDED.water,
-                    weight = EXCLUDED.weight,
-                    bmi = EXCLUDED.bmi,
-                    fat = EXCLUDED.fat,
-                    oxygen_saturation = EXCLUDED.oxygen_saturation,
-                    respiratory_rate = EXCLUDED.respiratory_rate,
-                    temperature = EXCLUDED.temperature;
-                """
-                cursor.execute(insert_query, (
-                    user_id, date,
-                    data.get("steps"),
-                    data.get("heart_rate"),
-                    data.get("sleep_minutes"),
-                    data.get("calories"),
-                    data.get("distance"),
-                    data.get("floors"),
-                    data.get("elevation"),
-                    data.get("active_minutes"),
-                    data.get("sedentary_minutes"),
-                    data.get("nutrition_calories"),
-                    data.get("water"),
-                    data.get("weight"),
-                    data.get("bmi"),
-                    data.get("fat"),
-                    data.get("oxygen_saturation"),
-                    data.get("respiratory_rate"),
-                    data.get("temperature")
-                ))
-                connection.commit()
-                print(f"Resumen diario para usuario {user_id} guardado exitosamente.")
-        except Exception as e:
-            print(f"Error al guardar el resumen diario: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+    db = DatabaseManager()
+    if not db.connect():
+        print("Error al conectar a la base de datos")
+        return False
+
+    try:
+        # Insertar datos en la tabla daily_summaries
+        insert_query = """
+        INSERT INTO daily_summaries (
+            user_id, date, steps, heart_rate, sleep_minutes,
+            calories, distance, floors, elevation, active_minutes,
+            sedentary_minutes, nutrition_calories, water, weight,
+            bmi, fat, oxygen_saturation, respiratory_rate, temperature
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+        ON CONFLICT (user_id, date) DO UPDATE SET
+            steps = EXCLUDED.steps,
+            heart_rate = EXCLUDED.heart_rate,
+            sleep_minutes = EXCLUDED.sleep_minutes,
+            calories = EXCLUDED.calories,
+            distance = EXCLUDED.distance,
+            floors = EXCLUDED.floors,
+            elevation = EXCLUDED.elevation,
+            active_minutes = EXCLUDED.active_minutes,
+            sedentary_minutes = EXCLUDED.sedentary_minutes,
+            nutrition_calories = EXCLUDED.nutrition_calories,
+            water = EXCLUDED.water,
+            weight = EXCLUDED.weight,
+            bmi = EXCLUDED.bmi,
+            fat = EXCLUDED.fat,
+            oxygen_saturation = EXCLUDED.oxygen_saturation,
+            respiratory_rate = EXCLUDED.respiratory_rate,
+            temperature = EXCLUDED.temperature;
+        """
+        
+        db.execute_query(insert_query, (
+            user_id, date,
+            data.get("steps"),
+            data.get("heart_rate"),
+            data.get("sleep_minutes"),
+            data.get("calories"),
+            data.get("distance"),
+            data.get("floors"),
+            data.get("elevation"),
+            data.get("active_minutes"),
+            data.get("sedentary_minutes"),
+            data.get("nutrition_calories"),
+            data.get("water"),
+            data.get("weight"),
+            data.get("bmi"),
+            data.get("fat"),
+            data.get("oxygen_saturation"),
+            data.get("respiratory_rate"),
+            data.get("temperature")
+        ))
+        
+        return True
+    except Exception as e:
+        print(f"Error al guardar el resumen diario: {e}")
+        return False
+    finally:
+        db.close()
 
 def insert_intraday_metric(user_id, timestamp, metric_type, value):
     """
@@ -890,26 +940,33 @@ def insert_alert(user_id, alert_type, priority, triggering_value=None, threshold
         threshold_value (float, optional): Umbral que se superó/no se alcanzó.
         details (str, optional): Detalles adicionales de la alerta.
     """
-    conn = connect_to_db()
-    if conn:
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO alerts (
-                        user_id, alert_type, priority,
-                        triggering_value, threshold_value, details
-                    ) VALUES (%s, %s, %s, %s, %s, %s)
-                """, (
-                    user_id, alert_type, priority,
-                    triggering_value, threshold_value, details
-                ))
-                conn.commit()
-                print(f"Alerta {alert_type} insertada para usuario {user_id}")
-        except Exception as e:
-            print(f"Error al insertar alerta: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
+    db = DatabaseManager()
+    if not db.connect():
+        print("Error al conectar a la base de datos")
+        return False
+
+    try:
+        query = """
+            INSERT INTO alerts (
+                user_id, alert_type, priority,
+                triggering_value, threshold_value, details
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """
+        result = db.execute_query(query, (
+            user_id, alert_type, priority,
+            triggering_value, threshold_value, details
+        ))
+        
+        if result:
+            print(f"Alerta {alert_type} insertada para usuario {user_id}")
+            return True
+        return False
+    except Exception as e:
+        print(f"Error al insertar alerta: {e}")
+        return False
+    finally:
+        db.close()
 
 def get_user_alerts(user_id, start_time=None, end_time=None, acknowledged=None):
     """
@@ -966,32 +1023,34 @@ def get_daily_summaries(user_id, start_date=None, end_date=None):
     Returns:
         list: Lista de tuplas con los datos diarios, ordenados por fecha
     """
-    conn = connect_to_db()
-    if conn:
-        try:
-            with conn.cursor() as cursor:
-                query = """
-                    SELECT * FROM daily_summaries 
-                    WHERE user_id = %s
-                """
-                params = [user_id]
-                
-                if start_date:
-                    query += " AND date >= %s"
-                    params.append(start_date.date())
-                if end_date:
-                    query += " AND date <= %s"
-                    params.append(end_date.date())
-                    
-                query += " ORDER BY date ASC"
-                
-                cursor.execute(query, params)
-                return cursor.fetchall()
-        except Exception as e:
-            print(f"Error al obtener resúmenes diarios: {e}")
-        finally:
-            conn.close()
-    return []
+    db = DatabaseManager()
+    if not db.connect():
+        print("Error al conectar a la base de datos")
+        return []
+
+    try:
+        query = """
+            SELECT * FROM daily_summaries 
+            WHERE user_id = %s
+        """
+        params = [user_id]
+        
+        if start_date:
+            query += " AND date >= %s"
+            params.append(start_date.date())
+        if end_date:
+            query += " AND date <= %s"
+            params.append(end_date.date())
+            
+        query += " ORDER BY date ASC"
+        
+        result = db.execute_query(query, params)
+        return result if result else []
+    except Exception as e:
+        print(f"Error al obtener resúmenes diarios: {e}")
+        return []
+    finally:
+        db.close()
 
 def get_intraday_metrics(user_id, metric_type, start_time=None, end_time=None):
     """

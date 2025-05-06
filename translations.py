@@ -11,6 +11,7 @@ TRANSLATIONS = {
             'register': 'Registrarse',
             'profile': 'Perfil',
             'dashboard': 'Panel de control',
+            'alerts_dashboard': 'Panel de alertas',
             'settings': 'Configuración',
             'save': 'Guardar',
             'cancel': 'Cancelar',

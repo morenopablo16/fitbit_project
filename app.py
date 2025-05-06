@@ -132,7 +132,7 @@ def root():
     """
     return redirect(url_for('home'))
 
-# Route: Homepage (Dashboard)
+# Route: Homepage
 @app.route('/livelyageing/')
 @login_required
 def index():
@@ -192,7 +192,7 @@ def index():
                                     intraday_metrics=intraday_metrics_4col,
                                     sleep_logs=sleep_logs)
             else:
-                return render_template('dashboard.html', 
+                return render_template('alerts_dashboard.html', 
                                        daily_summaries=[],
                                     intraday_metrics=intraday_metrics_4col,
                                     sleep_logs=sleep_logs)
@@ -206,7 +206,7 @@ def index():
                                     sleep_logs=[],
                                     error=error)
             else:
-                return render_template('dashboard.html', 
+                return render_template('alerts_dashboard.html', 
                                     daily_summaries=[],
                                     intraday_metrics=[],
                                     sleep_logs=[],
@@ -222,7 +222,7 @@ def index():
                                 sleep_logs=[],
                                 error=error)
         else:
-            return render_template('dashboard.html', 
+            return render_template('alerts_dashboard.html', 
                                 daily_summaries=[],
                                 intraday_metrics=[],
                                 sleep_logs=[],
@@ -596,7 +596,7 @@ def refresh_data():
         app.logger.error(f"Error refreshing data: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/daily_summary')
+@app.route('/livelyageing/api/daily_summary')
 @login_required
 def get_daily_summary():
     """
@@ -643,7 +643,7 @@ def get_daily_summary():
         app.logger.error(f"Error al obtener el resumen diario: {str(e)}")
         return jsonify({'error': 'Error interno del servidor'}), 500
 
-@app.route('/api/alerts')
+@app.route('/livelyageing/api/alerts')
 @login_required
 def get_user_alerts_api():
     """
@@ -676,13 +676,128 @@ def get_user_alerts_api():
         app.logger.error(f"Error al obtener las alertas: {str(e)}")
         return jsonify({'error': 'Error interno del servidor'}), 500
 
-@app.route('/dashboard')
+@app.route('/livelyageing/dashboard/alerts')
 @login_required
-def dashboard():
-    """
-    Renderiza la página del dashboard.
-    """
-    return render_template('dashboard.html', title=_('Dashboard'))
+def alerts_dashboard():
+    try:
+        db = DatabaseManager()
+        if not db.connect():
+            return jsonify({'error': 'Database connection error'}), 500
+
+        # Obtener parámetros de filtrado
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        priority = request.args.get('priority')
+        acknowledged = request.args.get('acknowledged')
+        page = request.args.get('page', 1, type=int)
+        per_page = 10  # Número de alertas por página
+
+        # Construir la consulta base
+        query = """
+            SELECT 
+                a.id,
+                a.alert_time,
+                a.user_id,
+                a.alert_type,
+                a.priority,
+                a.triggering_value,
+                a.threshold_value,
+                a.details,
+                a.acknowledged,
+                u.name AS user_name, 
+                u.email AS user_email
+            FROM alerts a
+            JOIN users u ON a.user_id = u.id
+            WHERE 1=1
+        """
+        params = []
+
+        # Aplicar filtros
+        if date_from:
+            query += " AND a.alert_time >= %s"
+            params.append(f"{date_from} 00:00:00")
+        if date_to:
+            query += " AND a.alert_time <= %s"
+            params.append(f"{date_to} 23:59:59")
+        if priority:
+            query += " AND a.priority = %s"
+            params.append(priority)
+        if acknowledged is not None and acknowledged != '':
+            query += " AND a.acknowledged = %s"
+            params.append(acknowledged == 'true')
+
+        # Ordenar por fecha descendente
+        query += " ORDER BY a.alert_time DESC"
+
+        # Obtener el total de alertas para la paginación
+        count_query = f"SELECT COUNT(*) FROM ({query}) AS count_query"
+        total = db.execute_query(count_query, params)[0][0]
+
+        # Aplicar paginación
+        query += " LIMIT %s OFFSET %s"
+        params.extend([per_page, (page - 1) * per_page])
+
+        # Ejecutar la consulta
+        alerts_data = db.execute_query(query, params)
+
+        # Convertir las tuplas en diccionarios con nombres de atributos
+        alerts = []
+        for alert in alerts_data:
+            alerts.append({
+                'id': alert[0],
+                'alert_time': alert[1],
+                'user_id': alert[2],
+                'alert_type': alert[3],
+                'priority': alert[4],
+                'triggering_value': alert[5],
+                'threshold_value': alert[6],
+                'details': alert[7],
+                'acknowledged': alert[8],
+                'user_name': alert[9],
+                'user_email': alert[10]
+            })
+
+        # Crear objeto de paginación
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total': total,
+            'pages': (total + per_page - 1) // per_page,
+            'has_prev': page > 1,
+            'has_next': page * per_page < total,
+            'prev_num': page - 1,
+            'next_num': page + 1,
+            'iter_pages': lambda: range(1, ((total + per_page - 1) // per_page) + 1)
+        }
+
+        return render_template('alerts_dashboard.html', alerts=alerts, pagination=pagination)
+
+    except Exception as e:
+        app.logger.error(f"Error al cargar el dashboard de alertas: {e}")
+        return render_template('alerts_dashboard.html', alerts=[], pagination=None)
+
+@app.route('/livelyageing/api/alerts/<int:alert_id>/acknowledge', methods=['POST'])
+@login_required
+def acknowledge_alert(alert_id):
+    try:
+        db = DatabaseManager()
+        if not db.connect():
+            return jsonify({'error': 'Database connection error'}), 500
+
+        # Actualizar el estado de la alerta
+        result = db.execute_query(
+            "UPDATE alerts SET acknowledged = TRUE WHERE id = %s RETURNING id",
+            (alert_id,)
+        )
+
+        if result and result[0][0]:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'error': 'Alerta no encontrada'}), 404
+
+    except Exception as e:
+        app.logger.error(f"Error al reconocer la alerta: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Run the Flask app
 if __name__ == '__main__':

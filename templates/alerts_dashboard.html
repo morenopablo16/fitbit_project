@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Alertas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .priority-high { background-color: #f8d7da; }   /* rojo claro */
+        .priority-medium { background-color: #fff3cd; } /* amarillo */
+        .priority-low { background-color: #d1e7dd; }    /* verde claro */
+        .filter-section { background-color: #f8f9fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .stats-card { background-color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stats-number { font-size: 1.5rem; font-weight: bold; }
+        .acknowledge-btn { cursor: pointer; }
+        .acknowledge-btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container my-5">
+    <h2 class="mb-4 text-center">📊 Dashboard de Alertas Médicas</h2>
+
+    <!-- Resumen de Alertas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="text-danger stats-number">{{ alerts|selectattr('priority', 'equalto', 'high')|list|length }}</div>
+                <div>Alertas de Alta Prioridad</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="text-warning stats-number">{{ alerts|selectattr('priority', 'equalto', 'medium')|list|length }}</div>
+                <div>Alertas de Media Prioridad</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="text-success stats-number">{{ alerts|selectattr('priority', 'equalto', 'low')|list|length }}</div>
+                <div>Alertas de Baja Prioridad</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="text-primary stats-number">{{ alerts|selectattr('acknowledged', 'equalto', false)|list|length }}</div>
+                <div>Alertas No Reconocidas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-section">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Fecha Desde</label>
+                <input type="date" class="form-control" name="date_from" value="{{ request.args.get('date_from', '') }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Fecha Hasta</label>
+                <input type="date" class="form-control" name="date_to" value="{{ request.args.get('date_to', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Prioridad</label>
+                <select class="form-select" name="priority">
+                    <option value="">Todas</option>
+                    <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>Alta</option>
+                    <option value="medium" {% if request.args.get('priority') == 'medium' %}selected{% endif %}>Media</option>
+                    <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>Baja</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select class="form-select" name="acknowledged">
+                    <option value="">Todos</option>
+                    <option value="false" {% if request.args.get('acknowledged') == 'false' %}selected{% endif %}>No Reconocidas</option>
+                    <option value="true" {% if request.args.get('acknowledged') == 'true' %}selected{% endif %}>Reconocidas</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Alertas -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover shadow-sm bg-white">
+            <thead class="table-dark">
+                <tr>
+                    <th>Fecha/Hora</th>
+                    <th>Usuario</th>
+                    <th>Tipo de Alerta</th>
+                    <th>Valor Disparador</th>
+                    <th>Umbral</th>
+                    <th>Prioridad</th>
+                    <th>Detalles</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr class="priority-{{ alert.priority|lower }}">
+                    <td>{{ alert.alert_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ alert.user_name }} ({{ alert.user_email }})</td>
+                    <td>{{ alert.alert_type }}</td>
+                    <td>{{ alert.triggering_value or '—' }}</td>
+                    <td>{{ alert.threshold_value or '—' }}</td>
+                    <td><strong>{{ alert.priority }}</strong></td>
+                    <td>{{ alert.details or '—' }}</td>
+                    <td>
+                        {% if alert.acknowledged %}
+                            <span class="badge bg-success">Reconocida</span>
+                        {% else %}
+                            <span class="badge bg-danger">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not alert.acknowledged %}
+                        <button class="btn btn-sm btn-outline-success acknowledge-btn" 
+                                onclick="acknowledgeAlert({{ alert.id }})"
+                                title="Marcar como reconocida">
+                            <i class="bi bi-check-circle"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if pagination %}
+    <nav aria-label="Navegación de páginas" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.prev_num, **request.args) }}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            {% for page in pagination.iter_pages() %}
+                {% if page %}
+                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('alerts_dashboard', page=page, **request.args) }}">{{ page }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.next_num, **request.args) }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function acknowledgeAlert(alertId) {
+    if (confirm('¿Estás seguro de que deseas marcar esta alerta como reconocida?')) {
+        fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al reconocer la alerta: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al reconocer la alerta');
+        });
+    }
+}
+</script>
+</body>
+</html>

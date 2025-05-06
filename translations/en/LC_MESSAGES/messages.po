@@ -620,4 +620,3 @@ msgstr "Reassign"
 #: templates/reassign_confirmation.html:19
 msgid "Cancel"
 msgstr "Cancel"
-

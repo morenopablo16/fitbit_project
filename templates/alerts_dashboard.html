@@ -475,9 +475,7 @@ let alertsData = [];
 function initializeAlertsData() {
     try {
         alertsData = {{ alerts|tojson|safe }};
-        console.log('Datos de alertas inicializados:', alertsData);
     } catch (error) {
-        console.error('Error al inicializar los datos de alertas:', error);
         alertsData = [];
     }
 }
@@ -489,20 +487,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
-    console.log('=== Iniciando showAlertDetails ===');
-    console.log('ID de alerta:', alertId);
-    
     const alert = alertsData.find(a => a.id === alertId);
     if (!alert) {
-        console.error('Alerta no encontrada:', alertId);
         return;
     }
-    console.log('Datos de la alerta encontrada:', alert);
 
     // Extraer el tipo base de la alerta
     const alertType = alert.alert_type;
     const baseAlertType = alertType.includes('_') ? alertType.split('_')[0] : alertType;
-    console.log('Tipo de alerta:', { alertType, baseAlertType });
 
     // Configurar el título y los detalles
     document.getElementById('alertDetailsTitle').textContent = `Detalles de la Alerta - ${alert.alert_type}`;
@@ -524,29 +516,14 @@ function showAlertDetails(alertId) {
     const chartContainer = document.getElementById('intraday-chart-container');
     const tieneDatos = alert.intraday_data && alert.intraday_data.times && alert.intraday_data.times.length > 0;
     const tipoCompatible = ['heart', 'heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
-    
-    console.log('Estado del gráfico:', { 
-        tieneDatos, 
-        tipoCompatible, 
-        tipoBase: baseAlertType, 
-        intradayData: alert.intraday_data,
-        datosDisponibles: alert.intraday_data ? {
-            times: alert.intraday_data.times?.length,
-            values: alert.intraday_data.values?.length
-        } : 'No hay datos'
-    });
 
     if (tieneDatos && tipoCompatible) {
-        console.log('Preparando para mostrar el gráfico...');
         chartContainer.classList.remove('d-none');
         const ctx = document.getElementById('intraday-chart').getContext('2d');
-        
         // Destruir el gráfico anterior si existe
         if (window.intradayChart) {
-            console.log('Destruyendo gráfico anterior...');
             window.intradayChart.destroy();
         }
-        
         // Configurar colores según el tipo de alerta
         let borderColor, backgroundColor;
         switch(baseAlertType) {
@@ -571,14 +548,6 @@ function showAlertDetails(alertId) {
                 borderColor = 'rgb(75, 192, 192)';
                 backgroundColor = 'rgba(75, 192, 192, 0.2)';
         }
-        console.log('Colores configurados:', { borderColor, backgroundColor });
-
-        // Crear el nuevo gráfico
-        console.log('Creando nuevo gráfico con datos:', {
-            labels: alert.intraday_data.times,
-            data: alert.intraday_data.values
-        });
-        
         window.intradayChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -605,19 +574,13 @@ function showAlertDetails(alertId) {
                 }
             }
         });
-        console.log('Gráfico creado exitosamente');
     } else {
-        console.log('No se mostrará el gráfico:', { 
-            razon: !tieneDatos ? 'No hay datos intradía' : 'Tipo no compatible',
-            tipoBase: baseAlertType
-        });
         chartContainer.classList.add('d-none');
     }
 
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
     modal.show();
-    console.log('=== Finalizado showAlertDetails ===');
 }
 
 // Función auxiliar para obtener la etiqueta del eje Y
@@ -668,11 +631,8 @@ function acknowledgeAlert() {
                    document.getElementById('alertId').value;
     
     if (!alertId) {
-        console.error('No se encontró el ID de la alerta');
         return;
     }
-    
-    console.log('Reconociendo alerta:', alertId); // Log para debugging
     
     fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
         method: 'POST',
@@ -699,7 +659,6 @@ function acknowledgeAlert() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
         alert('Error al reconocer la alerta');
     });
 }

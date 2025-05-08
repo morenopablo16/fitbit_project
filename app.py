@@ -273,17 +273,24 @@ def user_stats():
     """
     Display statistics for all users.
     """
+    search = request.args.get('search', '').strip()
     db = DatabaseManager()
     if db.connect():
         try:
-            # Get all users
-            users = db.execute_query("""
-                SELECT id, name, email, created_at
-                FROM users
-                ORDER BY name
-            """)
-            
-            return render_template('user_stats.html', users=users)
+            if search:
+                users = db.execute_query("""
+                    SELECT id, name, email, created_at
+                    FROM users
+                    WHERE LOWER(name) LIKE LOWER(%s) OR LOWER(email) LIKE LOWER(%s)
+                    ORDER BY created_at DESC
+                """, (f"%{search}%", f"%{search}%"))
+            else:
+                users = db.execute_query("""
+                    SELECT id, name, email, created_at
+                    FROM users
+                    ORDER BY created_at DESC
+                """)
+            return render_template('user_stats.html', users=users, search=search)
         except Exception as e:
             app.logger.error(f"Error fetching user statistics: {e}")
             return "Error: No se pudieron obtener las estadísticas de usuarios.", 500

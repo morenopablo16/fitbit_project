@@ -11,6 +11,15 @@
         </div>
     </div>
     
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <form method="get" class="input-group">
+                <input type="text" class="form-control" name="search" placeholder="Buscar por nombre o email" value="{{ search|default('') }}">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar</button>
+            </form>
+        </div>
+    </div>
+    
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm">

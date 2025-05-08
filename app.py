@@ -8,7 +8,7 @@ import os
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager, UserMixin
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
 from flask_babel import Babel, get_locale, gettext as _
 
 # Initialize Flask app
@@ -1042,11 +1042,13 @@ def user_detail(user_id):
             LIMIT 1
             """, (user_id,)
         )
-        
-        # Convertir el resumen diario en un diccionario si existe
+        last_update_datetime = None
         if latest_summary:
             columns = [desc[0] for desc in db.cursor.description]
             latest_summary = dict(zip(columns, latest_summary[0]))
+            last_update_datetime = datetime.combine(latest_summary['date'], time(23, 59))
+        else:
+            last_update_datetime = None
         
         # Obtener alertas recientes no reconocidas
         recent_alerts = db.execute_query(
@@ -1066,7 +1068,9 @@ def user_detail(user_id):
         return render_template('user_detail.html', 
                              user=user,
                              latest_summary=latest_summary,
-                             recent_alerts=recent_alerts)
+                             recent_alerts=recent_alerts,
+                             now=datetime.now(),
+                             last_update_datetime=last_update_datetime)
     except Exception as e:
         app.logger.error(f"Error al cargar la ficha de usuario: {e}")
         return "Error interno del servidor", 500

@@ -775,7 +775,20 @@ def alerts_dashboard():
             'iter_pages': lambda: range(1, ((total + per_page - 1) // per_page) + 1)
         }
 
-        return render_template('alerts_dashboard.html', alerts=alerts, pagination=pagination)
+        # Crear diccionario de filtros para la paginación (sin 'page')
+        filters_dict = {}
+        if date_from:
+            filters_dict['date_from'] = date_from
+        if date_to:
+            filters_dict['date_to'] = date_to
+        if priority:
+            filters_dict['priority'] = priority
+        if acknowledged is not None and acknowledged != '':
+            filters_dict['acknowledged'] = acknowledged
+        if user_query:
+            filters_dict['user_query'] = user_query
+
+        return render_template('alerts_dashboard.html', alerts=alerts, pagination=pagination, filters_dict=filters_dict)
 
     except Exception as e:
         app.logger.error(f"Error al cargar el dashboard de alertas: {e}")

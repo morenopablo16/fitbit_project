@@ -487,19 +487,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
-    console.log('=== Iniciando showAlertDetails ===');
-    console.log('ID de alerta:', alertId);
     const alert = alertsData.find(a => a.id === alertId);
     if (!alert) {
-        console.error('Alerta no encontrada:', alertId);
         return;
     }
-    console.log('Datos de la alerta encontrada:', alert);
 
     // Extraer el tipo base de la alerta
     const alertType = alert.alert_type;
     const baseAlertType = alertType.includes('_') ? alertType.split('_')[0] : alertType;
-    console.log('Tipo de alerta:', { alertType, baseAlertType });
 
     // Configurar el título y los detalles
     document.getElementById('alertDetailsTitle').textContent = `Detalles de la Alerta - ${alert.alert_type}`;
@@ -529,24 +524,11 @@ function showAlertDetails(alertId) {
             tipoCompatible = false;
         }
     }
-    
-    console.log('Estado del gráfico:', {
-        tieneDatos,
-        tipoCompatible,
-        tipoBase: baseAlertType,
-        intradayData: alert.intraday_data,
-        datosDisponibles: alert.intraday_data ? {
-            times: alert.intraday_data.times?.length,
-            values: alert.intraday_data.values?.length
-        } : 'No hay datos'
-    });
 
     if (tieneDatos && tipoCompatible) {
-        console.log('Preparando para mostrar el gráfico...');
         chartContainer.classList.remove('d-none');
         const ctx = document.getElementById('intraday-chart').getContext('2d');
         if (window.intradayChart) {
-            console.log('Destruyendo gráfico anterior...');
             window.intradayChart.destroy();
         }
         // Forzar colores y etiquetas de pasos si es activity_drop por pasos
@@ -590,11 +572,6 @@ function showAlertDetails(alertId) {
                     yAxisLabel = 'Valor';
             }
         }
-        console.log('Colores configurados:', { borderColor, backgroundColor });
-        console.log('Creando nuevo gráfico con datos:', {
-            labels: alert.intraday_data.times,
-            data: alert.intraday_data.values
-        });
         window.intradayChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -621,19 +598,13 @@ function showAlertDetails(alertId) {
                 }
             }
         });
-        console.log('Gráfico creado exitosamente');
     } else {
-        console.log('No se mostrará el gráfico:', {
-            razon: !tieneDatos ? 'No hay datos intradía' : 'Tipo no compatible',
-            tipoBase: baseAlertType
-        });
         chartContainer.classList.add('d-none');
     }
 
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
     modal.show();
-    console.log('=== Finalizado showAlertDetails ===');
 }
 
 function showAcknowledgeModal(alertId) {

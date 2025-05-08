@@ -80,8 +80,8 @@
                                     <td>{{ user[2] }}</td>
                                     <td>{{ user[3]|datetime }}</td>
                                     <td>
-                                        <a href="{{ url_for('user_stats') }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-chart-line"></i> Ver estadísticas
+                                        <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-user"></i> Ver detalles
                                         </a>
                                     </td>
                                 </tr>

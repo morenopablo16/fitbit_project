@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha de Usuario - {{ user.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .metric-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .alert-card {
+            border-left: 4px solid;
+            margin-bottom: 0.5rem;
+        }
+        .alert-high {
+            border-left-color: #dc3545;
+        }
+        .alert-medium {
+            border-left-color: #ffc107;
+        }
+        .alert-low {
+            border-left-color: #198754;
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading i {
+            font-size: 2rem;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<!-- Navbar estándar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/livelyageing/home">
+      <i class="bi bi-activity"></i> LivelyAgeing
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/home">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/user_stats">Usuarios</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/dashboard/alerts">Alertas</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/logout">Salir</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!-- Botón de volver -->
+<a href="javascript:history.back()" class="btn btn-outline-secondary mb-3" style="position:relative;z-index:2;">
+  <i class="bi bi-arrow-left"></i> Volver
+</a>
+<div class="container my-5">
+    <!-- Información del Usuario -->
+    <div class="user-info">
+        <div class="row">
+            <div class="col-md-8">
+                <h2>{{ user.name }}</h2>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-envelope"></i> {{ user.email }}<br>
+                    <i class="bi bi-calendar"></i> Registrado el {{ user.created_at.strftime('%d/%m/%Y') }}
+                    {% if user.age %}
+                    <br><i class="bi bi-person"></i> {{ user.age }} años
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-outline-primary" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i> Actualizar Datos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen Diario -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="steps-value">
+                    {% if latest_summary and latest_summary.steps %}
+                    {{ "{:,}".format(latest_summary.steps) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+                <div class="metric-label">Pasos</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="heart-rate-value">
+                    {% if latest_summary and latest_summary.heart_rate %}
+                    {{ latest_summary.heart_rate }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+                <div class="metric-label">Frecuencia Cardíaca (bpm)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="sleep-value">
+                    {% if latest_summary and latest_summary.sleep_minutes %}
+                    {{ (latest_summary.sleep_minutes / 60)|round(1) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+                <div class="metric-label">Horas de Sueño</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="calories-value">
+                    {% if latest_summary and latest_summary.calories %}
+                    {{ "{:,}".format(latest_summary.calories) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+                <div class="metric-label">Calorías</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <ul class="nav nav-tabs mb-4" id="userTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="daily-tab" data-bs-toggle="tab" href="#daily" role="tab">
+                Resumen Diario
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="intraday-tab" data-bs-toggle="tab" href="#intraday" role="tab">
+                Datos Intradía
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="weekly-tab" data-bs-toggle="tab" href="#weekly" role="tab">
+                Resumen Semanal
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="alerts-tab" data-bs-toggle="tab" href="#alerts" role="tab">
+                Alertas Recientes
+            </a>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="userTabsContent">
+        <!-- Resumen Diario -->
+        <div class="tab-pane fade show active" id="daily" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h5>Actividad Física</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="metric-value" id="distance-value">
+                                    {% if latest_summary and latest_summary.distance %}
+                                    {{ latest_summary.distance|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Distancia (km)</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-value" id="floors-value">
+                                    {% if latest_summary and latest_summary.floors %}
+                                    {{ latest_summary.floors }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Pisos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h5>Actividad vs Sedentarismo</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="metric-value" id="active-minutes-value">
+                                    {% if latest_summary and latest_summary.active_minutes %}
+                                    {{ latest_summary.active_minutes }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Minutos Activos</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-value" id="sedentary-hours-value">
+                                    {% if latest_summary and latest_summary.sedentary_minutes %}
+                                    {{ (latest_summary.sedentary_minutes / 60)|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Horas Sedentarias</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h5>Nutrición</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="metric-value" id="nutrition-calories-value">
+                                    {% if latest_summary and latest_summary.nutrition_calories %}
+                                    {{ "{:,}".format(latest_summary.nutrition_calories) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Calorías Consumidas</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-value" id="water-value">
+                                    {% if latest_summary and latest_summary.water %}
+                                    {{ latest_summary.water|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Agua (L)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h5>Composición Corporal</h5>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="metric-value" id="weight-value">
+                                    {% if latest_summary and latest_summary.weight %}
+                                    {{ latest_summary.weight|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">Peso (kg)</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-value" id="bmi-value">
+                                    {% if latest_summary and latest_summary.bmi %}
+                                    {{ latest_summary.bmi|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">IMC</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-value" id="fat-value">
+                                    {% if latest_summary and latest_summary.fat %}
+                                    {{ latest_summary.fat|round(1) }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <div class="metric-label">% Grasa</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datos Intradía -->
+        <div class="tab-pane fade" id="intraday" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <select class="form-select" id="metric-type">
+                        <option value="steps">Pasos</option>
+                        <option value="heart_rate">Frecuencia Cardíaca</option>
+                        <option value="calories">Calorías</option>
+                        <option value="active_zone_minutes">Minutos Activos</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="intraday-date">
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="intraday-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Resumen Semanal -->
+        <div class="tab-pane fade" id="weekly" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="weekly-steps-chart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="weekly-heart-rate-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="weekly-sleep-chart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="weekly-activity-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas Recientes -->
+        <div class="tab-pane fade" id="alerts" role="tabpanel">
+            <div id="alerts-container">
+                {% for alert in recent_alerts %}
+                <div class="alert alert-card alert-{{ alert.priority|lower }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ alert.alert_type }}</h5>
+                            <p class="mb-0">
+                                <small>{{ alert.alert_time.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </p>
+                        </div>
+                        <div>
+                            {% if not alert.acknowledged %}
+                            <button class="btn btn-sm btn-outline-success" onclick="acknowledgeAlert({{ alert.id }})">
+                                <i class="bi bi-check-circle"></i> Reconocer
+                            </button>
+                            {% else %}
+                            <span class="badge bg-success">Reconocida</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="mb-0 mt-2">{{ alert.details }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let intradayChart = null;
+let weeklyCharts = {};
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer fecha actual en el selector de fecha
+    document.getElementById('intraday-date').valueAsDate = new Date();
+    
+    // Cargar datos iniciales
+    loadIntradayData();
+    loadWeeklyData();
+    
+    // Configurar event listeners
+    document.getElementById('metric-type').addEventListener('change', loadIntradayData);
+    document.getElementById('intraday-date').addEventListener('change', loadIntradayData);
+});
+
+// Función para cargar datos intradía
+function loadIntradayData() {
+    const metricType = document.getElementById('metric-type').value;
+    const date = document.getElementById('intraday-date').value;
+    
+    fetch(`/livelyageing/api/user/{{ user.id }}/intraday?type=${metricType}&date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            if (intradayChart) {
+                intradayChart.destroy();
+            }
+            
+            const ctx = document.getElementById('intraday-chart').getContext('2d');
+            intradayChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.intraday.map(d => d.time),
+                    datasets: [{
+                        label: getMetricLabel(metricType),
+                        data: data.intraday.map(d => d.value),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Función para cargar datos semanales
+function loadWeeklyData() {
+    fetch(`/livelyageing/api/user/{{ user.id }}/weekly_summary`)
+        .then(response => response.json())
+        .then(data => {
+            // Gráfico de pasos
+            createWeeklyChart('weekly-steps-chart', 'Pasos', data.weekly.map(d => d.steps), 'rgb(75, 192, 192)');
+            
+            // Gráfico de frecuencia cardíaca
+            createWeeklyChart('weekly-heart-rate-chart', 'Frecuencia Cardíaca', data.weekly.map(d => d.heart_rate), 'rgb(255, 99, 132)');
+            
+            // Gráfico de sueño
+            createWeeklyChart('weekly-sleep-chart', 'Horas de Sueño', data.weekly.map(d => d.sleep_hours), 'rgb(54, 162, 235)');
+            
+            // Gráfico de actividad
+            createWeeklyChart('weekly-activity-chart', 'Minutos Activos', data.weekly.map(d => d.active_minutes), 'rgb(255, 206, 86)');
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Función para crear gráficos semanales
+function createWeeklyChart(canvasId, label, data, color) {
+    if (weeklyCharts[canvasId]) {
+        weeklyCharts[canvasId].destroy();
+    }
+    
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    weeklyCharts[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: color
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Función para reconocer una alerta
+function acknowledgeAlert(alertId) {
+    fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ note: 'Reconocido desde la ficha de usuario' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al reconocer la alerta: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al reconocer la alerta');
+    });
+}
+
+// Función para actualizar datos
+function refreshData() {
+    fetch('/livelyageing/refresh_data', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al actualizar los datos: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar los datos');
+    });
+}
+
+// Función auxiliar para obtener etiquetas de métricas
+function getMetricLabel(metricType) {
+    const labels = {
+        'steps': 'Pasos',
+        'heart_rate': 'Frecuencia Cardíaca (bpm)',
+        'calories': 'Calorías',
+        'active_zone_minutes': 'Minutos Activos'
+    };
+    return labels[metricType] || metricType;
+}
+
+// Mejorar formateo de valores en el modal de detalles de alerta
+function formatValue(val) {
+    if (val === null || val === undefined) return '—';
+    if (typeof val === 'number') {
+        return Number.isInteger(val) ? val : val.toFixed(1);
+    }
+    if (!isNaN(val) && val !== '') {
+        // Si es string numérico
+        let num = Number(val);
+        return Number.isInteger(num) ? num : num.toFixed(1);
+    }
+    return val;
+}
+</script>
+</body>
+</html> 

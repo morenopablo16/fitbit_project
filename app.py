@@ -930,6 +930,304 @@ def acknowledge_alert(alert_id):
         app.logger.error(f"Error al reconocer la alerta: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/livelyageing/user/<int:user_id>')
+@login_required
+def user_detail(user_id):
+    """
+    Renderiza la ficha de usuario con la información básica y datos recientes.
+    El resto de datos se cargan vía AJAX.
+    """
+    db = DatabaseManager()
+    if not db.connect():
+        return "Error: No se pudo conectar a la base de datos.", 500
+    try:
+        # Obtener datos básicos del usuario
+        user_data = db.execute_query(
+            """
+            SELECT id, name, email, created_at, 
+                   access_token, refresh_token,
+                   EXTRACT(YEAR FROM AGE(CURRENT_DATE, created_at)) as age
+            FROM users 
+            WHERE id = %s
+            """, (user_id,)
+        )
+        if not user_data:
+            return "Usuario no encontrado", 404
+            
+        # Convertir la tupla en un diccionario
+        user = {
+            'id': user_data[0][0],
+            'name': user_data[0][1],
+            'email': user_data[0][2],
+            'created_at': user_data[0][3],
+            'access_token': user_data[0][4],
+            'refresh_token': user_data[0][5],
+            'age': int(user_data[0][6]) if user_data[0][6] else None
+        }
+        
+        # Obtener el último resumen diario para datos actuales
+        latest_summary = db.execute_query(
+            """
+            SELECT * FROM daily_summaries 
+            WHERE user_id = %s 
+            ORDER BY date DESC 
+            LIMIT 1
+            """, (user_id,)
+        )
+        
+        # Convertir el resumen diario en un diccionario si existe
+        if latest_summary:
+            columns = [desc[0] for desc in db.cursor.description]
+            latest_summary = dict(zip(columns, latest_summary[0]))
+        
+        # Obtener alertas recientes no reconocidas
+        recent_alerts = db.execute_query(
+            """
+            SELECT * FROM alerts 
+            WHERE user_id = %s 
+            AND alert_time >= CURRENT_DATE - INTERVAL '7 days'
+            ORDER BY alert_time DESC
+            """, (user_id,)
+        )
+        
+        # Convertir las alertas en diccionarios
+        if recent_alerts:
+            alert_columns = [desc[0] for desc in db.cursor.description]
+            recent_alerts = [dict(zip(alert_columns, alert)) for alert in recent_alerts]
+        
+        return render_template('user_detail.html', 
+                             user=user,
+                             latest_summary=latest_summary,
+                             recent_alerts=recent_alerts)
+    except Exception as e:
+        app.logger.error(f"Error al cargar la ficha de usuario: {e}")
+        return "Error interno del servidor", 500
+    finally:
+        db.close()
+
+@app.route('/livelyageing/api/user/<int:user_id>/daily_summary')
+@login_required
+def api_user_daily_summary(user_id):
+    """
+    Devuelve el resumen diario para un usuario y una fecha (por defecto hoy).
+    """
+    date_str = request.args.get('date')
+    if date_str:
+        try:
+            date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except Exception:
+            return jsonify({'error': 'Formato de fecha inválido'}), 400
+    else:
+        date = datetime.now().date()
+        
+    db = DatabaseManager()
+    if not db.connect():
+        return jsonify({'error': 'DB error'}), 500
+    try:
+        summary = db.execute_query(
+            """
+            SELECT 
+                date,
+                steps,
+                heart_rate,
+                sleep_minutes,
+                calories,
+                distance,
+                floors,
+                elevation,
+                active_minutes,
+                sedentary_minutes,
+                nutrition_calories,
+                water,
+                weight,
+                bmi,
+                fat,
+                oxygen_saturation,
+                respiratory_rate,
+                temperature
+            FROM daily_summaries 
+            WHERE user_id = %s AND date = %s
+            """, (user_id, date)
+        )
+        
+        if not summary:
+            return jsonify({'error': 'No hay datos para ese día'}), 404
+            
+        # Mapear los campos a nombres legibles
+        columns = [desc[0] for desc in db.cursor.description]
+        summary_dict = dict(zip(columns, summary[0]))
+        
+        # Calcular valores adicionales
+        if summary_dict.get('sleep_minutes'):
+            summary_dict['sleep_hours'] = round(summary_dict['sleep_minutes'] / 60, 1)
+        if summary_dict.get('sedentary_minutes'):
+            summary_dict['sedentary_hours'] = round(summary_dict['sedentary_minutes'] / 60, 1)
+            
+        return jsonify({'summary': summary_dict})
+    finally:
+        db.close()
+
+@app.route('/livelyageing/api/user/<int:user_id>/intraday')
+@login_required
+def api_user_intraday(user_id):
+    """
+    Devuelve los datos intradía para un usuario, fecha y tipo de métrica.
+    """
+    date_str = request.args.get('date')
+    metric_type = request.args.get('type')
+    
+    if not metric_type:
+        return jsonify({'error': 'Falta el tipo de métrica'}), 400
+        
+    if date_str:
+        try:
+            date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except Exception:
+            return jsonify({'error': 'Formato de fecha inválido'}), 400
+    else:
+        date = datetime.now().date()
+        
+    db = DatabaseManager()
+    if not db.connect():
+        return jsonify({'error': 'DB error'}), 500
+    try:
+        start_time = datetime.combine(date, datetime.min.time())
+        end_time = datetime.combine(date, datetime.max.time())
+        
+        data = db.execute_query(
+            """
+            SELECT time, value 
+            FROM intraday_metrics 
+            WHERE user_id = %s 
+            AND type = %s 
+            AND time BETWEEN %s AND %s 
+            ORDER BY time
+            """, (user_id, metric_type, start_time, end_time)
+        )
+        
+        return jsonify({
+            'intraday': [
+                {
+                    'time': row[0].strftime('%H:%M'),
+                    'value': float(row[1])
+                } for row in data
+            ]
+        })
+    finally:
+        db.close()
+
+@app.route('/livelyageing/api/user/<int:user_id>/weekly_summary')
+@login_required
+def api_user_weekly_summary(user_id):
+    """
+    Devuelve los resúmenes diarios de los últimos 7 días para el usuario.
+    """
+    db = DatabaseManager()
+    if not db.connect():
+        return jsonify({'error': 'DB error'}), 500
+    try:
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=6)
+        
+        data = db.execute_query(
+            """
+            SELECT 
+                date,
+                steps,
+                heart_rate,
+                sleep_minutes,
+                calories,
+                sedentary_minutes,
+                active_minutes,
+                distance,
+                floors,
+                elevation,
+                nutrition_calories,
+                water,
+                weight,
+                bmi,
+                fat,
+                oxygen_saturation,
+                respiratory_rate,
+                temperature
+            FROM daily_summaries 
+            WHERE user_id = %s 
+            AND date BETWEEN %s AND %s 
+            ORDER BY date DESC
+            """, (user_id, start_date, end_date)
+        )
+        
+        return jsonify({
+            'weekly': [
+                {
+                    'date': row[0].strftime('%d/%m'),
+                    'steps': row[1],
+                    'heart_rate': row[2],
+                    'sleep_hours': round(row[3] / 60, 1) if row[3] else None,
+                    'calories': row[4],
+                    'sedentary_hours': round(row[5] / 60, 1) if row[5] else None,
+                    'active_minutes': row[6],
+                    'distance': row[7],
+                    'floors': row[8],
+                    'elevation': row[9],
+                    'nutrition_calories': row[10],
+                    'water': row[11],
+                    'weight': row[12],
+                    'bmi': row[13],
+                    'fat': row[14],
+                    'oxygen_saturation': row[15],
+                    'respiratory_rate': row[16],
+                    'temperature': row[17]
+                } for row in data
+            ]
+        })
+    finally:
+        db.close()
+
+@app.route('/livelyageing/api/user/<int:user_id>/alerts')
+@login_required
+def api_user_alerts(user_id):
+    """
+    Devuelve las alertas de los últimos 7 días para el usuario.
+    """
+    db = DatabaseManager()
+    if not db.connect():
+        return jsonify({'error': 'DB error'}), 500
+    try:
+        since = datetime.now() - timedelta(days=7)
+        data = db.execute_query(
+            """
+            SELECT 
+                alert_time,
+                alert_type,
+                priority,
+                triggering_value,
+                threshold_value,
+                details,
+                acknowledged
+            FROM alerts 
+            WHERE user_id = %s 
+            AND alert_time >= %s 
+            ORDER BY alert_time DESC
+            """, (user_id, since)
+        )
+        
+        return jsonify({
+            'alerts': [
+                {
+                    'alert_time': row[0].strftime('%d/%m %H:%M'),
+                    'type': row[1],
+                    'priority': row[2],
+                    'triggering_value': row[3],
+                    'threshold_value': row[4],
+                    'details': row[5],
+                    'acknowledged': row[6]
+                } for row in data
+            ]
+        })
+    finally:
+        db.close()
+
 # Run the Flask app
 if __name__ == '__main__':
     # app.run(host=HOST, port=PORT, debug=DEBUG)

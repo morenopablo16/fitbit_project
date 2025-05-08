@@ -217,7 +217,7 @@ def check_data_quality(user_id, current_date):
                 alert_type='data_quality',
                 priority='high' if metric in ['heart_rate', 'oxygen_saturation'] else 'medium',
                 triggering_value=value,
-                threshold_value=None,
+                threshold_value=f"{min_val}-{max_val}",
                 details=f'Valor anormal detectado para {metric}: {value} (rango válido: {min_val}-{max_val})'
             )
             alerts_generated = True

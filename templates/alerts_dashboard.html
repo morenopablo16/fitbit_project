@@ -60,6 +60,29 @@
     </style>
 </head>
 <body class="bg-light">
+<!-- Navbar estándar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/livelyageing/home">
+      <i class="bi bi-activity"></i> LivelyAgeing
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/home">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/user_stats">Usuarios</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/dashboard/alerts">Alertas</a></li>
+        <li class="nav-item"><a class="nav-link" href="/livelyageing/logout">Salir</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!-- Botón de volver -->
+<a href="javascript:history.back()" class="btn btn-outline-secondary mb-3" style="position:relative;z-index:2;">
+  <i class="bi bi-arrow-left"></i> Volver
+</a>
 <div class="container my-5">
     <h2 class="mb-4 text-center">📊 Dashboard de Alertas Médicas</h2>
 
@@ -281,6 +304,18 @@ document.addEventListener('DOMContentLoaded', function() {
     acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));
 });
 
+function formatValue(val) {
+    if (val === null || val === undefined) return '—';
+    if (typeof val === 'number') {
+        return Number.isInteger(val) ? val : val.toFixed(1);
+    }
+    if (!isNaN(val) && val !== '') {
+        let num = Number(val);
+        return Number.isInteger(num) ? num : num.toFixed(1);
+    }
+    return val;
+}
+
 function showAlertDetails(alertId) {
     // Obtener los datos de la alerta
     fetch(`/livelyageing/api/alerts/${alertId}`)
@@ -300,8 +335,8 @@ function showAlertDetails(alertId) {
             document.getElementById('modal-user').textContent = `${alert.user_name} (${alert.user_email})`;
             document.getElementById('modal-type').textContent = alert.type;
             document.getElementById('modal-priority').textContent = alert.priority;
-            document.getElementById('modal-trigger').textContent = alert.triggering_value || '—';
-            document.getElementById('modal-threshold').textContent = alert.threshold_value || '—';
+            document.getElementById('modal-trigger').textContent = formatValue(alert.triggering_value);
+            document.getElementById('modal-threshold').textContent = formatValue(alert.threshold_value);
             document.getElementById('modal-status').textContent = alert.acknowledged ? 'Reconocida' : 'Pendiente';
             document.getElementById('modal-details').textContent = alert.details || '—';
             document.getElementById('modal-time-since').textContent = `${data.hours_since_alert} horas`;

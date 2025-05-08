@@ -489,22 +489,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
-    console.log('Mostrando detalles de alerta:', alertId);
+    console.log('=== Iniciando showAlertDetails ===');
+    console.log('ID de alerta:', alertId);
+    
     const alert = alertsData.find(a => a.id === alertId);
     if (!alert) {
         console.error('Alerta no encontrada:', alertId);
         return;
     }
+    console.log('Datos de la alerta encontrada:', alert);
 
     // Extraer el tipo base de la alerta
     const alertType = alert.alert_type;
     const baseAlertType = alertType.includes('_') ? alertType.split('_')[0] : alertType;
-    console.log('Tipo base de alerta:', baseAlertType);
+    console.log('Tipo de alerta:', { alertType, baseAlertType });
 
     // Configurar el título y los detalles
     document.getElementById('alertDetailsTitle').textContent = `Detalles de la Alerta - ${alert.alert_type}`;
     document.getElementById('modal-user').textContent = `${alert.user_name} (${alert.user_email})`;
-    document.getElementById('modal-time').textContent = alert.alert_time; // Ya viene formateado del backend
+    document.getElementById('modal-time').textContent = alert.alert_time;
     document.getElementById('modal-type').textContent = alert.alert_type;
     document.getElementById('modal-priority').textContent = alert.priority.charAt(0).toUpperCase() + alert.priority.slice(1);
     document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
@@ -520,22 +523,34 @@ function showAlertDetails(alertId) {
     // Mostrar el gráfico solo si hay datos intradía y el tipo es compatible
     const chartContainer = document.getElementById('intraday-chart-container');
     const tieneDatos = alert.intraday_data && alert.intraday_data.times && alert.intraday_data.times.length > 0;
-    const tipoCompatible = ['heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
+    const tipoCompatible = ['heart', 'heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
     
-    console.log('Estado del gráfico:', { tieneDatos, tipoCompatible, tipoBase: baseAlertType, intradayData: alert.intraday_data });
+    console.log('Estado del gráfico:', { 
+        tieneDatos, 
+        tipoCompatible, 
+        tipoBase: baseAlertType, 
+        intradayData: alert.intraday_data,
+        datosDisponibles: alert.intraday_data ? {
+            times: alert.intraday_data.times?.length,
+            values: alert.intraday_data.values?.length
+        } : 'No hay datos'
+    });
 
     if (tieneDatos && tipoCompatible) {
+        console.log('Preparando para mostrar el gráfico...');
         chartContainer.classList.remove('d-none');
         const ctx = document.getElementById('intraday-chart').getContext('2d');
         
         // Destruir el gráfico anterior si existe
         if (window.intradayChart) {
+            console.log('Destruyendo gráfico anterior...');
             window.intradayChart.destroy();
         }
         
         // Configurar colores según el tipo de alerta
         let borderColor, backgroundColor;
         switch(baseAlertType) {
+            case 'heart':
             case 'heart_rate':
                 borderColor = 'rgb(255, 99, 132)';
                 backgroundColor = 'rgba(255, 99, 132, 0.2)';
@@ -556,8 +571,14 @@ function showAlertDetails(alertId) {
                 borderColor = 'rgb(75, 192, 192)';
                 backgroundColor = 'rgba(75, 192, 192, 0.2)';
         }
+        console.log('Colores configurados:', { borderColor, backgroundColor });
 
         // Crear el nuevo gráfico
+        console.log('Creando nuevo gráfico con datos:', {
+            labels: alert.intraday_data.times,
+            data: alert.intraday_data.values
+        });
+        
         window.intradayChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -584,18 +605,25 @@ function showAlertDetails(alertId) {
                 }
             }
         });
+        console.log('Gráfico creado exitosamente');
     } else {
+        console.log('No se mostrará el gráfico:', { 
+            razon: !tieneDatos ? 'No hay datos intradía' : 'Tipo no compatible',
+            tipoBase: baseAlertType
+        });
         chartContainer.classList.add('d-none');
     }
 
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
     modal.show();
+    console.log('=== Finalizado showAlertDetails ===');
 }
 
 // Función auxiliar para obtener la etiqueta del eje Y
 function getYAxisLabel(metricType) {
     switch(metricType) {
+        case 'heart':
         case 'heart_rate':
             return 'Frecuencia Cardíaca (bpm)';
         case 'steps':
@@ -612,6 +640,7 @@ function getYAxisLabel(metricType) {
 // Función auxiliar para obtener la etiqueta de la métrica
 function getMetricLabel(metricType) {
     switch(metricType) {
+        case 'heart':
         case 'heart_rate':
             return 'Frecuencia Cardíaca';
         case 'steps':

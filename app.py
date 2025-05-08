@@ -804,9 +804,15 @@ def alerts_dashboard():
                     intraday_data = {}
                     alert_type = alert[3]
                     base_alert_type = alert_type.split('_')[0] if '_' in alert_type else alert_type
-                    
-                    # Solo obtener datos intradía para tipos compatibles
-                    if base_alert_type in ['heart_rate', 'steps', 'calories', 'active_zone_minutes']:
+
+                    # Mapear base_alert_type a la métrica real de intradía
+                    intraday_metric_type = None
+                    if base_alert_type == 'heart':
+                        intraday_metric_type = 'heart_rate'
+                    elif base_alert_type in ['steps', 'calories', 'active_zone_minutes']:
+                        intraday_metric_type = base_alert_type
+
+                    if intraday_metric_type:
                         start_time = alert[1] - timedelta(hours=24)
                         end_time = alert[1]
                         intraday_metrics = db.execute_query("""
@@ -816,16 +822,16 @@ def alerts_dashboard():
                             AND type = %s 
                             AND time BETWEEN %s AND %s 
                             ORDER BY time
-                        """, (alert[2], base_alert_type, start_time, end_time))
+                        """, (alert[2], intraday_metric_type, start_time, end_time))
                         
                         if intraday_metrics:
                             intraday_data = {
                                 'times': [m[0].strftime('%H:%M') for m in intraday_metrics],
                                 'values': [float(m[1]) for m in intraday_metrics]
                             }
-                            app.logger.info(f"Datos intradía obtenidos para {base_alert_type}: {len(intraday_metrics)} registros")
+                            app.logger.info(f"Datos intradía obtenidos para {intraday_metric_type}: {len(intraday_metrics)} registros")
                         else:
-                            app.logger.info(f"No se encontraron datos intradía para {base_alert_type}")
+                            app.logger.info(f"No se encontraron datos intradía para {intraday_metric_type}")
 
                     # Convertir el datetime a string formateado
                     alert_time = alert[1].strftime('%Y-%m-%d %H:%M')

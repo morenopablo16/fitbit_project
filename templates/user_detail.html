@@ -343,8 +343,9 @@
 
         <!-- Datos Intradía -->
         <div class="tab-pane fade" id="intraday" role="tabpanel">
-            <div class="row mb-3">
+            <div class="row mb-3 align-items-end">
                 <div class="col-md-4">
+                    <label for="metric-type" class="form-label">Métrica</label>
                     <select class="form-select" id="metric-type">
                         <option value="steps">Pasos</option>
                         <option value="heart_rate">Frecuencia Cardíaca</option>
@@ -353,7 +354,13 @@
                     </select>
                 </div>
                 <div class="col-md-4">
+                    <label for="intraday-date" class="form-label">Fecha</label>
                     <input type="date" class="form-control" id="intraday-date">
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-success" id="export-intraday-btn" title="Exportar datos intradía a CSV">
+                        <i class="fas fa-file-csv"></i> Exportar a CSV
+                    </button>
                 </div>
             </div>
             <div class="chart-container">
@@ -391,6 +398,14 @@
 
         <!-- Alertas Recientes -->
         <div class="tab-pane fade" id="alerts" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Alertas recientes</h5>
+                {% if recent_alerts and recent_alerts|length > 0 %}
+                <a href="{{ url_for('export_user_alerts', user_id=user.id) }}" class="btn btn-outline-success btn-sm" title="Exportar alertas a CSV">
+                    <i class="fas fa-file-csv"></i> Exportar a CSV
+                </a>
+                {% endif %}
+            </div>
             <div id="alerts-container">
                 {% if recent_alerts and recent_alerts|length > 0 %}
                     {% for alert in recent_alerts %}
@@ -596,6 +611,19 @@ function formatValue(val) {
     }
     return val;
 }
+
+document.getElementById('export-intraday-btn').addEventListener('click', function() {
+    const metric = document.getElementById('metric-type').value;
+    const date = document.getElementById('intraday-date').value;
+    if (!metric || !date) {
+        alert('Selecciona una fecha y una métrica.');
+        return;
+    }
+    const params = new URLSearchParams();
+    params.append('metrics', metric);
+    params.append('dates', date);
+    window.location.href = `/livelyageing/user/{{ user.id }}/export_intraday?${params.toString()}`;
+});
 </script>
 </body>
 </html> 

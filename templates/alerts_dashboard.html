@@ -47,7 +47,8 @@
             cursor: pointer; 
         }
         .alert-row:hover { 
-            background-color: rgba(0,0,0,0.05); 
+            background-color: #e7f1ff; 
+            color: #003366;
         }
         .severity-indicator {
             width: 4px;
@@ -113,7 +114,12 @@
   <i class="bi bi-arrow-left"></i> Volver
 </a>
 <div class="container my-5">
-    <h2 class="mb-4 text-center">📊 Dashboard de Alertas Médicas</h2>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="mb-4 text-center">📊 Dashboard de Alertas Médicas</h2>
+        <a href="{{ url_for('export_alerts', **filters_dict) }}" class="btn btn-outline-success ms-2" title="Exportar a CSV">
+            <i class="fas fa-file-csv"></i> Exportar a CSV
+        </a>
+    </div>
 
     <!-- Resumen de Alertas -->
     <div class="row mb-4">
@@ -226,6 +232,9 @@
 
     <!-- Paginación -->
     {% if pagination %}
+    <div class="text-center mb-2">
+        <small>Página {{ pagination.page }} de {{ pagination.pages }}</small>
+    </div>
     <nav aria-label="Navegación de páginas" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if pagination.has_prev %}

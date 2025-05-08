@@ -1,5 +1,5 @@
 from logging.handlers import RotatingFileHandler
-from flask import Flask, logging, render_template, request, redirect, session, url_for, flash, g, jsonify
+from flask import Flask, logging, render_template, request, redirect, session, url_for, flash, g, jsonify, Response
 from auth import generate_state, get_tokens, generate_code_verifier, generate_code_challenge, generate_auth_url
 from db import DatabaseManager, get_daily_summaries, get_user_alerts, get_user_id_by_email
 from config import CLIENT_ID, REDIRECT_URI
@@ -1238,6 +1238,168 @@ def api_user_alerts(user_id):
                 } for row in data
             ]
         })
+    finally:
+        db.close()
+
+@app.route('/livelyageing/dashboard/alerts/export')
+@login_required
+def export_alerts():
+    import csv
+    from io import StringIO
+    db = DatabaseManager()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+    try:
+        # Obtener filtros igual que en alerts_dashboard
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        priority = request.args.get('priority')
+        acknowledged = request.args.get('acknowledged')
+        user_query = request.args.get('user_query')
+        # Construir la consulta base
+        query = """
+            SELECT 
+                a.alert_time,
+                u.name AS user_name,
+                u.email AS user_email,
+                a.alert_type,
+                a.priority,
+                a.triggering_value,
+                a.threshold_value,
+                a.details,
+                a.acknowledged
+            FROM alerts a
+            JOIN users u ON a.user_id = u.id
+            WHERE 1=1
+        """
+        params = []
+        if date_from:
+            query += " AND a.alert_time >= %s"
+            params.append(f"{date_from} 00:00:00")
+        if date_to:
+            query += " AND a.alert_time <= %s"
+            params.append(f"{date_to} 23:59:59")
+        if priority:
+            query += " AND a.priority = %s"
+            params.append(priority)
+        if acknowledged is not None and acknowledged != '':
+            query += " AND a.acknowledged = %s"
+            params.append(acknowledged == 'true')
+        if user_query:
+            query += " AND (LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s))"
+            search_term = f"%{user_query}%"
+            params.extend([search_term, search_term])
+        query += " ORDER BY a.alert_time DESC"
+        alerts = db.execute_query(query, params)
+        # Crear CSV con BOM UTF-8 para compatibilidad con Excel
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(["Fecha/Hora", "Usuario", "Email", "Tipo de Alerta", "Prioridad", "Valor Disparador", "Umbral", "Detalles", "Reconocida"])
+        for a in alerts:
+            cw.writerow([
+                a[0].strftime('%Y-%m-%d %H:%M'),
+                a[1], a[2], a[3], a[4], a[5], a[6], a[7], "Sí" if a[8] else "No"
+            ])
+        output = '\ufeff' + si.getvalue()  # Añadir BOM UTF-8
+        si.close()
+        fecha = datetime.now().strftime('%Y%m%d')
+        return Response(
+            output,
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment;filename=alertas_{fecha}.csv"}
+        )
+    finally:
+        db.close()
+
+@app.route('/livelyageing/user/<int:user_id>/export_alerts')
+@login_required
+def export_user_alerts(user_id):
+    import csv
+    from io import StringIO
+    db = DatabaseManager()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+    try:
+        since = datetime.now() - timedelta(days=7)
+        query = """
+            SELECT 
+                a.alert_time,
+                u.name AS user_name,
+                u.email AS user_email,
+                a.alert_type,
+                a.priority,
+                a.triggering_value,
+                a.threshold_value,
+                a.details,
+                a.acknowledged
+            FROM alerts a
+            JOIN users u ON a.user_id = u.id
+            WHERE a.user_id = %s AND a.alert_time >= %s
+            ORDER BY a.alert_time DESC
+        """
+        alerts = db.execute_query(query, (user_id, since))
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(["Fecha/Hora", "Usuario", "Email", "Tipo de Alerta", "Prioridad", "Valor Disparador", "Umbral", "Detalles", "Reconocida"])
+        for a in alerts:
+            cw.writerow([
+                a[0].strftime('%Y-%m-%d %H:%M'),
+                a[1], a[2], a[3], a[4], a[5], a[6], a[7], "Sí" if a[8] else "No"
+            ])
+        output = '\ufeff' + si.getvalue()
+        si.close()
+        fecha = datetime.now().strftime('%Y%m%d')
+        return Response(
+            output,
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment;filename=alertas_usuario_{user_id}_{fecha}.csv"}
+        )
+    finally:
+        db.close()
+
+@app.route('/livelyageing/user/<int:user_id>/export_intraday')
+@login_required
+def export_user_intraday(user_id):
+    import csv
+    from io import StringIO
+    db = DatabaseManager()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+    try:
+        # Obtener fechas y métricas seleccionadas
+        dates = request.args.getlist('dates')
+        metrics = request.args.getlist('metrics')
+        if not dates or not metrics:
+            return "Debe seleccionar al menos una fecha y una métrica", 400
+        # Preparar consulta
+        rows = []
+        for date_str in dates:
+            for metric in metrics:
+                start_time = datetime.strptime(date_str, "%Y-%m-%d")
+                end_time = start_time + timedelta(days=1)
+                query = """
+                    SELECT time, type, value
+                    FROM intraday_metrics
+                    WHERE user_id = %s AND type = %s AND time >= %s AND time < %s
+                    ORDER BY time
+                """
+                data = db.execute_query(query, (user_id, metric, start_time, end_time))
+                for row in data:
+                    rows.append((row[0].date().strftime('%Y-%m-%d'), row[0].strftime('%H:%M'), row[1], row[2]))
+        # Crear CSV
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(["Fecha", "Hora", "Métrica", "Valor"])
+        for r in rows:
+            cw.writerow(r)
+        output = '\ufeff' + si.getvalue()
+        si.close()
+        fecha = datetime.now().strftime('%Y%m%d')
+        return Response(
+            output,
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment;filename=intradia_usuario_{user_id}_{fecha}.csv"}
+        )
     finally:
         db.close()
 

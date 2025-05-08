@@ -34,6 +34,7 @@
                                     <th>{{ _('Name') }}</th>
                                     <th>{{ _('Email') }}</th>
                                     <th>{{ _('Created At') }}</th>
+                                    <th>Estado</th>
                                     <th>{{ _('Actions') }}</th>
                                 </tr>
                             </thead>
@@ -44,15 +45,29 @@
                                     <td>{{ user[2] }}</td>
                                     <td>{{ user[3] }}</td>
                                     <td>
+                                        {% set last_update = user[4] %}
+                                        {% if last_update %}
+                                            {% set days_diff = ((now.date() - last_update).days) %}
+                                            {% if days_diff <= 7 %}
+                                                <span class="badge bg-success">Activo</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-primary btn-sm">
                                             <i class="bi bi-eye"></i> {{ _('View Details') }}
                                         </a>
-                                    </td>
+                                        <a href="#" class="btn btn-warning btn-sm disabled" title="Editar usuario (próximamente)"><i class="bi bi-pencil"></i></a>
+                                        <button class="btn btn-danger btn-sm" onclick="showUnlinkModal({{ user[0] }}, '{{ user[1] }}')" title="Desvincular usuario"><i class="bi bi-x-circle"></i></button>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center">{{ _('No users found.') }}</td>
+                                    <td colspan="5" class="text-center">{{ _('No users found.') }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -63,4 +78,35 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para confirmar desvinculación -->
+<div class="modal fade" id="unlinkUserModal" tabindex="-1" aria-labelledby="unlinkUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="unlinkUserModalLabel">Desvincular usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que quieres desvincular a <span id="unlinkUserName"></span>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" id="unlinkUserForm" action="/livelyageing/unlink_user" style="display:inline;">
+          <input type="hidden" name="user_id" id="unlinkUserId">
+          <button type="submit" class="btn btn-danger">Desvincular</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showUnlinkModal(userId, userName) {
+    document.getElementById('unlinkUserId').value = userId;
+    document.getElementById('unlinkUserName').textContent = userName;
+    var modal = new bootstrap.Modal(document.getElementById('unlinkUserModal'));
+    modal.show();
+}
+</script>
 {% endblock %}

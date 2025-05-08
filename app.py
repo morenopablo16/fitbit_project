@@ -279,18 +279,20 @@ def user_stats():
         try:
             if search:
                 users = db.execute_query("""
-                    SELECT id, name, email, created_at
-                    FROM users
-                    WHERE LOWER(name) LIKE LOWER(%s) OR LOWER(email) LIKE LOWER(%s)
-                    ORDER BY created_at DESC
+                    SELECT u.id, u.name, u.email, u.created_at,
+                        (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update
+                    FROM users u
+                    WHERE LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s)
+                    ORDER BY u.created_at DESC
                 """, (f"%{search}%", f"%{search}%"))
             else:
                 users = db.execute_query("""
-                    SELECT id, name, email, created_at
-                    FROM users
-                    ORDER BY created_at DESC
+                    SELECT u.id, u.name, u.email, u.created_at,
+                        (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update
+                    FROM users u
+                    ORDER BY u.created_at DESC
                 """)
-            return render_template('user_stats.html', users=users, search=search)
+            return render_template('user_stats.html', users=users, search=search, now=datetime.now())
         except Exception as e:
             app.logger.error(f"Error fetching user statistics: {e}")
             return "Error: No se pudieron obtener las estadísticas de usuarios.", 500
@@ -1455,6 +1457,28 @@ def export_user_intraday(user_id):
         )
     finally:
         db.close()
+
+@app.route('/livelyageing/unlink_user', methods=['POST'])
+@login_required
+def unlink_user():
+    user_id = request.form.get('user_id')
+    if not user_id:
+        flash('ID de usuario no proporcionado', 'danger')
+        return redirect(url_for('user_stats'))
+    db = DatabaseManager()
+    if db.connect():
+        try:
+            # Solo borrar los tokens, no eliminar el usuario
+            db.execute_query("UPDATE users SET access_token = NULL, refresh_token = NULL WHERE id = %s", (user_id,))
+            flash('Dispositivo desvinculado correctamente. El usuario y sus datos históricos se mantienen.', 'success')
+        except Exception as e:
+            app.logger.error(f"Error desvinculando usuario: {e}")
+            flash('Error al desvincular usuario', 'danger')
+        finally:
+            db.close()
+    else:
+        flash('Error de conexión a la base de datos', 'danger')
+    return redirect(url_for('user_stats'))
 
 # Run the Flask app
 if __name__ == '__main__':

@@ -42,6 +42,7 @@ access.pem
 *~
 .DS_Store
 
+
 # Logs and databases
 *.log
 *.db

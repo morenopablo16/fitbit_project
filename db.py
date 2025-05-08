@@ -228,6 +228,31 @@ class DatabaseManager:
         """
         return self.execute_query(query, (encrypted_access_token, encrypted_refresh_token, email))
 
+    def get_alert_by_id(self, alert_id):
+        """Obtiene una alerta específica por su ID"""
+        if not self.connect():
+            return None
+            
+        try:
+            query = """
+                SELECT a.*, u.name as user_name, u.email as user_email
+                FROM alerts a
+                JOIN users u ON a.user_id = u.id
+                WHERE a.id = %s
+            """
+            result = self.execute_query(query, [alert_id])
+            if result and len(result) > 0:
+                # Convertir el resultado a un diccionario
+                columns = [desc[0] for desc in self.cursor.description]
+                alert = dict(zip(columns, result[0]))
+                return alert
+            return None
+        except Exception as e:
+            print(f"Error al obtener alerta por ID: {str(e)}")
+            return None
+        finally:
+            self.close()
+
 # Función de conveniencia para mantener compatibilidad con el código existente
 def connect_to_db():
     """Función de conveniencia para mantener compatibilidad con el código existente."""
@@ -368,6 +393,8 @@ def init_db():
                 threshold_value DOUBLE PRECISION,
                 details TEXT,
                 acknowledged BOOLEAN DEFAULT FALSE,
+                acknowledged_at TIMESTAMPTZ,
+                acknowledged_by INTEGER REFERENCES users(id),
                 PRIMARY KEY (id, alert_time)
             );
         """)

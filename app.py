@@ -8,7 +8,7 @@ import os
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager, UserMixin
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask_babel import Babel, get_locale, gettext as _
 
 # Initialize Flask app
@@ -248,7 +248,17 @@ def home():
                 LIMIT 10
             """)
             
-            return render_template('home.html', recent_users=recent_users)
+            # Convertir la fecha a datetime para evitar el error de tipo
+            now = datetime.now()
+            processed_users = []
+            for user in recent_users:
+                user_list = list(user)  # Convertir tupla a lista para poder modificar
+                if user_list[3]:  # Si created_at no es None
+                    # Convertir date a datetime usando datetime.combine
+                    user_list[3] = datetime.combine(user_list[3], datetime.min.time())
+                processed_users.append(tuple(user_list))  # Volver a convertir a tupla
+            
+            return render_template('home.html', recent_users=processed_users, now=now)
         except Exception as e:
             app.logger.error(f"Error fetching data for home page: {e}")
             return "Error: No se pudieron obtener los datos para la página de inicio.", 500
@@ -682,6 +692,7 @@ def alerts_dashboard():
     try:
         db = DatabaseManager()
         if not db.connect():
+            app.logger.error("No se pudo conectar a la base de datos")
             return jsonify({'error': 'Database connection error'}), 500
 
         # Obtener parámetros de filtrado
@@ -690,8 +701,29 @@ def alerts_dashboard():
         priority = request.args.get('priority')
         acknowledged = request.args.get('acknowledged')
         user_query = request.args.get('user_query')
+        alert_type = request.args.get('alert_type')
+        urgent_only = request.args.get('urgent_only') == 'on'
         page = request.args.get('page', 1, type=int)
         per_page = 10  # Número de alertas por página
+
+        app.logger.info(f"Parámetros de filtrado: date_from={date_from}, date_to={date_to}, priority={priority}, acknowledged={acknowledged}, user_query={user_query}, alert_type={alert_type}, urgent_only={urgent_only}")
+
+        # Crear diccionario de filtros para la paginación
+        filters_dict = {}
+        if date_from:
+            filters_dict['date_from'] = date_from
+        if date_to:
+            filters_dict['date_to'] = date_to
+        if priority:
+            filters_dict['priority'] = priority
+        if acknowledged is not None and acknowledged != '':
+            filters_dict['acknowledged'] = acknowledged
+        if user_query:
+            filters_dict['user_query'] = user_query
+        if alert_type:
+            filters_dict['alert_type'] = alert_type
+        if urgent_only:
+            filters_dict['urgent_only'] = 'on'
 
         # Construir la consulta base
         query = """
@@ -730,69 +762,132 @@ def alerts_dashboard():
             query += " AND (LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s))"
             search_term = f"%{user_query}%"
             params.extend([search_term, search_term])
+        if alert_type:
+            query += " AND a.alert_type LIKE %s"
+            params.append(f"%{alert_type}%")
+        if urgent_only:
+            query += " AND a.acknowledged = FALSE AND a.alert_time <= NOW() - INTERVAL '24 hours'"
 
-        # Ordenar por fecha descendente
-        query += " ORDER BY a.alert_time DESC"
+        # Ordenar por prioridad y fecha descendente
+        query += " ORDER BY CASE a.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 END, a.alert_time DESC"
 
-        # Obtener el total de alertas para la paginación
-        count_query = f"SELECT COUNT(*) FROM ({query}) AS count_query"
-        total = db.execute_query(count_query, params)[0][0]
+        app.logger.info(f"Query: {query}")
+        app.logger.info(f"Params: {params}")
 
-        # Aplicar paginación
-        query += " LIMIT %s OFFSET %s"
-        params.extend([per_page, (page - 1) * per_page])
+        try:
+            # Obtener el total de alertas para la paginación
+            count_query = f"SELECT COUNT(*) FROM ({query}) AS count_query"
+            total = db.execute_query(count_query, params)[0][0]
+            app.logger.info(f"Total de alertas encontradas: {total}")
 
-        # Ejecutar la consulta
-        alerts_data = db.execute_query(query, params)
+            # Aplicar paginación
+            query += " LIMIT %s OFFSET %s"
+            params.extend([per_page, (page - 1) * per_page])
 
-        # Convertir las tuplas en diccionarios con nombres de atributos
-        alerts = []
-        for alert in alerts_data:
-            alerts.append({
-                'id': alert[0],
-                'alert_time': alert[1],
-                'user_id': alert[2],
-                'alert_type': alert[3],
-                'priority': alert[4],
-                'triggering_value': alert[5],
-                'threshold_value': alert[6],
-                'details': alert[7],
-                'acknowledged': alert[8],
-                'user_name': alert[9],
-                'user_email': alert[10]
-            })
+            # Ejecutar la consulta
+            alerts_data = db.execute_query(query, params)
+            app.logger.info(f"Alertas obtenidas: {len(alerts_data) if alerts_data else 0}")
 
-        # Crear objeto de paginación
-        pagination = {
-            'page': page,
-            'per_page': per_page,
-            'total': total,
-            'pages': (total + per_page - 1) // per_page,
-            'has_prev': page > 1,
-            'has_next': page * per_page < total,
-            'prev_num': page - 1,
-            'next_num': page + 1,
-            'iter_pages': lambda: range(1, ((total + per_page - 1) // per_page) + 1)
-        }
+            if not alerts_data:
+                app.logger.warning("No se encontraron alertas con los filtros actuales")
+                return render_template('alerts_dashboard.html', 
+                                    alerts=[], 
+                                    pagination=None,
+                                    filters_dict=filters_dict,
+                                    now=datetime.now(timezone.utc))
 
-        # Crear diccionario de filtros para la paginación (sin 'page')
-        filters_dict = {}
-        if date_from:
-            filters_dict['date_from'] = date_from
-        if date_to:
-            filters_dict['date_to'] = date_to
-        if priority:
-            filters_dict['priority'] = priority
-        if acknowledged is not None and acknowledged != '':
-            filters_dict['acknowledged'] = acknowledged
-        if user_query:
-            filters_dict['user_query'] = user_query
+            # Convertir las tuplas en diccionarios con nombres de atributos
+            alerts = []
+            for alert in alerts_data:
+                try:
+                    # Obtener datos intradía para la alerta
+                    intraday_data = {}
+                    alert_type = alert[3]
+                    base_alert_type = alert_type.split('_')[0] if '_' in alert_type else alert_type
+                    
+                    # Solo obtener datos intradía para tipos compatibles
+                    if base_alert_type in ['heart_rate', 'steps', 'calories', 'active_zone_minutes']:
+                        start_time = alert[1] - timedelta(hours=24)
+                        end_time = alert[1]
+                        intraday_metrics = db.execute_query("""
+                            SELECT time, value 
+                            FROM intraday_metrics 
+                            WHERE user_id = %s 
+                            AND type = %s 
+                            AND time BETWEEN %s AND %s 
+                            ORDER BY time
+                        """, (alert[2], base_alert_type, start_time, end_time))
+                        
+                        if intraday_metrics:
+                            intraday_data = {
+                                'times': [m[0].strftime('%H:%M') for m in intraday_metrics],
+                                'values': [float(m[1]) for m in intraday_metrics]
+                            }
+                            app.logger.info(f"Datos intradía obtenidos para {base_alert_type}: {len(intraday_metrics)} registros")
+                        else:
+                            app.logger.info(f"No se encontraron datos intradía para {base_alert_type}")
 
-        return render_template('alerts_dashboard.html', alerts=alerts, pagination=pagination, filters_dict=filters_dict)
+                    # Convertir el datetime a string formateado
+                    alert_time = alert[1].strftime('%Y-%m-%d %H:%M')
+
+                    alerts.append({
+                        'id': alert[0],
+                        'alert_time': alert_time,
+                        'user_id': alert[2],
+                        'alert_type': alert[3],
+                        'priority': alert[4].lower(),
+                        'triggering_value': alert[5],
+                        'threshold_value': alert[6],
+                        'details': alert[7],
+                        'acknowledged': alert[8],
+                        'user_name': alert[9],
+                        'user_email': alert[10],
+                        'intraday_data': intraday_data,
+                        'raw_alert_time': alert[1]
+                    })
+                except Exception as e:
+                    app.logger.error(f"Error procesando alerta {alert[0]}: {e}")
+                    continue
+
+            app.logger.info(f"Alertas procesadas: {len(alerts)}")
+
+            # Crear objeto de paginación
+            pagination = {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'pages': (total + per_page - 1) // per_page,
+                'has_prev': page > 1,
+                'has_next': page * per_page < total,
+                'prev_num': page - 1,
+                'next_num': page + 1,
+                'iter_pages': lambda: range(1, ((total + per_page - 1) // per_page) + 1)
+            }
+
+            # Asegurarse de que now sea timezone-aware
+            now = datetime.now(timezone.utc)
+
+            return render_template('alerts_dashboard.html', 
+                                alerts=alerts, 
+                                pagination=pagination, 
+                                filters_dict=filters_dict,
+                                now=now)
+
+        except Exception as e:
+            app.logger.error(f"Error en la consulta SQL: {e}")
+            return render_template('alerts_dashboard.html', 
+                                alerts=[], 
+                                pagination=None,
+                                filters_dict=filters_dict,
+                                now=datetime.now(timezone.utc))
 
     except Exception as e:
         app.logger.error(f"Error al cargar el dashboard de alertas: {e}")
-        return render_template('alerts_dashboard.html', alerts=[], pagination=None)
+        return render_template('alerts_dashboard.html', 
+                            alerts=[], 
+                            pagination=None,
+                            filters_dict={},
+                            now=datetime.now(timezone.utc))
 
 @app.route('/livelyageing/api/alerts/<int:alert_id>')
 @login_required
@@ -802,7 +897,7 @@ def get_alert_details(alert_id):
         if not db.connect():
             return jsonify({'error': 'Database connection error'}), 500
 
-        # Obtener los detalles de la alerta
+        # Obtener detalles de la alerta
         query = """
             SELECT 
                 a.id,
@@ -814,97 +909,35 @@ def get_alert_details(alert_id):
                 a.threshold_value,
                 a.details,
                 a.acknowledged,
-                u.name AS user_name,
+                u.name AS user_name, 
                 u.email AS user_email
             FROM alerts a
             JOIN users u ON a.user_id = u.id
             WHERE a.id = %s
         """
-        result = db.execute_query(query, (alert_id,))
-
+        result = db.execute_query(query, [alert_id])
+        
         if not result:
             return jsonify({'error': 'Alerta no encontrada'}), 404
 
-        alert = result[0]
-        
-        # Determinar el tipo de métrica basado en el tipo de alerta
-        metric_type = None
-        alert_type = alert[3].lower()
-        
-        if 'heart_rate' in alert_type:
-            metric_type = 'heart_rate'
-        elif 'steps' in alert_type:
-            metric_type = 'steps'
-        elif 'active_zone_minutes' in alert_type:
-            metric_type = 'active_zone_minutes'
-        elif 'calories' in alert_type:
-            metric_type = 'calories'
-        elif 'activity_drop' in alert_type:
-            metric_type = 'steps'  # activity_drop está relacionado con pasos
-        elif 'sedentary_increase' in alert_type:
-            metric_type = 'active_zone_minutes'  # sedentary está relacionado con minutos activos
-        elif 'sleep_duration_change' in alert_type:
-            metric_type = 'sleep'  # sleep tiene su propia métrica
-        
-        # Si tenemos un tipo de métrica válido, obtener datos intradía
-        intraday_data = None
-        if metric_type:
-            # Obtener datos del día de la alerta
-            alert_date = alert[1].date()
-            start_time = datetime.combine(alert_date, datetime.min.time())
-            end_time = datetime.combine(alert_date, datetime.max.time())
-            
-            intraday_query = """
-                SELECT time, value
-                FROM intraday_metrics
-                WHERE user_id = %s AND type = %s AND time BETWEEN %s AND %s
-                ORDER BY time
-            """
-            intraday_data = db.execute_query(
-                intraday_query,
-                (alert[2], metric_type, start_time, end_time)
-            )
-            
-            # Convertir a formato para el gráfico
-            if intraday_data:
-                intraday_data = [
-                    {'time': row[0].strftime('%Y-%m-%d %H:%M:%S'), 'value': float(row[1])}
-                    for row in intraday_data
-                ]
-        
-        # Calcular tiempo desde que se generó la alerta
-        current_time = datetime.now(alert[1].tzinfo) if alert[1].tzinfo else datetime.now()
-        time_since_alert = current_time - alert[1]
-        hours_since_alert = time_since_alert.total_seconds() / 3600
-        
-        # Determinar nivel de escalada
-        escalation_level = 0
-        if not alert[8]:  # Si no está reconocida
-            if hours_since_alert >= 4 and alert[4] == 'high':
-                escalation_level = 2
-            elif hours_since_alert >= 1:
-                escalation_level = 1
-        
-        return jsonify({
-            'alert': {
-                'id': alert[0],
-                'time': alert[1].isoformat(),
-                'type': alert[3],
-                'priority': alert[4],
-                'triggering_value': alert[5],
-                'threshold_value': alert[6],
-                'details': alert[7],
-                'acknowledged': alert[8],
-                'user_name': alert[9],
-                'user_email': alert[10]
-            },
-            'intraday_data': intraday_data,
-            'escalation_level': escalation_level,
-            'hours_since_alert': round(hours_since_alert, 1)
-        })
+        alert = {
+            'id': result[0][0],
+            'alert_time': result[0][1].isoformat(),
+            'user_id': result[0][2],
+            'alert_type': result[0][3],
+            'priority': result[0][4],
+            'triggering_value': result[0][5],
+            'threshold_value': result[0][6],
+            'details': result[0][7],
+            'acknowledged': result[0][8],
+            'user_name': result[0][9],
+            'user_email': result[0][10]
+        }
+
+        return jsonify(alert)
 
     except Exception as e:
-        app.logger.error(f"Error getting alert details: {e}")
+        app.logger.error(f"Error al obtener detalles de la alerta: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/livelyageing/api/alerts/<int:alert_id>/acknowledge', methods=['POST'])
@@ -913,35 +946,34 @@ def acknowledge_alert(alert_id):
     try:
         db = DatabaseManager()
         if not db.connect():
-            return jsonify({'error': 'Database connection error'}), 500
+            return jsonify({'success': False, 'error': 'Error de conexión a la base de datos'}), 500
 
-        # Obtener la nota del médico del cuerpo de la petición
-        data = request.get_json()
-        note = data.get('note', '')
-
-        # Actualizar el estado de la alerta y añadir la nota
-        result = db.execute_query(
-            """
-            UPDATE alerts 
-            SET acknowledged = TRUE,
-                details = CASE 
-                    WHEN details IS NULL THEN %s
-                    ELSE details || E'\n\nNota del médico (' || CURRENT_TIMESTAMP || '): ' || %s
-                END
-            WHERE id = %s 
-            RETURNING id
-            """,
-            (note, note, alert_id)
-        )
-
-        if result and result[0][0]:
+        try:
+            # Verificar si la alerta existe y no está reconocida
+            check_query = "SELECT acknowledged FROM alerts WHERE id = %s"
+            result = db.execute_query(check_query, [alert_id])
+            
+            if not result:
+                return jsonify({'success': False, 'error': 'Alerta no encontrada'}), 404
+                
+            if result[0][0]:
+                return jsonify({'success': False, 'error': 'La alerta ya está reconocida'}), 400
+                
+            # Actualizar solo el campo acknowledged
+            db.execute_query("""
+                UPDATE alerts 
+                SET acknowledged = TRUE
+                WHERE id = %s
+            """, [alert_id])
+                
             return jsonify({'success': True})
-        else:
-            return jsonify({'error': 'Alerta no encontrada'}), 404
-
+            
+        finally:
+            db.close()
+            
     except Exception as e:
-        app.logger.error(f"Error al reconocer la alerta: {e}")
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error al reconocer alerta: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/livelyageing/user/<int:user_id>')
 @login_required

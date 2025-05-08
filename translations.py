@@ -33,7 +33,30 @@ TRANSLATIONS = {
             'name': 'Nombre',
             'email': 'Correo electrónico',
             'created_at': 'Fecha de creación',
-            'all_rights_reserved': 'Todos los derechos reservados'
+            'all_rights_reserved': 'Todos los derechos reservados',
+            'back': 'Volver',
+            'refresh': 'Actualizar',
+            'export': 'Exportar',
+            'filter': 'Filtrar',
+            'search': 'Buscar',
+            'details': 'Detalles',
+            'status': 'Estado',
+            'priority': 'Prioridad',
+            'threshold': 'Umbral',
+            'notes': 'Notas',
+            'acknowledge': 'Reconocer',
+            'acknowledged': 'Reconocida',
+            'pending': 'Pendiente',
+            'urgent': 'Urgente',
+            'high': 'Alta',
+            'medium': 'Media',
+            'low': 'Baja',
+            'sync_status': {
+                'ok': 'Datos actualizados',
+                'warning': 'Datos desactualizados',
+                'critical': 'Sin datos recientes',
+                'never': 'Nunca sincronizado'
+            }
         },
         'auth': {
             'email': 'Correo electrónico',
@@ -134,6 +157,77 @@ TRANSLATIONS = {
             'invalid_value': 'El valor ingresado no es válido',
             'values_not_match': 'Los valores ingresados no coinciden',
             'invalid_input': 'Entrada inválida'
+        },
+        'alerts': {
+            'dashboard': {
+                'title': 'Dashboard de Alertas Médicas',
+                'summary': 'Resumen de Alertas',
+                'high_priority': 'Alertas de Alta Prioridad',
+                'medium_priority': 'Alertas de Media Prioridad',
+                'low_priority': 'Alertas de Baja Prioridad',
+                'unacknowledged': 'Alertas No Reconocidas',
+                'filters': {
+                    'date_from': 'Fecha Desde',
+                    'date_to': 'Fecha Hasta',
+                    'user': 'Usuario',
+                    'priority': 'Prioridad',
+                    'status': 'Estado',
+                    'all': 'Todos',
+                    'unacknowledged': 'No Reconocidas',
+                    'acknowledged': 'Reconocidas'
+                },
+                'table': {
+                    'datetime': 'Fecha/Hora',
+                    'user': 'Usuario',
+                    'type': 'Tipo de Alerta',
+                    'priority': 'Prioridad',
+                    'status': 'Estado',
+                    'actions': 'Acciones'
+                },
+                'modal': {
+                    'title': 'Detalles de la Alerta',
+                    'triggering_value': 'Valor Disparador',
+                    'threshold_value': 'Umbral',
+                    'time_since': 'Tiempo desde alerta',
+                    'hours': 'horas',
+                    'doctor_note': 'Nota del médico',
+                    'add_note': 'Añade una nota sobre la acción tomada...',
+                    'intraday_data': 'Datos Intradía (Últimas 24h)'
+                },
+                'export': {
+                    'title': 'Exportar a CSV',
+                    'filename': 'alertas_{date}.csv'
+                }
+            },
+            'types': {
+                'activity_drop': 'Caída de Actividad',
+                'sedentary_increase': 'Aumento de Tiempo Sedentario',
+                'sleep_duration_change': 'Cambio en Duración del Sueño',
+                'heart_rate_anomaly': 'Anomalía en Frecuencia Cardíaca',
+                'data_quality': 'Calidad de Datos',
+                'intraday_anomaly': 'Anomalía en Datos Intradía'
+            },
+            'messages': {
+                'acknowledge_success': 'Alerta reconocida correctamente',
+                'acknowledge_error': 'Error al reconocer la alerta',
+                'load_error': 'Error al cargar los detalles de la alerta',
+                'export_error': 'Error al exportar las alertas',
+                'no_alerts': 'No hay alertas que coincidan con los filtros'
+            }
+        },
+        'sync': {
+            'status': {
+                'ok': 'Datos actualizados en las últimas 24h',
+                'warning': 'Sin datos en 24-72h',
+                'critical': 'Sin datos en más de 72h',
+                'never': 'Nunca sincronizado'
+            },
+            'actions': {
+                'sync_now': 'Sincronizar ahora',
+                'last_sync': 'Última sincronización',
+                'sync_error': 'Error en la sincronización',
+                'sync_success': 'Sincronización completada'
+            }
         }
     },
     'en': {
@@ -165,7 +259,30 @@ TRANSLATIONS = {
             'name': 'Name',
             'email': 'Email',
             'created_at': 'Created at',
-            'all_rights_reserved': 'All rights reserved'
+            'all_rights_reserved': 'All rights reserved',
+            'back': 'Back',
+            'refresh': 'Refresh',
+            'export': 'Export',
+            'filter': 'Filter',
+            'search': 'Search',
+            'details': 'Details',
+            'status': 'Status',
+            'priority': 'Priority',
+            'threshold': 'Threshold',
+            'notes': 'Notes',
+            'acknowledge': 'Acknowledge',
+            'acknowledged': 'Acknowledged',
+            'pending': 'Pending',
+            'urgent': 'Urgent',
+            'high': 'High',
+            'medium': 'Medium',
+            'low': 'Low',
+            'sync_status': {
+                'ok': 'Data up to date',
+                'warning': 'Data outdated',
+                'critical': 'No recent data',
+                'never': 'Never synced'
+            }
         },
         'auth': {
             'email': 'Email',
@@ -266,6 +383,77 @@ TRANSLATIONS = {
             'invalid_value': 'The value you entered was invalid',
             'values_not_match': 'The two entered values do not match',
             'invalid_input': 'Invalid input'
+        },
+        'alerts': {
+            'dashboard': {
+                'title': 'Medical Alerts Dashboard',
+                'summary': 'Alerts Summary',
+                'high_priority': 'High Priority Alerts',
+                'medium_priority': 'Medium Priority Alerts',
+                'low_priority': 'Low Priority Alerts',
+                'unacknowledged': 'Unacknowledged Alerts',
+                'filters': {
+                    'date_from': 'Date From',
+                    'date_to': 'Date To',
+                    'user': 'User',
+                    'priority': 'Priority',
+                    'status': 'Status',
+                    'all': 'All',
+                    'unacknowledged': 'Unacknowledged',
+                    'acknowledged': 'Acknowledged'
+                },
+                'table': {
+                    'datetime': 'Date/Time',
+                    'user': 'User',
+                    'type': 'Alert Type',
+                    'priority': 'Priority',
+                    'status': 'Status',
+                    'actions': 'Actions'
+                },
+                'modal': {
+                    'title': 'Alert Details',
+                    'triggering_value': 'Triggering Value',
+                    'threshold_value': 'Threshold',
+                    'time_since': 'Time since alert',
+                    'hours': 'hours',
+                    'doctor_note': 'Doctor\'s note',
+                    'add_note': 'Add a note about the action taken...',
+                    'intraday_data': 'Intraday Data (Last 24h)'
+                },
+                'export': {
+                    'title': 'Export to CSV',
+                    'filename': 'alerts_{date}.csv'
+                }
+            },
+            'types': {
+                'activity_drop': 'Activity Drop',
+                'sedentary_increase': 'Sedentary Time Increase',
+                'sleep_duration_change': 'Sleep Duration Change',
+                'heart_rate_anomaly': 'Heart Rate Anomaly',
+                'data_quality': 'Data Quality',
+                'intraday_anomaly': 'Intraday Data Anomaly'
+            },
+            'messages': {
+                'acknowledge_success': 'Alert acknowledged successfully',
+                'acknowledge_error': 'Error acknowledging alert',
+                'load_error': 'Error loading alert details',
+                'export_error': 'Error exporting alerts',
+                'no_alerts': 'No alerts match the filters'
+            }
+        },
+        'sync': {
+            'status': {
+                'ok': 'Data updated in last 24h',
+                'warning': 'No data in 24-72h',
+                'critical': 'No data in more than 72h',
+                'never': 'Never synced'
+            },
+            'actions': {
+                'sync_now': 'Sync now',
+                'last_sync': 'Last sync',
+                'sync_error': 'Sync error',
+                'sync_success': 'Sync completed'
+            }
         }
     }
 } 

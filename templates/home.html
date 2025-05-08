@@ -70,6 +70,7 @@
                                     <th>{{ _('User') }}</th>
                                     <th>{{ _('Email') }}</th>
                                     <th>{{ _('Last Update') }}</th>
+                                    <th>{{ _('State') }}</th>
                                     <th>{{ _('Actions') }}</th>
                                 </tr>
                             </thead>
@@ -78,7 +79,29 @@
                                 <tr>
                                     <td>{{ user[1] }}</td>
                                     <td>{{ user[2] }}</td>
-                                    <td>{{ user[3]|datetime }}</td>
+                                    <td>{{ user[3]|datetime if user[3] else '—' }}</td>
+                                    <td>
+                                        {% if user[3] %}
+                                            {% set hours_since_update = ((now - user[3]).total_seconds() / 3600)|round %}
+                                            {% if hours_since_update <= 24 %}
+                                                <span class="badge bg-success" title="Datos actualizados en las últimas 24h">
+                                                    <i class="fas fa-check-circle"></i> OK
+                                                </span>
+                                            {% elif hours_since_update <= 72 %}
+                                                <span class="badge bg-warning" title="Sin datos en las últimas 24-72h">
+                                                    <i class="fas fa-exclamation-circle"></i> Atención
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger" title="Sin datos en más de 72h">
+                                                    <i class="fas fa-times-circle"></i> Crítico
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-danger" title="Nunca sincronizado">
+                                                <i class="fas fa-times-circle"></i> Sin datos
+                                            </span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-user"></i> Ver detalles

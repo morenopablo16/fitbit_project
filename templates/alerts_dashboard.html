@@ -60,6 +60,45 @@
         .modal-lg {
             max-width: 800px;
         }
+        .priority-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .priority-indicator.high {
+            background-color: #dc3545;
+        }
+        .priority-indicator.medium {
+            background-color: #ffc107;
+        }
+        .priority-indicator.low {
+            background-color: #198754;
+        }
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 0.8em;
+        }
+        .badge.bg-high {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .badge.bg-medium {
+            background-color: #ffc107 !important;
+            color: black !important;
+        }
+        .badge.bg-low {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+        .priority-high {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        .priority-medium {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        .priority-low {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -149,6 +188,31 @@
         </div>
     </div>
 
+    <!-- Leyenda de Prioridades -->
+    <div class="alert alert-info mb-4">
+        <h5 class="mb-2"><i class="fas fa-info-circle"></i> Leyenda de Prioridades</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center">
+                    <div class="priority-indicator high me-2"></div>
+                    <span><strong>Alta:</strong> Requiere atención inmediata (ej: anomalías cardíacas)</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center">
+                    <div class="priority-indicator medium me-2"></div>
+                    <span><strong>Media:</strong> Atención en las próximas horas (ej: cambios en actividad)</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center">
+                    <div class="priority-indicator low me-2"></div>
+                    <span><strong>Baja:</strong> Seguimiento rutinario (ej: tendencias de sueño)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filtros -->
     <div class="filter-section">
         <form method="GET" class="row g-3">
@@ -163,6 +227,15 @@
             <div class="col-md-2">
                 <label class="form-label">Usuario</label>
                 <input type="text" class="form-control" name="user_query" placeholder="Nombre o email" value="{{ request.args.get('user_query', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tipo de Alerta</label>
+                <select class="form-select" name="alert_type">
+                    <option value="">Todos</option>
+                    <option value="heart_rate" {% if request.args.get('alert_type') == 'heart_rate' %}selected{% endif %}>Cardíacas</option>
+                    <option value="activity" {% if request.args.get('alert_type') == 'activity' %}selected{% endif %}>Actividad</option>
+                    <option value="sleep" {% if request.args.get('alert_type') == 'sleep' %}selected{% endif %}>Sueño</option>
+                </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Prioridad</label>
@@ -181,9 +254,17 @@
                     <option value="true" {% if request.args.get('acknowledged') == 'true' %}selected{% endif %}>Reconocidas</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label class="form-label">&nbsp;</label>
-                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="urgent_only" id="urgent_only" {% if request.args.get('urgent_only') %}checked{% endif %}>
+                    <label class="form-check-label" for="urgent_only">
+                        Mostrar solo alertas urgentes (sin reconocer por más de 24h)
+                    </label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="{{ url_for('alerts_dashboard') }}" class="btn btn-outline-secondary">Limpiar Filtros</a>
             </div>
         </form>
     </div>
@@ -194,6 +275,7 @@
             <thead class="table-dark">
                 <tr>
                     <th>Fecha/Hora</th>
+                    <th>Tiempo desde Alerta</th>
                     <th>Usuario</th>
                     <th>Tipo de Alerta</th>
                     <th>Prioridad</th>
@@ -204,15 +286,30 @@
             <tbody>
                 {% for alert in alerts %}
                 <tr class="priority-{{ alert.priority|lower }} alert-row" onclick="showAlertDetails({{ alert.id }})">
-                    <td>{{ alert.alert_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ alert.alert_time }}</td>
+                    <td>
+                        {% set time_since = ((now - alert.raw_alert_time).total_seconds() / 3600)|round %}
+                        {% if time_since < 24 %}
+                            {{ time_since|int }} horas
+                        {% else %}
+                            {{ (time_since / 24)|round|int }} días
+                        {% endif %}
+                    </td>
                     <td>{{ alert.user_name }} ({{ alert.user_email }})</td>
                     <td>{{ alert.alert_type }}</td>
-                    <td><strong>{{ alert.priority }}</strong></td>
+                    <td>
+                        <span class="badge bg-{{ alert.priority|lower }}">
+                            {{ alert.priority|title }}
+                        </span>
+                    </td>
                     <td>
                         {% if alert.acknowledged %}
                             <span class="badge bg-success">Reconocida</span>
                         {% else %}
                             <span class="badge bg-danger">Pendiente</span>
+                            {% if time_since > 48 %}
+                                <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>
@@ -231,75 +328,112 @@
     </div>
 
     <!-- Paginación -->
-    {% if pagination %}
-    <div class="text-center mb-2">
-        <small>Página {{ pagination.page }} de {{ pagination.pages }}</small>
-    </div>
-    <nav aria-label="Navegación de páginas" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if pagination.has_prev %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.prev_num, **filters_dict) }}">Anterior</a>
-            </li>
-            {% endif %}
-            
-            {% for page in pagination.iter_pages() %}
-                {% if page %}
-                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('alerts_dashboard', page=page, **filters_dict) }}">{{ page }}</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
+    {% if pagination and pagination.pages > 1 %}
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Navegación de páginas">
+            <ul class="pagination">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.prev_num, **filters_dict) }}" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
                 {% endif %}
-            {% endfor %}
-            
-            {% if pagination.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.next_num, **filters_dict) }}">Siguiente</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
+
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('alerts_dashboard', page=page_num, **filters_dict) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('alerts_dashboard', page=pagination.next_num, **filters_dict) }}" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
     {% endif %}
 </div>
 
 <!-- Modal de Detalles de Alerta -->
-<div class="modal fade" id="alertDetailsModal" tabindex="-1">
+<div class="modal fade" id="alertDetailsModal" tabindex="-1" aria-labelledby="alertDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detalles de la Alerta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="alertDetailsTitle">Detalles de la Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Fecha/Hora:</strong> <span id="modal-time"></span></p>
-                        <p><strong>Usuario:</strong> <span id="modal-user"></span></p>
-                        <p><strong>Tipo de Alerta:</strong> <span id="modal-type"></span></p>
-                        <p><strong>Prioridad:</strong> <span id="modal-priority"></span></p>
+                        <h6>Información General</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Usuario:</th>
+                                <td id="modal-user"></td>
+                            </tr>
+                            <tr>
+                                <th>Fecha/Hora:</th>
+                                <td id="modal-time"></td>
+                            </tr>
+                            <tr>
+                                <th>Tipo:</th>
+                                <td id="modal-type"></td>
+                            </tr>
+                            <tr>
+                                <th>Prioridad:</th>
+                                <td id="modal-priority"></td>
+                            </tr>
+                        </table>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Valor Disparador:</strong> <span id="modal-trigger"></span></p>
-                        <p><strong>Umbral:</strong> <span id="modal-threshold"></span></p>
-                        <p><strong>Estado:</strong> <span id="modal-status"></span></p>
-                        <p><strong>Tiempo desde alerta:</strong> <span id="modal-time-since"></span></p>
+                        <h6>Detalles Técnicos</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Valor Detectado:</th>
+                                <td id="modal-triggering"></td>
+                            </tr>
+                            <tr>
+                                <th>Umbral:</th>
+                                <td id="modal-threshold"></td>
+                            </tr>
+                            <tr>
+                                <th>Estado:</th>
+                                <td id="modal-status"></td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
-                <div class="row mt-3">
+                <div id="intraday-chart-container" class="row mt-4 d-none">
                     <div class="col-12">
-                        <p><strong>Detalles:</strong></p>
-                        <p id="modal-details" class="p-3 bg-light rounded"></p>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div id="intraday-chart-container" style="display: none;">
-                            <h5>Datos Intradía (Últimas 24h)</h5>
+                        <h6>Datos Intradía (Últimas 24h)</h6>
+                        <div class="chart-container" style="position: relative; height:200px;">
                             <canvas id="intraday-chart"></canvas>
                         </div>
                     </div>
                 </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Información Adicional</h6>
+                        <div id="modal-details" class="alert alert-info"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" id="modal-acknowledge-btn" onclick="acknowledgeAlert()">
+                    <i class="bi bi-check-circle"></i> Reconocer Alerta
+                </button>
             </div>
         </div>
     </div>
@@ -332,142 +466,205 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-let alertDetailsModal;
-let acknowledgeModal;
-let intradayChart = null;
+// Variable global para almacenar los datos de las alertas
+let alertsData = [];
 
-document.addEventListener('DOMContentLoaded', function() {
-    alertDetailsModal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
-    acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));
-});
-
-function formatValue(val) {
-    if (val === null || val === undefined) return '—';
-    if (typeof val === 'number') {
-        return Number.isInteger(val) ? val : val.toFixed(1);
+// Función para inicializar los datos
+function initializeAlertsData() {
+    try {
+        alertsData = {{ alerts|tojson|safe }};
+        console.log('Datos de alertas inicializados:', alertsData);
+    } catch (error) {
+        console.error('Error al inicializar los datos de alertas:', error);
+        alertsData = [];
     }
-    if (!isNaN(val) && val !== '') {
-        let num = Number(val);
-        return Number.isInteger(num) ? num : num.toFixed(1);
-    }
-    return val;
 }
 
+// Llamar a la función de inicialización cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAlertsData();
+});
+
+// Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
-    // Obtener los datos de la alerta
-    fetch(`/livelyageing/api/alerts/${alertId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al cargar los detalles de la alerta');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data.alert) {
-                throw new Error('Datos de alerta no válidos');
-            }
-            
-            const alert = data.alert;
-            document.getElementById('modal-time').textContent = new Date(alert.time).toLocaleString();
-            document.getElementById('modal-user').textContent = `${alert.user_name} (${alert.user_email})`;
-            document.getElementById('modal-type').textContent = alert.type;
-            document.getElementById('modal-priority').textContent = alert.priority;
-            document.getElementById('modal-trigger').textContent = formatValue(alert.triggering_value);
-            document.getElementById('modal-threshold').textContent = formatValue(alert.threshold_value);
-            document.getElementById('modal-status').textContent = alert.acknowledged ? 'Reconocida' : 'Pendiente';
-            document.getElementById('modal-details').textContent = alert.details || '—';
-            document.getElementById('modal-time-since').textContent = `${data.hours_since_alert} horas`;
-            
-            // Actualizar estilo según nivel de escalada
-            const statusElement = document.getElementById('modal-status');
-            statusElement.className = ''; // Limpiar clases anteriores
-            if (!alert.acknowledged) {
-                if (data.escalation_level === 2) {
-                    statusElement.classList.add('text-danger', 'fw-bold');
-                    statusElement.textContent += ' ⚠️ URGENTE';
-                } else if (data.escalation_level === 1) {
-                    statusElement.classList.add('text-warning');
-                    statusElement.textContent += ' ⏰';
-                }
-            }
-            
-            // Mostrar gráfico si hay datos intradía
-            const chartContainer = document.getElementById('intraday-chart-container');
-            if (data.intraday_data && data.intraday_data.length > 0) {
-                chartContainer.style.display = 'block';
-                
-                // Destruir gráfico anterior si existe
-                if (intradayChart) {
-                    intradayChart.destroy();
-                }
-                
-                // Crear nuevo gráfico
-                const ctx = document.getElementById('intraday-chart').getContext('2d');
-                intradayChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.intraday_data.map(d => new Date(d.time).toLocaleTimeString()),
-                        datasets: [{
-                            label: alert.type,
-                            data: data.intraday_data.map(d => d.value),
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Hora'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Valor'
-                                }
-                            }
+    console.log('Mostrando detalles de alerta:', alertId);
+    const alert = alertsData.find(a => a.id === alertId);
+    if (!alert) {
+        console.error('Alerta no encontrada:', alertId);
+        return;
+    }
+
+    // Extraer el tipo base de la alerta
+    const alertType = alert.alert_type;
+    const baseAlertType = alertType.includes('_') ? alertType.split('_')[0] : alertType;
+    console.log('Tipo base de alerta:', baseAlertType);
+
+    // Configurar el título y los detalles
+    document.getElementById('alertDetailsTitle').textContent = `Detalles de la Alerta - ${alert.alert_type}`;
+    document.getElementById('modal-user').textContent = `${alert.user_name} (${alert.user_email})`;
+    document.getElementById('modal-time').textContent = alert.alert_time; // Ya viene formateado del backend
+    document.getElementById('modal-type').textContent = alert.alert_type;
+    document.getElementById('modal-priority').textContent = alert.priority.charAt(0).toUpperCase() + alert.priority.slice(1);
+    document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
+    document.getElementById('modal-threshold').textContent = alert.threshold_value || 'N/A';
+    document.getElementById('modal-status').textContent = alert.acknowledged ? 'Reconocida' : 'Pendiente';
+    document.getElementById('modal-details').textContent = alert.details || 'No hay detalles adicionales';
+
+    // Configurar el botón de reconocimiento
+    const acknowledgeBtn = document.getElementById('modal-acknowledge-btn');
+    acknowledgeBtn.setAttribute('data-alert-id', alert.id);
+    acknowledgeBtn.style.display = alert.acknowledged ? 'none' : 'block';
+
+    // Mostrar el gráfico solo si hay datos intradía y el tipo es compatible
+    const chartContainer = document.getElementById('intraday-chart-container');
+    const tieneDatos = alert.intraday_data && alert.intraday_data.times && alert.intraday_data.times.length > 0;
+    const tipoCompatible = ['heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
+    
+    console.log('Estado del gráfico:', { tieneDatos, tipoCompatible, tipoBase: baseAlertType, intradayData: alert.intraday_data });
+
+    if (tieneDatos && tipoCompatible) {
+        chartContainer.classList.remove('d-none');
+        const ctx = document.getElementById('intraday-chart').getContext('2d');
+        
+        // Destruir el gráfico anterior si existe
+        if (window.intradayChart) {
+            window.intradayChart.destroy();
+        }
+        
+        // Configurar colores según el tipo de alerta
+        let borderColor, backgroundColor;
+        switch(baseAlertType) {
+            case 'heart_rate':
+                borderColor = 'rgb(255, 99, 132)';
+                backgroundColor = 'rgba(255, 99, 132, 0.2)';
+                break;
+            case 'steps':
+                borderColor = 'rgb(54, 162, 235)';
+                backgroundColor = 'rgba(54, 162, 235, 0.2)';
+                break;
+            case 'calories':
+                borderColor = 'rgb(255, 206, 86)';
+                backgroundColor = 'rgba(255, 206, 86, 0.2)';
+                break;
+            case 'active_zone_minutes':
+                borderColor = 'rgb(75, 192, 192)';
+                backgroundColor = 'rgba(75, 192, 192, 0.2)';
+                break;
+            default:
+                borderColor = 'rgb(75, 192, 192)';
+                backgroundColor = 'rgba(75, 192, 192, 0.2)';
+        }
+
+        // Crear el nuevo gráfico
+        window.intradayChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: alert.intraday_data.times,
+                datasets: [{
+                    label: getMetricLabel(baseAlertType),
+                    data: alert.intraday_data.values,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: getYAxisLabel(baseAlertType)
                         }
                     }
-                });
-            } else {
-                chartContainer.style.display = 'none';
+                }
             }
-            
-            alertDetailsModal.show();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message || 'Error al cargar los detalles de la alerta');
         });
+    } else {
+        chartContainer.classList.add('d-none');
+    }
+
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
+    modal.show();
+}
+
+// Función auxiliar para obtener la etiqueta del eje Y
+function getYAxisLabel(metricType) {
+    switch(metricType) {
+        case 'heart_rate':
+            return 'Frecuencia Cardíaca (bpm)';
+        case 'steps':
+            return 'Pasos';
+        case 'calories':
+            return 'Calorías';
+        case 'active_zone_minutes':
+            return 'Minutos Activos';
+        default:
+            return 'Valor';
+    }
+}
+
+// Función auxiliar para obtener la etiqueta de la métrica
+function getMetricLabel(metricType) {
+    switch(metricType) {
+        case 'heart_rate':
+            return 'Frecuencia Cardíaca';
+        case 'steps':
+            return 'Pasos';
+        case 'calories':
+            return 'Calorías';
+        case 'active_zone_minutes':
+            return 'Minutos Activos';
+        default:
+            return metricType;
+    }
 }
 
 function showAcknowledgeModal(alertId) {
     event.stopPropagation(); // Evitar que se abra el modal de detalles
     document.getElementById('alertId').value = alertId;
     document.getElementById('note').value = '';
+    const acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));
     acknowledgeModal.show();
 }
 
 function acknowledgeAlert() {
-    const alertId = document.getElementById('alertId').value;
-    const note = document.getElementById('note').value;
-
+    // Obtener el ID de la alerta del botón o del formulario
+    const alertId = document.getElementById('modal-acknowledge-btn').getAttribute('data-alert-id') || 
+                   document.getElementById('alertId').value;
+    
+    if (!alertId) {
+        console.error('No se encontró el ID de la alerta');
+        return;
+    }
+    
+    console.log('Reconociendo alerta:', alertId); // Log para debugging
+    
     fetch(`/livelyageing/api/alerts/${alertId}/acknowledge`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ note: note })
+            'Content-Type': 'application/json'
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            acknowledgeModal.hide();
-            location.reload();
+            // Cerrar ambos modales si están abiertos
+            const acknowledgeModal = bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal'));
+            if (acknowledgeModal) {
+                acknowledgeModal.hide();
+            }
+            const alertDetailsModal = bootstrap.Modal.getInstance(document.getElementById('alertDetailsModal'));
+            if (alertDetailsModal) {
+                alertDetailsModal.hide();
+            }
+            // Recargar la página para actualizar la lista
+            window.location.reload();
         } else {
             alert('Error al reconocer la alerta: ' + data.error);
         }
@@ -477,6 +674,14 @@ function acknowledgeAlert() {
         alert('Error al reconocer la alerta');
     });
 }
+
+// Inicializar cuando el documento esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
 </script>
 </body>
 </html>

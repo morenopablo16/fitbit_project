@@ -1064,11 +1064,33 @@ def user_detail(user_id):
         if recent_alerts:
             alert_columns = [desc[0] for desc in db.cursor.description]
             recent_alerts = [dict(zip(alert_columns, alert)) for alert in recent_alerts]
+            
+            # Procesar alertas activas para los indicadores visuales
+            alerts = {
+                'activity_drop': False,
+                'heart_rate_anomaly': False,
+                'sleep_duration_change': False,
+                'sedentary_increase': False
+            }
+            
+            for alert in recent_alerts:
+                if not alert['acknowledged'] and alert['alert_time'].date() == datetime.now().date():
+                    alert_type = alert['alert_type']
+                    if alert_type in alerts:
+                        alerts[alert_type] = True
+        else:
+            alerts = {
+                'activity_drop': False,
+                'heart_rate_anomaly': False,
+                'sleep_duration_change': False,
+                'sedentary_increase': False
+            }
         
         return render_template('user_detail.html', 
                              user=user,
                              latest_summary=latest_summary,
                              recent_alerts=recent_alerts,
+                             alerts=alerts,
                              now=datetime.now(),
                              last_update_datetime=last_update_datetime)
     except Exception as e:

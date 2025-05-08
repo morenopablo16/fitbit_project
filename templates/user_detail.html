@@ -157,9 +157,12 @@
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-value" id="steps-value">
+                <div class="metric-value {% if latest_summary and latest_summary.steps and alerts.activity_drop %}text-danger{% endif %}" id="steps-value">
                     {% if latest_summary and latest_summary.steps %}
                     {{ "{:,}".format(latest_summary.steps) }}
+                    {% if alerts.activity_drop %}
+                    <i class="fas fa-exclamation-triangle text-danger" title="Actividad física por debajo del promedio"></i>
+                    {% endif %}
                     {% else %}
                     -
                     {% endif %}
@@ -169,9 +172,12 @@
         </div>
         <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-value" id="heart-rate-value">
+                <div class="metric-value {% if latest_summary and latest_summary.heart_rate and alerts.heart_rate_anomaly %}text-danger{% endif %}" id="heart-rate-value">
                     {% if latest_summary and latest_summary.heart_rate %}
                     {{ latest_summary.heart_rate }}
+                    {% if alerts.heart_rate_anomaly %}
+                    <i class="fas fa-exclamation-circle text-danger" title="Frecuencia cardíaca anormal"></i>
+                    {% endif %}
                     {% else %}
                     -
                     {% endif %}
@@ -181,9 +187,12 @@
         </div>
         <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-value" id="sleep-value">
+                <div class="metric-value {% if latest_summary and latest_summary.sleep_minutes and alerts.sleep_duration_change %}text-warning{% endif %}" id="sleep-value">
                     {% if latest_summary and latest_summary.sleep_minutes %}
                     {{ (latest_summary.sleep_minutes / 60)|round(1) }}
+                    {% if alerts.sleep_duration_change %}
+                    <i class="fas fa-bed text-warning" title="Cambio significativo en el patrón de sueño"></i>
+                    {% endif %}
                     {% else %}
                     -
                     {% endif %}

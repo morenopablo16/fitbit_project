@@ -1192,13 +1192,16 @@ def reset_database():
                 init_db()
                 print("Database reinitialized successfully.")
                 
-                # Add the test user
-                add_user(
-                    name="",
-                    email="Wearable4LivelyAgeign@gmail.com",
-                    access_token="",
-                    refresh_token=""
-                )
+                # Add the test user using DatabaseManager instance
+                db = DatabaseManager()
+                if db.connect():
+                    db.add_user(
+                        name="",
+                        email="Wearable4LivelyAgeign@gmail.com",
+                        access_token="",
+                        refresh_token=""
+                    )
+                    db.close()
                 print("Test user added successfully.")
                 
         except Exception as e:

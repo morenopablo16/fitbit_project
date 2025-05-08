@@ -1113,7 +1113,6 @@ def api_user_daily_summary(user_id):
             return jsonify({'error': 'Formato de fecha inválido'}), 400
     else:
         date = datetime.now().date()
-        
     db = DatabaseManager()
     if not db.connect():
         return jsonify({'error': 'DB error'}), 500
@@ -1143,20 +1142,16 @@ def api_user_daily_summary(user_id):
             WHERE user_id = %s AND date = %s
             """, (user_id, date)
         )
-        
         if not summary:
             return jsonify({'error': 'No hay datos para ese día'}), 404
-            
         # Mapear los campos a nombres legibles
         columns = [desc[0] for desc in db.cursor.description]
         summary_dict = dict(zip(columns, summary[0]))
-        
         # Calcular valores adicionales
         if summary_dict.get('sleep_minutes'):
             summary_dict['sleep_hours'] = round(summary_dict['sleep_minutes'] / 60, 1)
         if summary_dict.get('sedentary_minutes'):
             summary_dict['sedentary_hours'] = round(summary_dict['sedentary_minutes'] / 60, 1)
-            
         return jsonify({'summary': summary_dict})
     finally:
         db.close()
@@ -1169,10 +1164,8 @@ def api_user_intraday(user_id):
     """
     date_str = request.args.get('date')
     metric_type = request.args.get('type')
-    
     if not metric_type:
         return jsonify({'error': 'Falta el tipo de métrica'}), 400
-        
     if date_str:
         try:
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -1180,14 +1173,12 @@ def api_user_intraday(user_id):
             return jsonify({'error': 'Formato de fecha inválido'}), 400
     else:
         date = datetime.now().date()
-        
     db = DatabaseManager()
     if not db.connect():
         return jsonify({'error': 'DB error'}), 500
     try:
         start_time = datetime.combine(date, datetime.min.time())
         end_time = datetime.combine(date, datetime.max.time())
-        
         data = db.execute_query(
             """
             SELECT time, value 
@@ -1198,7 +1189,6 @@ def api_user_intraday(user_id):
             ORDER BY time
             """, (user_id, metric_type, start_time, end_time)
         )
-        
         return jsonify({
             'intraday': [
                 {
@@ -1222,7 +1212,6 @@ def api_user_weekly_summary(user_id):
     try:
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=6)
-        
         data = db.execute_query(
             """
             SELECT 
@@ -1250,7 +1239,6 @@ def api_user_weekly_summary(user_id):
             ORDER BY date DESC
             """, (user_id, start_date, end_date)
         )
-        
         return jsonify({
             'weekly': [
                 {

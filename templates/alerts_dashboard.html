@@ -487,14 +487,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
+    console.log('=== Iniciando showAlertDetails ===');
+    console.log('ID de alerta:', alertId);
     const alert = alertsData.find(a => a.id === alertId);
     if (!alert) {
+        console.error('Alerta no encontrada:', alertId);
         return;
     }
+    console.log('Datos de la alerta encontrada:', alert);
 
     // Extraer el tipo base de la alerta
     const alertType = alert.alert_type;
     const baseAlertType = alertType.includes('_') ? alertType.split('_')[0] : alertType;
+    console.log('Tipo de alerta:', { alertType, baseAlertType });
 
     // Configurar el título y los detalles
     document.getElementById('alertDetailsTitle').textContent = `Detalles de la Alerta - ${alert.alert_type}`;
@@ -515,45 +520,87 @@ function showAlertDetails(alertId) {
     // Mostrar el gráfico solo si hay datos intradía y el tipo es compatible
     const chartContainer = document.getElementById('intraday-chart-container');
     const tieneDatos = alert.intraday_data && alert.intraday_data.times && alert.intraday_data.times.length > 0;
-    const tipoCompatible = ['heart', 'heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
+    let tipoCompatible = ['heart', 'heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
+    // Lógica especial para activity_drop por pasos
+    if (alert.alert_type === 'activity_drop') {
+        if (alert.details && alert.details.toLowerCase().includes('pasos')) {
+            tipoCompatible = true;
+        } else {
+            tipoCompatible = false;
+        }
+    }
+    
+    console.log('Estado del gráfico:', {
+        tieneDatos,
+        tipoCompatible,
+        tipoBase: baseAlertType,
+        intradayData: alert.intraday_data,
+        datosDisponibles: alert.intraday_data ? {
+            times: alert.intraday_data.times?.length,
+            values: alert.intraday_data.values?.length
+        } : 'No hay datos'
+    });
 
     if (tieneDatos && tipoCompatible) {
+        console.log('Preparando para mostrar el gráfico...');
         chartContainer.classList.remove('d-none');
         const ctx = document.getElementById('intraday-chart').getContext('2d');
-        // Destruir el gráfico anterior si existe
         if (window.intradayChart) {
+            console.log('Destruyendo gráfico anterior...');
             window.intradayChart.destroy();
         }
-        // Configurar colores según el tipo de alerta
-        let borderColor, backgroundColor;
-        switch(baseAlertType) {
-            case 'heart':
-            case 'heart_rate':
-                borderColor = 'rgb(255, 99, 132)';
-                backgroundColor = 'rgba(255, 99, 132, 0.2)';
-                break;
-            case 'steps':
-                borderColor = 'rgb(54, 162, 235)';
-                backgroundColor = 'rgba(54, 162, 235, 0.2)';
-                break;
-            case 'calories':
-                borderColor = 'rgb(255, 206, 86)';
-                backgroundColor = 'rgba(255, 206, 86, 0.2)';
-                break;
-            case 'active_zone_minutes':
-                borderColor = 'rgb(75, 192, 192)';
-                backgroundColor = 'rgba(75, 192, 192, 0.2)';
-                break;
-            default:
-                borderColor = 'rgb(75, 192, 192)';
-                backgroundColor = 'rgba(75, 192, 192, 0.2)';
+        // Forzar colores y etiquetas de pasos si es activity_drop por pasos
+        let borderColor, backgroundColor, metricLabel, yAxisLabel;
+        if (alert.alert_type === 'activity_drop' && alert.details && alert.details.toLowerCase().includes('pasos')) {
+            borderColor = 'rgb(54, 162, 235)';
+            backgroundColor = 'rgba(54, 162, 235, 0.2)';
+            metricLabel = 'Pasos';
+            yAxisLabel = 'Pasos';
+        } else {
+            switch(baseAlertType) {
+                case 'heart':
+                case 'heart_rate':
+                    borderColor = 'rgb(255, 99, 132)';
+                    backgroundColor = 'rgba(255, 99, 132, 0.2)';
+                    metricLabel = 'Frecuencia Cardíaca';
+                    yAxisLabel = 'Frecuencia Cardíaca (bpm)';
+                    break;
+                case 'steps':
+                    borderColor = 'rgb(54, 162, 235)';
+                    backgroundColor = 'rgba(54, 162, 235, 0.2)';
+                    metricLabel = 'Pasos';
+                    yAxisLabel = 'Pasos';
+                    break;
+                case 'calories':
+                    borderColor = 'rgb(255, 206, 86)';
+                    backgroundColor = 'rgba(255, 206, 86, 0.2)';
+                    metricLabel = 'Calorías';
+                    yAxisLabel = 'Calorías';
+                    break;
+                case 'active_zone_minutes':
+                    borderColor = 'rgb(75, 192, 192)';
+                    backgroundColor = 'rgba(75, 192, 192, 0.2)';
+                    metricLabel = 'Minutos Activos';
+                    yAxisLabel = 'Minutos Activos';
+                    break;
+                default:
+                    borderColor = 'rgb(75, 192, 192)';
+                    backgroundColor = 'rgba(75, 192, 192, 0.2)';
+                    metricLabel = baseAlertType;
+                    yAxisLabel = 'Valor';
+            }
         }
+        console.log('Colores configurados:', { borderColor, backgroundColor });
+        console.log('Creando nuevo gráfico con datos:', {
+            labels: alert.intraday_data.times,
+            data: alert.intraday_data.values
+        });
         window.intradayChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: alert.intraday_data.times,
                 datasets: [{
-                    label: getMetricLabel(baseAlertType),
+                    label: metricLabel,
                     data: alert.intraday_data.values,
                     borderColor: borderColor,
                     backgroundColor: backgroundColor,
@@ -568,53 +615,25 @@ function showAlertDetails(alertId) {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: getYAxisLabel(baseAlertType)
+                            text: yAxisLabel
                         }
                     }
                 }
             }
         });
+        console.log('Gráfico creado exitosamente');
     } else {
+        console.log('No se mostrará el gráfico:', {
+            razon: !tieneDatos ? 'No hay datos intradía' : 'Tipo no compatible',
+            tipoBase: baseAlertType
+        });
         chartContainer.classList.add('d-none');
     }
 
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
     modal.show();
-}
-
-// Función auxiliar para obtener la etiqueta del eje Y
-function getYAxisLabel(metricType) {
-    switch(metricType) {
-        case 'heart':
-        case 'heart_rate':
-            return 'Frecuencia Cardíaca (bpm)';
-        case 'steps':
-            return 'Pasos';
-        case 'calories':
-            return 'Calorías';
-        case 'active_zone_minutes':
-            return 'Minutos Activos';
-        default:
-            return 'Valor';
-    }
-}
-
-// Función auxiliar para obtener la etiqueta de la métrica
-function getMetricLabel(metricType) {
-    switch(metricType) {
-        case 'heart':
-        case 'heart_rate':
-            return 'Frecuencia Cardíaca';
-        case 'steps':
-            return 'Pasos';
-        case 'calories':
-            return 'Calorías';
-        case 'active_zone_minutes':
-            return 'Minutos Activos';
-        default:
-            return metricType;
-    }
+    console.log('=== Finalizado showAlertDetails ===');
 }
 
 function showAcknowledgeModal(alertId) {

@@ -809,12 +809,20 @@ def alerts_dashboard():
                     intraday_metric_type = None
                     if base_alert_type == 'heart':
                         intraday_metric_type = 'heart_rate'
+                    elif base_alert_type == 'activity':
+                        # Solo mostrar pasos si el motivo es pasos
+                        if alert[7] and 'pasos' in alert[7].lower():
+                            intraday_metric_type = 'steps'
+                            app.logger.info(f"Alerta {alert[0]}: activity_drop causada por pasos, se buscarán datos intradía de steps.")
+                        else:
+                            app.logger.info(f"Alerta {alert[0]}: activity_drop NO causada por pasos, no se mostrarán datos intradía.")
                     elif base_alert_type in ['steps', 'calories', 'active_zone_minutes']:
                         intraday_metric_type = base_alert_type
 
                     if intraday_metric_type:
                         start_time = alert[1] - timedelta(hours=24)
                         end_time = alert[1]
+                        app.logger.info(f"Alerta {alert[0]}: buscando datos intradía de {intraday_metric_type} para user_id={alert[2]} entre {start_time} y {end_time}")
                         intraday_metrics = db.execute_query("""
                             SELECT time, value 
                             FROM intraday_metrics 
@@ -823,7 +831,7 @@ def alerts_dashboard():
                             AND time BETWEEN %s AND %s 
                             ORDER BY time
                         """, (alert[2], intraday_metric_type, start_time, end_time))
-                        
+                        app.logger.info(f"Alerta {alert[0]}: encontrados {len(intraday_metrics) if intraday_metrics else 0} datos intradía de {intraday_metric_type}")
                         if intraday_metrics:
                             intraday_data = {
                                 'times': [m[0].strftime('%H:%M') for m in intraday_metrics],

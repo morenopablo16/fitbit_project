@@ -25,10 +25,17 @@ def get_tokens(code, code_verifier):
         "redirect_uri": REDIRECT_URI,
         "code_verifier": code_verifier,
     }
-    # auth = (CLIENT_ID, CLIENT_SECRET)
+    
+    print(f"Requesting tokens with payload: {payload}")  # Debug log
+    print(f"Using headers: {headers}")  # Debug log
+    
     response = requests.post(TOKEN_URL, data=payload, headers=headers)
+    print(f"Token response status: {response.status_code}")  # Debug log
+    print(f"Token response body: {response.text}")  # Debug log
+    
     if response.status_code != 200:
         raise Exception(f"Error de Fitbit: {response.text}")
+    
     tokens = response.json()
     return tokens.get("access_token"), tokens.get("refresh_token")
 

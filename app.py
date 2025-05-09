@@ -422,7 +422,6 @@ def assign_user():
         # Render the assign_user.html template
         return render_template('assign_user.html')
 
-# Route: Fitbit OAuth callback
 @app.route('/livelyageing/callback')
 @login_required
 def callback():
@@ -463,9 +462,16 @@ def callback():
                     if new_user_name:
                         if not existing_access_token or not existing_refresh_token:
                             if code:
-                                access_token, refresh_token = get_tokens(code, code_verifier)
-                                db.add_user(new_user_name, email, access_token, refresh_token)
-                                app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) con nuevos tokens.")
+                                try:
+                                    access_token, refresh_token = get_tokens(code, code_verifier)
+                                    if not access_token or not refresh_token:
+                                        raise Exception("No se pudieron obtener los tokens de Fitbit")
+                                    db.add_user(new_user_name, email, access_token, refresh_token)
+                                    app.logger.info(f"Dispositivo reasignado a {new_user_name} ({email}) con nuevos tokens.")
+                                except Exception as e:
+                                    app.logger.error(f"Error obteniendo tokens de Fitbit: {e}")
+                                    flash("Error: No se pudo obtener la autorización de Fitbit. Por favor, inténtalo de nuevo.", "danger")
+                                    return redirect(url_for('link_device'))
                             else:
                                 app.logger.error("Se requiere autorización para reasignar el dispositivo.")
                                 flash("Error: Se requiere autorización para reasignar el dispositivo.", "danger")
@@ -481,9 +487,16 @@ def callback():
                     # Flow 1: Link a new email to a user
                     if new_user_name:
                         if code:
-                            access_token, refresh_token = get_tokens(code, code_verifier)
-                            db.add_user(new_user_name, email, access_token, refresh_token)
-                            app.logger.info(f"Nuevo usuario {new_user_name} ({email}) añadido.")
+                            try:
+                                access_token, refresh_token = get_tokens(code, code_verifier)
+                                if not access_token or not refresh_token:
+                                    raise Exception("No se pudieron obtener los tokens de Fitbit")
+                                db.add_user(new_user_name, email, access_token, refresh_token)
+                                app.logger.info(f"Nuevo usuario {new_user_name} ({email}) añadido.")
+                            except Exception as e:
+                                app.logger.error(f"Error obteniendo tokens de Fitbit: {e}")
+                                flash("Error: No se pudo obtener la autorización de Fitbit. Por favor, inténtalo de nuevo.", "danger")
+                                return redirect(url_for('link_device'))
                         else:
                             app.logger.error("Se requiere autorización para vincular un nuevo correo.")
                             flash("Error: Se requiere autorización para vincular un nuevo correo.", "danger")

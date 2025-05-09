@@ -186,16 +186,24 @@ def index():
                     value
                 ])
             
+            # Initialize empty filters_dict and alerts
+            filters_dict = {}
+            alerts = []
+            
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return render_template('dashboard_content.html', 
-                                       daily_summaries=[],
+                                    daily_summaries=[],
                                     intraday_metrics=intraday_metrics_4col,
-                                    sleep_logs=sleep_logs)
+                                    sleep_logs=sleep_logs,
+                                    filters_dict=filters_dict,
+                                    alerts=alerts)
             else:
                 return render_template('alerts_dashboard.html', 
-                                       daily_summaries=[],
+                                    daily_summaries=[],
                                     intraday_metrics=intraday_metrics_4col,
-                                    sleep_logs=sleep_logs)
+                                    sleep_logs=sleep_logs,
+                                    filters_dict=filters_dict,
+                                    alerts=alerts)
         except Exception as e:
             app.logger.error(f"Error fetching data for dashboard: {e}")
             error = "No se pudieron obtener los datos para el dashboard."
@@ -204,13 +212,17 @@ def index():
                                     daily_summaries=[],
                                     intraday_metrics=[],
                                     sleep_logs=[],
-                                    error=error)
+                                    error=error,
+                                    filters_dict={},
+                                    alerts=[])
             else:
                 return render_template('alerts_dashboard.html', 
                                     daily_summaries=[],
                                     intraday_metrics=[],
                                     sleep_logs=[],
-                                    error=error)
+                                    error=error,
+                                    filters_dict={},
+                                    alerts=[])
         finally:
             db.close()
     else:
@@ -220,13 +232,17 @@ def index():
                                 daily_summaries=[],
                                 intraday_metrics=[],
                                 sleep_logs=[],
-                                error=error)
+                                error=error,
+                                filters_dict={},
+                                alerts=[])
         else:
             return render_template('alerts_dashboard.html', 
                                 daily_summaries=[],
                                 intraday_metrics=[],
                                 sleep_logs=[],
-                                error=error)
+                                error=error,
+                                filters_dict={},
+                                alerts=[])
 
 @app.route('/livelyageing/home')
 @login_required
@@ -322,14 +338,14 @@ def link_device():
     db = DatabaseManager()
     if not db.connect():
         flash('Error de conexión a la base de datos.', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
         
     try:
         emails = db.execute_query("SELECT DISTINCT email FROM users")
-        return render_template('link_device.html', emails=emails)
+        return render_template('link_device.html', emails=[email[0] for email in emails])
     except Exception as e:
         flash(f'Error: {str(e)}', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
     finally:
         db.close()
 

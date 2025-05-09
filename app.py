@@ -137,8 +137,16 @@ def root():
 @login_required
 def index():
     """
-    Render the dashboard homepage.
-    This will display the Fitbit data stored in the database.
+    Redirect to home page.
+    """
+    return redirect(url_for('home'))
+
+@app.route('/livelyageing/preload_dashboard')
+@login_required
+def preload_dashboard():
+    """
+    Preload dashboard data and store it in session.
+    This route should be called via AJAX when the user is likely to access the dashboard.
     """
     db = DatabaseManager()
     if db.connect():
@@ -190,59 +198,66 @@ def index():
             filters_dict = {}
             alerts = []
             
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render_template('dashboard_content.html', 
-                                    daily_summaries=[],
-                                    intraday_metrics=intraday_metrics_4col,
-                                    sleep_logs=sleep_logs,
-                                    filters_dict=filters_dict,
-                                    alerts=alerts)
-            else:
-                return render_template('alerts_dashboard.html', 
-                                    daily_summaries=[],
-                                    intraday_metrics=intraday_metrics_4col,
-                                    sleep_logs=sleep_logs,
-                                    filters_dict=filters_dict,
-                                    alerts=alerts)
+            # Store the processed data in the session for later use
+            session['dashboard_data'] = {
+                'daily_summaries': daily_summaries,
+                'intraday_metrics': intraday_metrics_4col,
+                'sleep_logs': sleep_logs,
+                'filters_dict': filters_dict,
+                'alerts': alerts,
+                'timestamp': datetime.now(timezone.utc).isoformat()
+            }
+            
+            return jsonify({'success': True, 'timestamp': session['dashboard_data']['timestamp']})
+            
         except Exception as e:
             app.logger.error(f"Error fetching data for dashboard: {e}")
-            error = "No se pudieron obtener los datos para el dashboard."
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render_template('dashboard_content.html', 
-                                    daily_summaries=[],
-                                    intraday_metrics=[],
-                                    sleep_logs=[],
-                                    error=error,
-                                    filters_dict={},
-                                    alerts=[])
-            else:
-                return render_template('alerts_dashboard.html', 
-                                    daily_summaries=[],
-                                    intraday_metrics=[],
-                                    sleep_logs=[],
-                                    error=error,
-                                    filters_dict={},
-                                    alerts=[])
+            return jsonify({'error': str(e)}), 500
         finally:
             db.close()
-    else:
-        error = "No se pudo conectar a la base de datos."
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return render_template('dashboard_content.html', 
-                                daily_summaries=[],
-                                intraday_metrics=[],
-                                sleep_logs=[],
-                                error=error,
-                                filters_dict={},
-                                alerts=[])
-        else:
-            return render_template('alerts_dashboard.html', 
-                                daily_summaries=[],
-                                intraday_metrics=[],
-                                sleep_logs=[],
-                                error=error,
-                                filters_dict={},
-                                alerts=[])
+    
+    return jsonify({'error': 'Database connection error'}), 500
+
+@app.route('/livelyageing/check_dashboard_updates')
+@login_required
+def check_dashboard_updates():
+    """
+    Check if there are any updates to the dashboard data since the last preload.
+    """
+    last_timestamp = request.args.get('timestamp')
+    if not last_timestamp:
+        return jsonify({'error': 'No timestamp provided'}), 400
+        
+    try:
+        last_timestamp = datetime.fromisoformat(last_timestamp)
+        current_time = datetime.now(timezone.utc)
+        
+        # Check if we need to refresh (more than 5 minutes old)
+        if (current_time - last_timestamp).total_seconds() > 300:
+            return jsonify({'needs_refresh': True})
+            
+        # Check for new alerts
+        db = DatabaseManager()
+        if db.connect():
+            try:
+                new_alerts = db.execute_query("""
+                    SELECT COUNT(*) 
+                    FROM alerts 
+                    WHERE alert_time > %s
+                """, (last_timestamp,))
+                
+                if new_alerts and new_alerts[0][0] > 0:
+                    return jsonify({'needs_refresh': True})
+                    
+                return jsonify({'needs_refresh': False})
+            finally:
+                db.close()
+                
+        return jsonify({'error': 'Database connection error'}), 500
+        
+    except Exception as e:
+        app.logger.error(f"Error checking dashboard updates: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/livelyageing/home')
 @login_required
@@ -715,6 +730,20 @@ def get_user_alerts_api():
 @login_required
 def alerts_dashboard():
     try:
+        # Check if we have preloaded data in the session
+        if 'dashboard_data' in session:
+            dashboard_data = session['dashboard_data']
+            # Clear the session data after using it
+            session.pop('dashboard_data', None)
+            return render_template('alerts_dashboard.html', 
+                                daily_summaries=dashboard_data['daily_summaries'],
+                                intraday_metrics=dashboard_data['intraday_metrics'],
+                                sleep_logs=dashboard_data['sleep_logs'],
+                                filters_dict=dashboard_data['filters_dict'],
+                                alerts=dashboard_data['alerts'],
+                                now=datetime.now(timezone.utc))
+
+        # If no preloaded data, fetch it from the database
         db = DatabaseManager()
         if not db.connect():
             app.logger.error("No se pudo conectar a la base de datos")

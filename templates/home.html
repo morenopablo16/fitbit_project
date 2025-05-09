@@ -118,4 +118,65 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preload dashboard data when hovering over the link
+    const dashboardLink = document.querySelector('a[href="/livelyageing/dashboard"]');
+    let preloadTimeout;
+    let lastPreloadTimestamp = null;
+    let updateCheckInterval = null;
+
+    dashboardLink.addEventListener('mouseenter', function() {
+        preloadTimeout = setTimeout(function() {
+            fetch('/livelyageing/preload_dashboard')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Dashboard data preloaded successfully');
+                        lastPreloadTimestamp = data.timestamp;
+                        
+                        // Start checking for updates
+                        if (!updateCheckInterval) {
+                            updateCheckInterval = setInterval(checkForUpdates, 30000); // Check every 30 seconds
+                        }
+                    }
+                })
+        }, 500);
+    });
+
+    dashboardLink.addEventListener('mouseleave', function() {
+        clearTimeout(preloadTimeout);
+    });
+
+    // Function to check for updates
+    function checkForUpdates() {
+        if (!lastPreloadTimestamp) return;
+        
+        fetch(`/livelyageing/check_dashboard_updates?timestamp=${lastPreloadTimestamp}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.needs_refresh) {
+                    console.log('New updates available, refreshing dashboard data...');
+                    // Preload new data
+                    fetch('/livelyageing/preload_dashboard')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                lastPreloadTimestamp = data.timestamp;
+                            }
+                        });
+                }
+            })
+            .catch(error => console.error('Error checking for updates:', error));
+    }
+
+    // Clean up interval when leaving the page
+    window.addEventListener('beforeunload', function() {
+        if (updateCheckInterval) {
+            clearInterval(updateCheckInterval);
+        }
+    });
+});
+</script>
 {% endblock %} 

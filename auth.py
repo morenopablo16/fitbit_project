@@ -77,20 +77,32 @@ def refresh_token(refresh_token):
     response = requests.post(TOKEN_URL, data=payload)
     tokens = response.json()
     return tokens.get("access_token"), tokens.get("refresh_token")
-def generate_auth_url(code_challenge,state):
+
+def generate_auth_url(code_challenge, state):
     """
     Genera la URL de autorización para Fitbit con los parámetros adecuados.
     """
-    # Lista de scopes
-   # scopes = [ "activity%20heartrate%20location%20nutrition%20oxygen_saturation%20profile%20respiratory_rate%20settings%20sleep%20social%20temperature%20weight"]
-    scopes=["activity+cardio_fitness+electrocardiogram+heartrate+irregular_rhythm_notifications+location+nutrition+oxygen_saturation+profile+respiratory_rate+settings+sleep+social+temperature+weight"]
-    # Convertir la lista de scopes en una cadena separada por espacios
-    scopes_str = " ".join(scopes)
-
-    # Codificar los scopes para la URL
-    encoded_scopes = quote(scopes_str)  # Codifica los espacios como %20
-    # Construir la URL de autorización
-    encoded_redirect_uri = quote(REDIRECT_URI)
-    auth_url = f"{AUTH_URL}?response_type=code&client_id={CLIENT_ID}&scope={encoded_scopes}&code_challenge={code_challenge}&code_challenge_method=S256&state={state}&redirect_uri={encoded_redirect_uri}&expires_in=2592000"
+    # Lista de scopes separados por espacios
+    scopes = "activity cardio_fitness electrocardiogram heartrate irregular_rhythm_notifications location nutrition oxygen_saturation profile respiratory_rate settings sleep social temperature weight"
     
+    # Construir la URL base
+    base_url = AUTH_URL
+    
+    # Crear diccionario de parámetros
+    params = {
+        'response_type': 'code',
+        'client_id': CLIENT_ID,
+        'scope': scopes,
+        'code_challenge': code_challenge,
+        'code_challenge_method': 'S256',
+        'state': state,
+        'redirect_uri': REDIRECT_URI,
+        'expires_in': '2592000'
+    }
+    
+    # Construir la URL con los parámetros correctamente codificados
+    from urllib.parse import urlencode
+    auth_url = f"{base_url}?{urlencode(params)}"
+    
+    print(f"Generated auth URL: {auth_url}")  # Debug log
     return auth_url

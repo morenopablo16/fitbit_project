@@ -456,7 +456,8 @@ def callback():
                 existing_user = db.get_user_by_email(email)
 
                 if existing_user:
-                    user_id, existing_access_token, existing_refresh_token = existing_user
+                    # Unpack the user data correctly
+                    user_id, existing_name, existing_email, existing_access_token, existing_refresh_token = existing_user
 
                     # Flow 2: Reassign the device to a new user
                     if new_user_name:

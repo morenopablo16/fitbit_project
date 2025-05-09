@@ -1,26 +1,25 @@
-# Paquetes principales (actualizados para Python 3.11)
+# Paquetes principales (Python 3.11 optimizado)
 requests==2.31.0
-psycopg2-binary==2.9.9                # Incluye extras, compatible con Python 3.11
+psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 qrcode[pil]==7.4.2
 
-# Dependencias de Google (funcionan en 3.11)
+# Dependencias de Google
 google-auth==2.23.0
 google-auth-oauthlib==1.0.0
 google-auth-httplib2==0.1.0
-google-api-python-client==2.24.0       # Usa 'google-api-python-client>=2.100.0' si hay problemas
+google-api-python-client==2.24.0
 
-# Flask y extensiones (versiones estables)
-Flask==3.0.0                          # Versión moderna para Python 3.11
-Werkzeug==3.0.1                       # Compatible con Flask 3.0
+# Flask y extensiones (versiones compatibles)
+Flask==2.3.2                          # Downgrade para compatibilidad con Flask-Login 0.5.0
+Werkzeug==2.3.7                       # Versión compatible con Flask 2.3.2
 Flask-Cors==4.0.0
-Flask-Login==0.5.0
+Flask-Login==0.5.0                    # Mantenemos esta versión (requiere Flask <3.0)
 Flask-Babel==3.1.0
 
 # Seguridad y numéricos
-cryptography==41.0.7                  # Versión segura para Python 3.11
-numpy==1.26.0                         # Optimizado para Python 3.11
+cryptography==41.0.7
+numpy==1.26.0
 
-# Traducción (alternativa si googletrans falla)
-googletrans==4.0.0-rc1                # Versión más reciente (aún inestable)
-# Alternativa: deep-translator==1.11.4  # Más confiable pero diferente API
+# Traducción (versión estable alternativa)
+deep-translator==1.11.4               # Reemplazo confiable para googletrans

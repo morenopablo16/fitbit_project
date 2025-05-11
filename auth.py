@@ -97,7 +97,8 @@ def generate_auth_url(code_challenge, state):
         'code_challenge_method': 'S256',
         'state': state,
         'redirect_uri': REDIRECT_URI,
-        'expires_in': '2592000'
+        'expires_in': '2592000',
+        'prompt': 'select_account'  # Forzar selección de cuenta
     }
     
     # Construir la URL con los parámetros correctamente codificados

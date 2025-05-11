@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         authButton.disabled = true;
 
         // Get the auth URL from the onclick attribute
-        const authUrl = '{{ auth_url }}';
+        const authUrl = '{{ auth_url|safe }}';
         
         // Redirect after a short delay
         setTimeout(() => {

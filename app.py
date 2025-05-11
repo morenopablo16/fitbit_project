@@ -1,5 +1,6 @@
 from logging.handlers import RotatingFileHandler
 from flask import Flask, logging, render_template, request, redirect, session, url_for, flash, g, jsonify, Response
+from rich import _console
 from auth import generate_state, get_tokens, generate_code_verifier, generate_code_challenge, generate_auth_url
 from db import DatabaseManager, get_daily_summaries, get_user_alerts, get_user_id_by_email
 from config import CLIENT_ID, REDIRECT_URI
@@ -336,25 +337,33 @@ def user_stats():
 @app.route('/livelyageing/link', methods=['GET', 'POST'])
 @login_required
 def link_device():
-    """
-    Handle the linking of a new Fitbit device.
-    """
     if request.method == 'POST':
         email = request.form.get('email')
         if not email:
-            flash('Por favor, proporciona un email.', 'danger')
+            flash('Please select an email.', 'danger')
             return redirect(url_for('link_device'))
-            
-        # Store email in session and redirect to assign_user
-        session['pending_email'] = email
-        return redirect(url_for('assign_user'))
-    
-    # GET request - show form with available emails
+
+        # Verificar si el correo tiene un nombre asignado
+        db = DatabaseManager()
+        if db.connect():
+            user = db.get_user_by_email(email)
+            if not user or not user[1]:  # Si no hay usuario o no tiene nombre asignado
+                session['pending_email'] = email
+                return redirect(url_for('assign_user'))
+            else:
+                session['pending_email'] = email
+                session['new_user_name'] = user[1]  # Nombre ya asignado           
+                return render_template('reassign_device.html', email=email, user_name=user[1])
+        else:
+            flash('Error de conexión a la base de datos.', 'danger')
+            return redirect(url_for('link_device'))
+
+    # GET request - mostrar formulario
     db = DatabaseManager()
     if not db.connect():
         flash('Error de conexión a la base de datos.', 'danger')
         return redirect(url_for('home'))
-        
+
     try:
         emails = db.execute_query("SELECT DISTINCT email FROM users")
         return render_template('link_device.html', emails=[email[0] for email in emails])
@@ -536,46 +545,54 @@ def reassign_device():
     """
     email = request.form['email']
     new_user_name = request.form['new_user_name']
-    
+
     # Store the email and new user name in the session for later use
     session['pending_email'] = email
     session['new_user_name'] = new_user_name
-    
+
     # Check if reauthorization is needed
     db = DatabaseManager()
     if db.connect():
         try:
             # Query to check if the email is already in use and has valid tokens
             existing_user = db.execute_query("SELECT access_token, refresh_token FROM users WHERE email = %s ORDER BY created_at DESC LIMIT 1", (email,))
-            
+            app.logger.info(f"Database query result for email {email}: {existing_user}")
+
             if existing_user:
-                existing_access_token, existing_refresh_token = existing_user
+                if len(existing_user[0]) != 2:
+                    app.logger.error(f"Unexpected result structure: {existing_user}")
+                    return "Error: Unexpected database result structure.", 500
+
+                existing_access_token, existing_refresh_token = existing_user[0]
                 if not existing_access_token or not existing_refresh_token:
                     # If tokens are missing, require reauthorization
                     code_verifier = generate_code_verifier()
                     code_challenge = generate_code_challenge(code_verifier)
                     state = generate_state()
-                    print(f"Generated valid state: {state}")
-                    print(f"Generated code verifier: {code_verifier}")
-                    print(f"Generated code challenge: {code_challenge}")
+                    app.logger.info(f"Generated valid state: {state}")
+                    app.logger.info(f"Generated code verifier: {code_verifier}")
+                    app.logger.info(f"Generated code challenge: {code_challenge}")
                     auth_url = generate_auth_url(code_challenge, state)
-                    print(f"Generated auth URL: {auth_url}")
+                    app.logger.info(f"Generated auth URL: {auth_url}")
                     session['code_verifier'] = code_verifier
                     session['state'] = state
                     return render_template('link_auth.html', auth_url=auth_url)
                 else:
                     # If tokens are valid, proceed to add the new user without reauthorization
                     db.add_user(new_user_name, email, existing_access_token, existing_refresh_token)
-                    print(f"Dispositivo reasignado a {new_user_name} ({email}) sin necesidad de reautorización.")
-                    return redirect('/')
+                    app.logger.info(f"Device reassigned to {new_user_name} ({email}) without reauthorization.")
+                    return render_template('confirmation.html', user_name=new_user_name, email=email)
             else:
-                return "Error: El correo no está en uso.", 400
+                app.logger.error(f"Email {email} is not in use.")
+                return "Error: The email is not in use.", 400
         except Exception as e:
-            return f"Error: {e}", 400
+            app.logger.error(f"Unexpected error during reassignment: {e}")
+            return f"Error: {e}", 500
         finally:
             db.close()
     else:
-        return "Error: No se pudo conectar a la base de datos.", 500
+        app.logger.error("Failed to connect to the database.")
+        return "Error: Could not connect to the database.", 500
 
 # Template filters
 @app.template_filter('number')

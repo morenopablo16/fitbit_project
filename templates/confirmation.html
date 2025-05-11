@@ -1,95 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}Confirmation - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Confirmation') }} - Fitbit Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <h1>Device Linking Confirmation</h1>
-    
-    <div class="alert alert-success" role="alert">
+<div class="dashboard-container text-center">
+    <h1 class="mb-4">{{ _('Device Linking Confirmation') }}</h1>
+
+    <div class="alert alert-success py-4" role="alert">
         <!-- "Tick" animation -->
-        <div class="tick-animation"></div>
-        
-        <h4 class="alert-heading">Linking Successful!</h4>
-        <p>
-            The Fitbit device has been successfully linked.
+        <div class="tick-animation mx-auto mb-3"></div>
+
+        <h4 class="alert-heading">{{ _('Linking Successful!') }}</h4>
+        <p class="mt-3">
+            {{ _('The Fitbit device has been successfully linked to your account.') }}
         </p>
         <hr>
         <p class="mb-0">
-            <strong>User:</strong> {{ user_name }}<br>
-            <strong>Email:</strong> {{ email }}
+            <strong>{{ _('User:') }}</strong> {{ user_name }}<br>
+            <strong>{{ _('Email:') }}</strong> {{ email }}
         </p>
     </div>
 
     <!-- "Return to Home" button (initially not clickable) -->
-    <div class="button-container">
+    <div class="button-container mt-4">
         <a href="{{ url_for('index') }}" class="btn btn-primary disabled" id="home-button">
-            Return to Home
+            {{ _('Return to Home') }}
         </a>
-        <span id="countdown">5</span>
+        <span id="countdown" class="ms-3 text-muted">5</span>
     </div>
 </div>
 
 <!-- Script to handle countdown, enable the button, and expand it -->
 <script>
-    // Countdown duration in seconds
-    let seconds = 5;
-    const countdownElement = document.getElementById('countdown');
-    const homeButton = document.getElementById('home-button');
-    const buttonContainer = document.querySelector('.button-container');
+    document.addEventListener('DOMContentLoaded', function() {
+        let seconds = 5;
+        const countdownElement = document.getElementById('countdown');
+        const homeButton = document.getElementById('home-button');
 
-    // Function to update the countdown
-    const countdownInterval = setInterval(function() {
-        seconds--;
-        countdownElement.textContent = seconds;
+        const countdownInterval = setInterval(function() {
+            seconds--;
+            countdownElement.textContent = seconds;
 
-        // When the countdown reaches 0
-        if (seconds <= 0) {
-            clearInterval(countdownInterval);
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
 
-            // Enable the button
-            homeButton.classList.remove('disabled');
-            homeButton.style.opacity = '1';
-            homeButton.style.cursor = 'pointer';
-            homeButton.style.pointerEvents = 'auto'; // Ensure the button is clickable
+                // Enable the button
+                homeButton.classList.remove('disabled');
+                homeButton.style.opacity = '1';
+                homeButton.style.cursor = 'pointer';
+                homeButton.style.pointerEvents = 'auto';
 
-            // Hide the countdown
-            countdownElement.style.display = 'none';
-
-            // Expand the button with a slide animation
-            homeButton.style.transition = 'width 0.5s ease';
-            homeButton.style.width = '100%'; // Adjust to 100% of the container
-
-            // Ensure the button is on top of other elements
-            homeButton.style.zIndex = '10';
-        }
-    }, 1000); // Update every second
+                // Hide the countdown text
+                countdownElement.style.display = 'none';
+            }
+        }, 1000);
+    });
 </script>
 
 <!-- Styles for the "tick" animation, button, and container -->
 <style>
-    /* Styles for the button and countdown */
+    .dashboard-container {
+        position: relative;
+        z-index: 1;
+        min-height: 300px;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 50px auto;
+    }
+
+    .tick-animation {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #28a745;
+        position: relative;
+        animation: tick-animation 0.6s ease;
+    }
+
+    .tick-animation::before {
+        content: '';
+        position: absolute;
+        width: 15px;
+        height: 30px;
+        border-right: 4px solid white;
+        border-bottom: 4px solid white;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -60%) rotate(45deg);
+    }
+
+    @keyframes tick-animation {
+        0% {
+            transform: scale(0);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
     .button-container {
         display: flex;
         align-items: center;
-        gap: 10px; /* Space between the button and the countdown */
-        width: 100%; /* Ensure the container takes full width */
-        position: relative; /* Ensure the container is a positioning context */
+        justify-content: center;
     }
 
     #home-button {
-        width: auto; /* Initial button width */
-        opacity: 0.5; /* Faded button */
-        cursor: not-allowed; /* Cursor indicating it's not clickable */
-        pointer-events: none; /* Disable clicks */
-        transition: opacity 0.5s ease, width 0.5s ease; /* Smooth transitions */
-        position: relative; /* Ensure the button is positioned correctly */
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
     }
 
-    #home-button.disabled {
-        opacity: 0.5; /* Faded button */
-        cursor: not-allowed; /* Cursor indicating it's not clickable */
-        pointer-events: none; /* Disable clicks */
+    #home-button:not(.disabled) {
+        opacity: 1;
+        cursor: pointer;
+        pointer-events: auto;
     }
 
     #countdown {

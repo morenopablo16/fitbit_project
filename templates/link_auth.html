@@ -29,13 +29,17 @@ document.addEventListener('DOMContentLoaded', function() {
         buttonText.textContent = '{{ _("Authorizing...") }}';
         authButton.disabled = true;
 
-        // Get the auth URL from the onclick attribute
-        const authUrl = '{{ auth_url|safe }}';
-        
-        // Redirect after a short delay
-        setTimeout(() => {
-            window.location.href = authUrl;
-        }, 500);
+    
+      // Crear iframe oculto para cerrar sesión
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'https://www.fitbit.com/logout';
+        document.body.appendChild(iframe);
+
+        // Paso 2: redirigir al flujo de autorización tras breve espera
+        setTimeout(function() {
+            window.location.href = '{{ auth_url|safe }}';
+        }, 1200); // espera suficiente para que el logout se aplique
     });
 });
 </script>

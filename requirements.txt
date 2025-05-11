@@ -23,3 +23,6 @@ numpy==2.2.5
 
 # Traducción
 deep-translator==1.11.4
+
+# Paquete para salida de consola enriquecida
+rich==13.5.2

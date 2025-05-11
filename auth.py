@@ -98,7 +98,8 @@ def generate_auth_url(code_challenge, state):
         'state': state,
         'redirect_uri': REDIRECT_URI,
         'expires_in': '2592000',
-        'prompt': 'select_account'  # Forzar selección de cuenta
+        'prompt': 'select_account',  # Forzar selección de cuenta
+        'include_granted_scopes': 'false'  # Evitar reutilización de permisos
     }
     
     # Construir la URL con los parámetros correctamente codificados

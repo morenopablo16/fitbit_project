@@ -3,6 +3,7 @@ config.js
 .codegpt
 .env
 .vscode
+.venv/
 credentials.json
 venv
 test.py

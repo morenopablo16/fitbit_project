@@ -376,60 +376,33 @@ def link_device():
 @app.route('/livelyageing/assign', methods=['GET', 'POST'])
 @login_required
 def assign_user():
-    """
-    Handle the assignment of a new user.
-    """
     if request.method == 'POST':
-        user_name = request.form['user_name']
-        
-        # Check if the user name already exists in the database (case-insensitive)
-        db = DatabaseManager()
-        if db.connect():
-            try:
-                # Query to check if the user name already exists (case-insensitive)
-                existing_user = db.execute_query("SELECT name FROM users WHERE LOWER(name) = LOWER(%s)", (user_name,))
-                
-                if existing_user:
-                    # If the user name already exists, show an error message
-                    error = f"El nombre de usuario '{user_name}' ya está en uso."
-                    return render_template('assign_user.html', error=error)
-                else:
-                    # If the user name is not in use, proceed to authorization
-                    # Store the new name in the session for later use
-                    session['new_user_name'] = user_name
-                    
-                    # Make sure we have a pending_email in the session
-                    if 'pending_email' not in session:
-                        # If no pending_email, redirect back to link_device
-                        return redirect(url_for('link_device'))
-                    
-                    code_verifier = generate_code_verifier()
-                    code_challenge = generate_code_challenge(code_verifier)
-                    state = generate_state()
-                    print(f"Generated valid state: {state}")
-                    print(f"Generated code verifier: {code_verifier}")
-                    print(f"Generated code challenge: {code_challenge}")
-                    auth_url = generate_auth_url(code_challenge, state)
-                    print(f"Generated auth URL: {auth_url}")
-                    session['code_verifier'] = code_verifier
-                    session['state'] = state
-                    return render_template('link_auth.html', auth_url=auth_url)
-            except Exception as e:
-                print(f"Error checking user name in database: {e}")
-                return "Error: No se pudo verificar el nombre de usuario.", 500
-            finally:
-                db.close()
-        else:
-            return "Error: No se pudo conectar a la base de datos.", 500
-    
-    else:
-        # If it's a GET request, check if we have a pending_email in the session
-        if 'pending_email' not in session:
-            # If no pending_email, redirect back to link_device
+        user_name = request.form.get('user_name')
+        email = session.get('pending_email')  # Get email from session
+
+        if not user_name:
+            flash(_('Error: Missing user name.'), 'danger')
+            return redirect(url_for('assign_user'))
+            
+        if not email:
+            flash(_('Error: No email in session. Please start from device linking.'), 'danger')
             return redirect(url_for('link_device'))
-        
-        # Render the assign_user.html template
-        return render_template('assign_user.html')
+
+        # Generar state y almacenarlo en la sesión
+        session['state'] = generate_state()
+        session['new_user_name'] = user_name
+        session['code_verifier'] = generate_code_verifier()
+
+        code_challenge = generate_code_challenge(session['code_verifier'])
+        auth_url = generate_auth_url(code_challenge, session['state'])
+
+        app.logger.info(f"Generated auth URL for {email}: {auth_url}")
+        app.logger.info(f"Session state: {session['state']}")
+        app.logger.info(f"Session code_verifier: {session['code_verifier']}")
+
+        return render_template('link_auth.html', auth_url=auth_url)
+
+    return render_template('assign_user.html')
 
 @app.route('/livelyageing/callback')
 @login_required
@@ -438,11 +411,18 @@ def callback():
     Handle the callback from Fitbit after the user authorizes the app.
     This route captures the authorization code and exchanges it for access and refresh tokens.
     """
+    app.logger.info("Callback route accessed")
+    app.logger.info(f"Request args: {request.args}")
+    app.logger.info(f"Request path: {request.path}")
+    
     try:
         code = request.args.get('code')
         returned_state = request.args.get('state')
         stored_state = session.get('state')
         
+        app.logger.info(f"Callback triggered with code: {code} and state: {returned_state}")
+        app.logger.info(f"Stored state in session: {stored_state}")
+
         if returned_state != stored_state:
             app.logger.error("Invalid state parameter. Possible CSRF attack.")
             flash("Error: Invalid state parameter. Possible CSRF attack.", "danger")
@@ -569,14 +549,14 @@ def reassign_device():
                     code_verifier = generate_code_verifier()
                     code_challenge = generate_code_challenge(code_verifier)
                     state = generate_state()
+                    auth_url = generate_auth_url(code_challenge, state)  # Generar auth_url correctamente
                     app.logger.info(f"Generated valid state: {state}")
                     app.logger.info(f"Generated code verifier: {code_verifier}")
                     app.logger.info(f"Generated code challenge: {code_challenge}")
-                    auth_url = generate_auth_url(code_challenge, state)
                     app.logger.info(f"Generated auth URL: {auth_url}")
                     session['code_verifier'] = code_verifier
                     session['state'] = state
-                    return render_template('link_auth.html', auth_url=auth_url)
+                    return render_template('link_auth.html', auth_url=auth_url)  # Pasar auth_url al template
                 else:
                     # If tokens are valid, proceed to add the new user without reauthorization
                     db.add_user(new_user_name, email, existing_access_token, existing_refresh_token)

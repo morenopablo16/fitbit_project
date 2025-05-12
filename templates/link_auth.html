@@ -7,7 +7,7 @@
     <h1>{{ _('Authorize Fitbit') }}</h1>
     <p>{{ _('Please click the following link to authorize your Fitbit account:') }}</p>
     <div class="mt-4">
-        <button onclick="window.location.href='{{ auth_url }}'" class="btn btn-primary" id="authButton">
+        <button class="btn btn-primary" id="authButton">
             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             <span class="button-text">{{ _('Authorize Fitbit') }}</span>
         </button>
@@ -22,25 +22,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const authButton = document.getElementById('authButton');
     const spinner = authButton.querySelector('.spinner-border');
     const buttonText = authButton.querySelector('.button-text');
+    const authUrl = '{{ auth_url | safe }}';
 
     authButton.addEventListener('click', function(e) {
-        // Show loading state
+        e.preventDefault();
+        console.log('Authorize button clicked');
+
+        // Mostrar estado de carga
         spinner.classList.remove('d-none');
         buttonText.textContent = '{{ _("Authorizing...") }}';
         authButton.disabled = true;
 
-    
-      // Crear iframe oculto para cerrar sesión
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = 'https://www.fitbit.com/logout';
-        document.body.appendChild(iframe);
-
-        // Paso 2: redirigir al flujo de autorización tras breve espera
-        setTimeout(function() {
-            window.location.href = '{{ auth_url|safe }}';
-        }, 1200); // espera suficiente para que el logout se aplique
+        // Redirigir directamente a la URL de autorización
+        // Usar replace para evitar que el usuario pueda volver atrás
+        window.location.replace(authUrl);
     });
 });
 </script>
-{% endblock %}  
+{% endblock %}

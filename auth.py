@@ -82,11 +82,10 @@ def generate_auth_url(code_challenge, state):
     """
     Genera la URL de autorización para Fitbit con los parámetros adecuados.
     """
+    from urllib.parse import urlencode
+    
     # Lista de scopes separados por espacios
     scopes = "activity cardio_fitness electrocardiogram heartrate irregular_rhythm_notifications location nutrition oxygen_saturation profile respiratory_rate settings sleep social temperature weight"
-    
-    # Construir la URL base
-    base_url = AUTH_URL
     
     # Crear diccionario de parámetros
     params = {
@@ -98,13 +97,12 @@ def generate_auth_url(code_challenge, state):
         'state': state,
         'redirect_uri': REDIRECT_URI,
         'expires_in': '2592000',
-        'prompt': 'select_account',  # Forzar selección de cuenta
-        'include_granted_scopes': 'false'  # Evitar reutilización de permisos
+        'prompt': 'login consent',  # Forzar login y consentimiento cada vez
+        'access_type': 'offline',   # Solicitar refresh_token
     }
     
     # Construir la URL con los parámetros correctamente codificados
-    from urllib.parse import urlencode
-    auth_url = f"{base_url}?{urlencode(params)}"
+    auth_url = f"{AUTH_URL}?{urlencode(params)}"
     
     print(f"Generated auth URL: {auth_url}")  # Debug log
     return auth_url

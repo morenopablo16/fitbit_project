@@ -9,7 +9,8 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 # URL de redirección basada en el entorno
-REDIRECT_URI = "http://localhost:5000/livelyageing/callback"
+#REDIRECT_URI = "http://localhost:5000/livelyageing/callback"
+REDIRECT_URI = "https://tango.ing.unimo.it/livelyageing/callback"
 # if os.getenv("FLASK_ENV") == "production":
 #     REDIRECT_URI = "https://tango.ing.unimo.it/livelyageing/callback"
 #     #REDIRECT_URI = "http://localhost:5000/livelyageing/callback"

@@ -14,7 +14,7 @@ from flask_babel import Babel, get_locale, gettext as _
 
 # Initialize Flask app
 app = Flask(__name__, 
-           static_url_path='/livelyageing/static',  # Prefix for static files
+           static_url_path='/livelyageing/static',  # Prefix for static files with livelyageing
            static_folder='static')  # Directory where static files are stored
 app.secret_key = os.getenv('SECRET_KEY')
 
@@ -614,10 +614,15 @@ def get_text(key):
 
 @app.context_processor
 def utility_processor():
-    """Make translation function available in templates."""
+    """Make translation function and static URL function available in templates."""
+    def static_url(filename):
+        """Generate full URL for static files."""
+        # Use the complete path including /livelyageing prefix
+        return url_for('static', filename=filename)
     return {
         'get_text': get_text,
-        'current_language': get_locale
+        'current_language': get_locale,
+        'static_url': static_url
     }
 
 @app.route('/livelyageing/change_language')

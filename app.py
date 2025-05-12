@@ -13,7 +13,9 @@ from datetime import datetime, timedelta, timezone, time
 from flask_babel import Babel, get_locale, gettext as _
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, 
+           static_url_path='/livelyageing/static',  # Prefix for static files
+           static_folder='static')  # Directory where static files are stored
 app.secret_key = os.getenv('SECRET_KEY')
 
 # Configuración básica de logging
@@ -1549,6 +1551,18 @@ def unlink_user():
     else:
         flash('Error de conexión a la base de datos', 'danger')
     return redirect(url_for('user_stats'))
+
+@app.route('/livelyageing/debug_static')
+def debug_static():
+    """Temporary route to debug static file URLs"""
+    style_url = url_for('static', filename='css/style.css', _external=True)
+    styles_url = url_for('static', filename='css/styles.css', _external=True)
+    app.logger.info(f"style.css URL: {style_url}")
+    app.logger.info(f"styles.css URL: {styles_url}")
+    return {
+        'style_url': style_url,
+        'styles_url': styles_url
+    }
 
 # Run the Flask app
 if __name__ == '__main__':

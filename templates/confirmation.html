@@ -3,100 +3,194 @@
 {% block title %}Confirmation - Fitbit Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <h1>Device Linking Confirmation</h1>
-    
-    <div class="alert alert-success" role="alert">
-        <!-- "Tick" animation -->
-        <div class="tick-animation"></div>
-        
-        <h4 class="alert-heading">Linking Successful!</h4>
-        <p>
-            The Fitbit device has been successfully linked.
-        </p>
-        <hr>
-        <p class="mb-0">
-            <strong>User:</strong> {{ user_name }}<br>
-            <strong>Email:</strong> {{ email }}
-        </p>
-    </div>
-
-    <!-- "Return to Home" button (initially not clickable) -->
-    <div class="button-container">
-        <a href="{{ url_for('index') }}" class="btn btn-primary disabled" id="home-button">
-            Return to Home
-        </a>
-        <span id="countdown">5</span>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Device Linking Successful!
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="success-checkmark">
+                            <div class="check-icon">
+                                <span class="icon-line line-tip"></span>
+                                <span class="icon-line line-long"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-info mb-4">
+                        <h5>Device linked to:</h5>
+                        <p class="mb-1"><strong>User:</strong> {{ user_name }}</p>
+                        <p class="mb-0"><strong>Email:</strong> {{ email }}</p>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary w-100 position-relative" id="home-button" onclick="return false;">
+                            <span class="countdown-text">Return to Home (5)</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Script to handle countdown, enable the button, and expand it -->
-<script>
-    // Countdown duration in seconds
-    let seconds = 5;
-    const countdownElement = document.getElementById('countdown');
-    const homeButton = document.getElementById('home-button');
-    const buttonContainer = document.querySelector('.button-container');
-
-    // Function to update the countdown
-    const countdownInterval = setInterval(function() {
-        seconds--;
-        countdownElement.textContent = seconds;
-
-        // When the countdown reaches 0
-        if (seconds <= 0) {
-            clearInterval(countdownInterval);
-
-            // Enable the button
-            homeButton.classList.remove('disabled');
-            homeButton.style.opacity = '1';
-            homeButton.style.cursor = 'pointer';
-            homeButton.style.pointerEvents = 'auto'; // Ensure the button is clickable
-
-            // Hide the countdown
-            countdownElement.style.display = 'none';
-
-            // Expand the button with a slide animation
-            homeButton.style.transition = 'width 0.5s ease';
-            homeButton.style.width = '100%'; // Adjust to 100% of the container
-            homeButton.style.position = 'absolute'; // Prevent layout shift
-            homeButton.style.left = '0'; // Align to the left of the container
-
-            // Ensure the button is on top of other elements
-            homeButton.style.zIndex = '10';
-        }
-    }, 1000); // Update every second
-</script>
-
-<!-- Styles for the "tick" animation, button, and container -->
 <style>
-    /* Styles for the button and countdown */
-    .button-container {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Space between the button and the countdown */
-        width: 100%; /* Ensure the container takes full width */
-        position: relative; /* Ensure the container is a positioning context */
-    }
+/* Success checkmark animation */
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
 
-    #home-button {
-        width: auto; /* Initial button width */
-        opacity: 0.5; /* Faded button */
-        cursor: not-allowed; /* Cursor indicating it's not clickable */
-        pointer-events: none; /* Disable clicks */
-        transition: opacity 0.5s ease, width 0.5s ease; /* Smooth transitions */
-        position: relative; /* Ensure the button is positioned correctly */
-    }
+.check-icon {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    border-radius: 50%;
+    box-sizing: content-box;
+    border: 4px solid #4CAF50;
+}
 
-    #home-button.disabled {
-        opacity: 0.5; /* Faded button */
-        cursor: not-allowed; /* Cursor indicating it's not clickable */
-        pointer-events: none; /* Disable clicks */
-    }
+.check-icon::before {
+    top: 3px;
+    left: -2px;
+    width: 30px;
+    transform-origin: 100% 50%;
+    border-radius: 100px 0 0 100px;
+}
 
-    #countdown {
-        font-size: 1.2em;
-        font-weight: bold;
+.check-icon::after {
+    top: 0;
+    left: 30px;
+    width: 60px;
+    transform-origin: 0 50%;
+    border-radius: 0 100px 100px 0;
+    animation: rotate-circle 4.25s ease-in;
+}
+
+.icon-line {
+    height: 5px;
+    background-color: #4CAF50;
+    display: block;
+    border-radius: 2px;
+    position: absolute;
+    z-index: 10;
+}
+
+.icon-line.line-tip {
+    top: 46px;
+    left: 14px;
+    width: 25px;
+    transform: rotate(45deg);
+    animation: icon-line-tip 0.75s;
+}
+
+.icon-line.line-long {
+    top: 38px;
+    right: 8px;
+    width: 47px;
+    transform: rotate(-45deg);
+    animation: icon-line-long 0.75s;
+}
+
+#home-button {
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    padding: 12px;
+    pointer-events: none;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+#home-button.ready {
+    pointer-events: auto;
+    opacity: 1;
+    cursor: pointer;
+}
+
+#home-button.ready:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+@keyframes icon-line-tip {
+    0% {
+        width: 0;
+        left: 1px;
+        top: 19px;
     }
+    54% {
+        width: 0;
+        left: 1px;
+        top: 19px;
+    }
+    70% {
+        width: 50px;
+        left: -8px;
+        top: 37px;
+    }
+    84% {
+        width: 17px;
+        left: 21px;
+        top: 48px;
+    }
+    100% {
+        width: 25px;
+        left: 14px;
+        top: 46px;
+    }
+}
+
+@keyframes icon-line-long {
+    0% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+    65% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+    84% {
+        width: 55px;
+        right: 0px;
+        top: 35px;
+    }
+    100% {
+        width: 47px;
+        right: 8px;
+        top: 38px;
+    }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const homeButton = document.getElementById('home-button');
+    const countdownText = homeButton.querySelector('.countdown-text');
+    let seconds = 5;
+
+    // Asegurarnos de que el botón no es clickable inicialmente
+    homeButton.style.pointerEvents = 'none';
+    homeButton.setAttribute('onclick', 'return false;');
+
+    const countdown = setInterval(() => {
+        seconds--;
+        countdownText.textContent = `Return to Home (${seconds})`;
+
+        if (seconds <= 0) {
+            clearInterval(countdown);
+            countdownText.textContent = 'Return to Home';
+            // Habilitar el botón
+            homeButton.classList.add('ready');
+            homeButton.style.pointerEvents = 'auto';
+            homeButton.removeAttribute('onclick');
+        }
+    }, 1000);
+});
+</script>
 {% endblock %}

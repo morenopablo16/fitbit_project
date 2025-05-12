@@ -1180,6 +1180,7 @@ def reset_database():
         try:
             with connection.cursor() as cursor:
                 # Drop all tables in the correct order to handle foreign key constraints
+                cursor.execute("DROP TABLE IF EXISTS alerts CASCADE;")  # Drop alerts first
                 cursor.execute("DROP TABLE IF EXISTS sleep_logs CASCADE;")
                 cursor.execute("DROP TABLE IF EXISTS intraday_metrics CASCADE;")
                 cursor.execute("DROP TABLE IF EXISTS daily_summaries CASCADE;")

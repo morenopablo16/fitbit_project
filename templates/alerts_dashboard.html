@@ -285,7 +285,7 @@
             </thead>
             <tbody>
                 {% for alert in alerts %}
-                <tr class="priority-{{ alert.priority|lower }} alert-row" onclick="showAlertDetails({{ alert.id }})">
+                <tr class="priority-{{ alert.priority|lower }} alert-row" data-alert-id="{{ alert.id }}">
                     <td>{{ alert.alert_time }}</td>
                     <td>
                         {% set time_since = ((now - alert.raw_alert_time).total_seconds() / 3600)|round %}
@@ -315,7 +315,8 @@
                     <td>
                         {% if not alert.acknowledged %}
                         <button class="btn btn-sm btn-outline-success acknowledge-btn" 
-                                onclick="showAcknowledgeModal({{ alert.id }})"
+                                type="button" 
+                                data-alert-id="{{ alert.id }}"
                                 title="Marcar como reconocida">
                             <i class="bi bi-check-circle"></i>
                         </button>
@@ -426,6 +427,7 @@
                     <div class="col-12">
                         <h6>Información Adicional</h6>
                         <div id="modal-details" class="alert alert-info"></div>
+                        <div id="modal-intraday-warning"></div>
                     </div>
                 </div>
             </div>
@@ -474,8 +476,9 @@ let alertsData = [];
 // Función para inicializar los datos
 function initializeAlertsData() {
     try {
-        alertsData = {{ alerts|tojson|safe }};
+        alertsData = JSON.parse('{{ alerts|tojson|safe }}');
     } catch (error) {
+        console.error("Error parsing alerts data:", error);
         alertsData = [];
     }
 }
@@ -483,11 +486,28 @@ function initializeAlertsData() {
 // Llamar a la función de inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     initializeAlertsData();
+    
+    // Add event listeners for the alert rows
+    document.querySelectorAll('.alert-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+            const alertId = parseInt(this.dataset.alertId);
+            showAlertDetails(alertId);
+        });
+    });
+    
+    // Add event listeners for the acknowledge buttons
+    document.querySelectorAll('.acknowledge-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent row click
+            const alertId = parseInt(this.dataset.alertId);
+            showAcknowledgeModal(alertId);
+        });
+    });
 });
 
 // Función para mostrar detalles de la alerta
 function showAlertDetails(alertId) {
-    const alert = alertsData.find(a => a.id === alertId);
+    const alert = alertsData.find(function(a) { return a.id === alertId; });
     if (!alert) {
         return;
     }
@@ -514,6 +534,7 @@ function showAlertDetails(alertId) {
 
     // Mostrar el gráfico solo si hay datos intradía y el tipo es compatible
     const chartContainer = document.getElementById('intraday-chart-container');
+    const chartCanvas = document.getElementById('intraday-chart');
     const tieneDatos = alert.intraday_data && alert.intraday_data.times && alert.intraday_data.times.length > 0;
     let tipoCompatible = ['heart', 'heart_rate', 'steps', 'calories', 'active_zone_minutes'].includes(baseAlertType);
     // Lógica especial para activity_drop por pasos
@@ -524,53 +545,194 @@ function showAlertDetails(alertId) {
             tipoCompatible = false;
         }
     }
-
-    if (tieneDatos && tipoCompatible) {
+    // NUEVO: Ocultar gráfica si hay menos de 6 puntos
+    if (tieneDatos && tipoCompatible && alert.intraday_data.values.length >= 6) {
         chartContainer.classList.remove('d-none');
+        chartCanvas.style.display = '';
+        // Eliminar mensaje informativo si existe
+        let warningDiv = document.getElementById('modal-intraday-warning');
+        if (warningDiv) warningDiv.innerHTML = '';
         const ctx = document.getElementById('intraday-chart').getContext('2d');
         if (window.intradayChart) {
             window.intradayChart.destroy();
         }
-        // Forzar colores y etiquetas de pasos si es activity_drop por pasos
-        let borderColor, backgroundColor, metricLabel, yAxisLabel;
+        // Colores y etiquetas
+        let borderColor, backgroundColor, metricLabel, yAxisLabel, anomalyIndices = [], anomalyValue = null, anomalyTime = null;
         if (alert.alert_type === 'activity_drop' && alert.details && alert.details.toLowerCase().includes('pasos')) {
             borderColor = 'rgb(54, 162, 235)';
             backgroundColor = 'rgba(54, 162, 235, 0.2)';
             metricLabel = 'Pasos';
             yAxisLabel = 'Pasos';
-        } else {
-            switch(baseAlertType) {
-                case 'heart':
-                case 'heart_rate':
-                    borderColor = 'rgb(255, 99, 132)';
-                    backgroundColor = 'rgba(255, 99, 132, 0.2)';
-                    metricLabel = 'Frecuencia Cardíaca';
-                    yAxisLabel = 'Frecuencia Cardíaca (bpm)';
-                    break;
-                case 'steps':
-                    borderColor = 'rgb(54, 162, 235)';
-                    backgroundColor = 'rgba(54, 162, 235, 0.2)';
-                    metricLabel = 'Pasos';
-                    yAxisLabel = 'Pasos';
-                    break;
-                case 'calories':
-                    borderColor = 'rgb(255, 206, 86)';
-                    backgroundColor = 'rgba(255, 206, 86, 0.2)';
-                    metricLabel = 'Calorías';
-                    yAxisLabel = 'Calorías';
-                    break;
-                case 'active_zone_minutes':
-                    borderColor = 'rgb(75, 192, 192)';
-                    backgroundColor = 'rgba(75, 192, 192, 0.2)';
-                    metricLabel = 'Minutos Activos';
-                    yAxisLabel = 'Minutos Activos';
-                    break;
-                default:
-                    borderColor = 'rgb(75, 192, 192)';
-                    backgroundColor = 'rgba(75, 192, 192, 0.2)';
-                    metricLabel = baseAlertType;
-                    yAxisLabel = 'Valor';
+            // Buscar el mínimo (punto anómalo)
+            let minValue = Math.min(...alert.intraday_data.values);
+            anomalyIndices = alert.intraday_data.values.map((v, i) => v === minValue ? i : -1).filter(i => i !== -1);
+            anomalyValue = minValue;
+            anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
+        } else if (baseAlertType === 'heart' || baseAlertType === 'heart_rate') {
+            borderColor = 'rgb(255, 99, 132)';
+            backgroundColor = 'rgba(255, 99, 132, 0.2)';
+            metricLabel = 'Frecuencia Cardíaca';
+            yAxisLabel = 'Frecuencia Cardíaca (bpm)';
+            // Buscar el valor máximo anómalo
+            let maxValue = Math.max(...alert.intraday_data.values);
+            anomalyIndices = alert.intraday_data.values.map((v, i) => v === maxValue ? i : -1).filter(i => i !== -1);
+            anomalyValue = maxValue;
+            anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
+        } else if (alert.alert_type === 'intraday_activity_drop') {
+            borderColor = 'rgb(40, 167, 69)';
+            backgroundColor = 'rgba(40, 167, 69, 0.2)';
+            metricLabel = 'Pasos';
+            yAxisLabel = 'Pasos';
+            
+            // Extraer horas de inicio y fin del intervalo sin actividad de los detalles
+            const detailsText = alert.details || '';
+            const timeRegex = /sin pasos entre (\d{2}:\d{2}) y (\d{2}:\d{2})/;
+            const timeMatch = detailsText.match(timeRegex);
+            
+            let startTime = null;
+            let endTime = null;
+            if (timeMatch && timeMatch.length === 3) {
+                startTime = timeMatch[1];
+                endTime = timeMatch[2];
             }
+            
+            // Crear área sombreada para la zona de inactividad
+            let annotations = {};
+            
+            if (startTime && endTime) {
+                // Intentar encontrar los índices correspondientes a las horas de inicio y fin
+                const startIdx = alert.intraday_data.times.findIndex(t => t === startTime);
+                const endIdx = alert.intraday_data.times.findIndex(t => t === endTime);
+                
+                if (startIdx !== -1 && endIdx !== -1) {
+                    // Marcar todos los puntos en el intervalo de inactividad
+                    anomalyIndices = Array.from({length: endIdx - startIdx + 1}, (_, i) => startIdx + i);
+                }
+                
+                // Añadir anotación de área sombreada
+                annotations = {
+                    box1: {
+                        type: 'box',
+                        xMin: startTime,
+                        xMax: endTime,
+                        yMin: 0,
+                        yMax: 'max',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        borderColor: 'rgba(255, 0, 0, 0.5)',
+                        borderWidth: 1,
+                        label: {
+                            display: true,
+                            content: 'Período de inactividad',
+                            position: 'start'
+                        }
+                    }
+                };
+            }
+            
+            // Crear una línea para resaltar visualmente los períodos sin pasos
+            // Transformamos los valores para que los periodos con 0 pasos se vean claramente
+            const enhancedData = alert.intraday_data.values.map(v => v === 0 ? null : v);
+            
+            window.intradayChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: alert.intraday_data.times,
+                    datasets: [{
+                        label: metricLabel,
+                        data: enhancedData,
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
+                        tension: 0.1,
+                        spanGaps: false,
+                        pointRadius: alert.intraday_data.values.map((v, i) => anomalyIndices.includes(i) ? 7 : 3),
+                        pointBackgroundColor: alert.intraday_data.values.map((v, i) => 
+                            v === 0 ? 'red' : (anomalyIndices.includes(i) ? 'orange' : borderColor)
+                        ),
+                        pointHoverRadius: 8
+                    }, {
+                        label: 'Períodos de inactividad',
+                        data: alert.intraday_data.values.map(v => v === 0 ? 0 : null),
+                        borderColor: 'rgba(255, 0, 0, 0.7)',
+                        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 5,
+                        pointBackgroundColor: 'red',
+                        fill: true,
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label;
+                                    const value = context.parsed.y;
+                                    const time = context.label;
+                                    
+                                    if (datasetLabel === 'Períodos de inactividad') {
+                                        return `Sin actividad a las ${time}`;
+                                    }
+                                    
+                                    if (value === null) {
+                                        return `${datasetLabel}: Sin pasos a las ${time}`;
+                                    }
+                                    
+                                    return `${datasetLabel}: ${value}\nHora: ${time}`;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: annotations
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: yAxisLabel
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Añadir una explicación clínica más detallada para médicos y para la presentación del TFG
+            const clinicalDetails = document.createElement('div');
+            clinicalDetails.className = 'alert alert-danger mt-3';
+            clinicalDetails.innerHTML = `
+                <h6><i class="fas fa-exclamation-triangle"></i> Relevancia Clínica</h6>
+                <p><strong>Intervalo de inactividad detectado:</strong> ${startTime || 'N/A'} - ${endTime || 'N/A'}</p>
+                <p>Los periodos prolongados de inactividad (≥2 horas) en ancianos están asociados con:</p>
+                <ul>
+                    <li>Mayor riesgo de eventos cardiovasculares (Barone Gibbs et al., 2021)</li>
+                    <li>Pérdida acelerada de masa muscular y fuerza (sarcopenia)</li>
+                    <li>Deterioro de la capacidad funcional y mayor riesgo de caídas</li>
+                </ul>
+                <p><strong>Recomendación:</strong> Verificar si el usuario estaba durmiendo durante este intervalo o si representa una inactividad anormal que requiere seguimiento.</p>
+            `;
+            
+            // Insertar después del gráfico
+            document.querySelector('#intraday-chart-container .chart-container').after(clinicalDetails);
+            
+            return; // Salimos para evitar ejecutar el código estándar del gráfico
+        } else {
+            // Para otros tipos, no mostrar gráfica
+            chartContainer.classList.add('d-none');
+            // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
+            let warningDiv = document.getElementById('modal-intraday-warning');
+            if (warningDiv) {
+                warningDiv.innerHTML = '<div class="alert alert-warning mt-2"><i class="fas fa-exclamation-triangle me-2"></i>No hay suficientes datos intradía para mostrar el patrón de actividad (&lt;6 puntos).<br><small>Esto puede deberse a que el dispositivo no registró datos suficientes o no se llevó puesto durante el día.</small></div>';
+            }
+            // Si existe un gráfico previo, destruirlo
+            if (window.intradayChart) {
+                window.intradayChart.destroy();
+            }
+            return;
         }
         window.intradayChart = new Chart(ctx, {
             type: 'line',
@@ -581,12 +743,28 @@ function showAlertDetails(alertId) {
                     data: alert.intraday_data.values,
                     borderColor: borderColor,
                     backgroundColor: backgroundColor,
-                    tension: 0.1
+                    tension: 0.1,
+                    pointRadius: alert.intraday_data.values.map((v, i) => anomalyIndices.includes(i) ? 7 : 3),
+                    pointBackgroundColor: alert.intraday_data.values.map((v, i) => anomalyIndices.includes(i) ? 'red' : borderColor),
+                    pointHoverRadius: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = `${metricLabel}: ${context.parsed.y}`;
+                                if (anomalyIndices.includes(context.dataIndex)) {
+                                    label += ' (Anómalo)';
+                                }
+                                return label + `\nHora: ${context.label}`;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -598,8 +776,21 @@ function showAlertDetails(alertId) {
                 }
             }
         });
+        // Mostrar valor y hora anómala en detalles técnicos si existe
+        if (anomalyValue !== null && anomalyTime !== null) {
+            document.getElementById('modal-triggering').textContent = `${anomalyValue} (a las ${anomalyTime})`;
+        }
     } else {
         chartContainer.classList.add('d-none');
+        // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
+        let warningDiv = document.getElementById('modal-intraday-warning');
+        if (warningDiv) {
+            warningDiv.innerHTML = '<div class="alert alert-warning mt-2"><i class="fas fa-exclamation-triangle me-2"></i>No hay suficientes datos intradía para mostrar el patrón de actividad (&lt;6 puntos).<br><small>Esto puede deberse a que el dispositivo no registró datos suficientes o no se llevó puesto durante el día.</small></div>';
+        }
+        // Si existe un gráfico previo, destruirlo
+        if (window.intradayChart) {
+            window.intradayChart.destroy();
+        }
     }
 
     // Mostrar el modal
@@ -608,7 +799,6 @@ function showAlertDetails(alertId) {
 }
 
 function showAcknowledgeModal(alertId) {
-    event.stopPropagation(); // Evitar que se abra el modal de detalles
     document.getElementById('alertId').value = alertId;
     document.getElementById('note').value = '';
     const acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));

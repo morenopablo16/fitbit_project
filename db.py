@@ -197,7 +197,7 @@ class DatabaseManager:
         
         return self.execute_query(query, params)
 
-    def insert_alert(self, user_id, alert_type, priority, value, threshold, timestamp=None):
+    def insert_alert(self, user_id, alert_type, priority, triggering_value, threshold, timestamp=None, details=None):
         """
         Inserta una nueva alerta en la base de datos.
         
@@ -205,9 +205,10 @@ class DatabaseManager:
             user_id (int): ID del usuario
             alert_type (str): Tipo de alerta
             priority (str): Prioridad de la alerta (alta, media, baja)
-            value (float): Valor que disparó la alerta
+            triggering_value (float): Valor que disparó la alerta
             threshold (str): Umbral de la alerta (puede ser un rango como "30-200")
             timestamp (datetime, optional): Marca de tiempo de la alerta
+            details (str, optional): Detalles adicionales sobre la alerta
         """
         try:
             if timestamp is None:
@@ -218,11 +219,11 @@ class DatabaseManager:
             
             query = """
                 INSERT INTO alerts (
-                    user_id, alert_type, priority, triggering_value, threshold_value, alert_time
-                ) VALUES (%s, %s, %s, %s, %s, %s)
+                    user_id, alert_type, priority, triggering_value, threshold_value, alert_time, details
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
             """
-            result = self.execute_query(query, (user_id, alert_type, priority, value, threshold, timestamp))
+            result = self.execute_query(query, (user_id, alert_type, priority, triggering_value, threshold, timestamp, details))
             return result[0][0] if result else None
         except Exception as e:
             print(f"Error al ejecutar consulta: {e}")
@@ -400,7 +401,7 @@ def init_db():
                 alert_type VARCHAR(100) NOT NULL,
                 priority VARCHAR(20) NOT NULL,
                 triggering_value DOUBLE PRECISION,
-                threshold_value DOUBLE PRECISION,
+                threshold_value VARCHAR(50),
                 details TEXT,
                 acknowledged BOOLEAN DEFAULT FALSE,
                 acknowledged_at TIMESTAMPTZ,

@@ -175,9 +175,10 @@ def get_fitbit_data(access_token, email):
                     user_id=user_id,
                     alert_type='data_quality',
                     priority='high',
-                    value=0,
+                    triggering_value=0,
                     threshold='30',  # Valor mínimo esperado para considerar datos válidos
-                    timestamp=current_date
+                    timestamp=current_date,
+                    details="Datos importantes con valor cero: posible problema con el dispositivo o la sincronización"
                 )
                 db.close()
 

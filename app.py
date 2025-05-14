@@ -890,6 +890,10 @@ def alerts_dashboard():
                             app.logger.info(f"Alerta {alert[0]}: activity_drop NO causada por pasos, no se mostrarán datos intradía.")
                     elif base_alert_type in ['steps', 'calories', 'active_zone_minutes']:
                         intraday_metric_type = base_alert_type
+                    elif base_alert_type == 'intraday':
+                        # Para alertas de intraday_activity_drop, siempre mostrar datos de pasos
+                        intraday_metric_type = 'steps'
+                        app.logger.info(f"Alerta {alert[0]}: {alertType}, se buscarán datos intradía de steps.")
 
                     if intraday_metric_type:
                         start_time = alert[1] - timedelta(hours=24)

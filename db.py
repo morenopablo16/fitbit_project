@@ -197,24 +197,36 @@ class DatabaseManager:
         
         return self.execute_query(query, params)
 
-    def insert_alert(self, user_id, alert_type, priority, triggering_value=None, threshold_value=None, details=None):
-        """Inserta una nueva alerta."""
-        query = """
-            INSERT INTO alerts (
-                user_id, alert_type, priority,
-                triggering_value, threshold_value, details
-            ) VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id
+    def insert_alert(self, user_id, alert_type, priority, value, threshold, timestamp=None):
         """
-        result = self.execute_query(query, (
-            user_id, alert_type, priority,
-            triggering_value, threshold_value, details
-        ))
+        Inserta una nueva alerta en la base de datos.
         
-        if result:
-            print(f"Alerta {alert_type} insertada para usuario {user_id}")
-            return True
-        return False
+        Args:
+            user_id (int): ID del usuario
+            alert_type (str): Tipo de alerta
+            priority (str): Prioridad de la alerta (alta, media, baja)
+            value (float): Valor que disparó la alerta
+            threshold (str): Umbral de la alerta (puede ser un rango como "30-200")
+            timestamp (datetime, optional): Marca de tiempo de la alerta
+        """
+        try:
+            if timestamp is None:
+                timestamp = datetime.now()
+            
+            # Convertir threshold a string si no lo es
+            threshold = str(threshold)
+            
+            query = """
+                INSERT INTO alerts (
+                    user_id, alert_type, priority, triggering_value, threshold_value, alert_time
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """
+            result = self.execute_query(query, (user_id, alert_type, priority, value, threshold, timestamp))
+            return result[0][0] if result else None
+        except Exception as e:
+            print(f"Error al ejecutar consulta: {e}")
+            return None
 
     def update_user_tokens(self, email, access_token, refresh_token):
         """Actualiza los tokens de un usuario."""
@@ -250,8 +262,6 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error al obtener alerta por ID: {str(e)}")
             return None
-        finally:
-            self.close()
 
 # Función de conveniencia para mantener compatibilidad con el código existente
 def connect_to_db():
@@ -963,46 +973,6 @@ def insert_sleep_log(user_id, start_time, end_time, **data):
             conn.rollback()
         finally:
             conn.close()
-
-def insert_alert(user_id, alert_type, priority, triggering_value=None, threshold_value=None, details=None):
-    """
-    Inserta una alerta en la base de datos.
-
-    Args:
-        user_id (int): ID del usuario.
-        alert_type (str): Tipo de alerta (ej. 'activity_drop', 'sleep_duration_change', 'heart_rate_anomaly').
-        priority (str): Prioridad de la alerta ('low', 'medium', 'high').
-        triggering_value (float, optional): Valor que disparó la alerta.
-        threshold_value (float, optional): Umbral que se superó/no se alcanzó.
-        details (str, optional): Detalles adicionales de la alerta.
-    """
-    db = DatabaseManager()
-    if not db.connect():
-        print("Error al conectar a la base de datos")
-        return False
-
-    try:
-        query = """
-            INSERT INTO alerts (
-                user_id, alert_type, priority,
-                triggering_value, threshold_value, details
-            ) VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id
-        """
-        result = db.execute_query(query, (
-            user_id, alert_type, priority,
-            triggering_value, threshold_value, details
-        ))
-        
-        if result:
-            print(f"Alerta {alert_type} insertada para usuario {user_id}")
-            return True
-        return False
-    except Exception as e:
-        print(f"Error al insertar alerta: {e}")
-        return False
-    finally:
-        db.close()
 
 def get_user_alerts(user_id, start_time=None, end_time=None, acknowledged=None):
     """

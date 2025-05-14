@@ -2,7 +2,7 @@ from base64 import b64encode
 from dotenv import load_dotenv
 import requests
 from datetime import datetime
-from db import get_unique_emails, save_to_db, get_user_tokens, get_latest_user_id_by_email, update_users_tokens, insert_daily_summary, insert_intraday_metric
+from db import get_unique_emails, save_to_db, get_user_tokens, get_latest_user_id_by_email, update_users_tokens, insert_daily_summary, insert_intraday_metric, DatabaseManager
 import sys
 import os
 from alert_rules import evaluate_all_alerts
@@ -49,165 +49,205 @@ def refresh_access_token(refresh_token):
 def get_fitbit_data(access_token, email):
     headers = {"Authorization": f"Bearer {access_token}"}
     today = datetime.now().strftime("%Y-%m-%d")
-
-    # Datos de actividad diaria (pasos, distancia, calorías, pisos, elevación, minutos activos, minutos sedentarios)
-    activity_url = f"https://api.fitbit.com/1/user/-/activities/date/{today}.json"
-    response = requests.get(activity_url, headers=headers)
-    print(f"Activity API response status: {response.status_code}")
-    print(f"Activity API response: {response.json()}")
-    if (response.status_code == 401 and  response.json().get("errors", [{}])[0].get("errorType") == "expired_token"):
-        raise requests.exceptions.HTTPError("Token expirado", response=response)
-    
-    activity_data = response.json()
-    steps = activity_data.get("summary", {}).get("steps", 0)
-    distance = activity_data.get("summary", {}).get("distances", [{}])[0].get("distance", 0)
-    calories = activity_data.get("summary", {}).get("caloriesOut", 0)
-    floors = activity_data.get("summary", {}).get("floors", 0)
-    elevation = activity_data.get("summary", {}).get("elevation", 0)
-    active_minutes = activity_data.get("summary", {}).get("veryActiveMinutes", 0)
-    sedentary_minutes = activity_data.get("summary", {}).get("sedentaryMinutes", 0)
-
-    # Frecuencia cardíaca promedio diaria
-    heart_rate_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{today}/1d.json"
-    response = requests.get(heart_rate_url, headers=headers)
-    print(f"Heart Rate API response status: {response.status_code}")
-    print(f"Heart Rate API response: {response.json()}")
-    heart_rate_data = response.json()
-    heart_rate = heart_rate_data.get("activities-heart", [{}])[0].get("value", {}).get("restingHeartRate", 0)
-
-    # Sueño (tiempo total y fases del sueño)
-    sleep_url = f"https://api.fitbit.com/1.2/user/-/sleep/date/{today}.json"
-    response = requests.get(sleep_url, headers=headers)
-    print(f"Sleep API response status: {response.status_code}")
-    print(f"Sleep API response: {response.json()}")
-    sleep_data = response.json()
-    sleep_minutes = sum([log.get("minutesAsleep", 0) for log in sleep_data.get("sleep", [])])
-
-    # Nutrición (calorías consumidas)
-    nutrition_url = f"https://api.fitbit.com/1/user/-/foods/log/date/{today}.json"
-    response = requests.get(nutrition_url, headers=headers)
-    print(f"Nutrition API response status: {response.status_code}")
-    print(f"Nutrition API response: {response.json()}")
-    nutrition_data = response.json()
-    nutrition_calories = nutrition_data.get("summary", {}).get("calories", 0)
-
-    # Agua (consumo de agua)
-    water_url = f"https://api.fitbit.com/1/user/-/foods/log/water/date/{today}.json"
-    response = requests.get(water_url, headers=headers)
-    print(f"Water API response status: {response.status_code}")
-    print(f"Water API response: {response.json()}")
-    water_data = response.json()
-    water = water_data.get("summary", {}).get("water", 0)
-
-    # Oxígeno en sangre (SpO2)
-    spo2_url = f"https://api.fitbit.com/1/user/-/spo2/date/{today}.json"
-    response = requests.get(spo2_url, headers=headers)
-    print(f"SpO2 API response status: {response.status_code}")
-    print(f"SpO2 API response: {response.json()}")
-    spo2_data = response.json()
-    spo2 = spo2_data.get("value", 0)
-
- # Frecuencia respiratoria
-    respiratory_rate_url = f"https://api.fitbit.com/1/user/-/br/date/{today}.json"
-    response = requests.get(respiratory_rate_url, headers=headers)
-    print(f"Respiratory Rate API response status: {response.status_code}")
-    print(f"Respiratory Rate API response: {response.json()}")
-    respiratory_rate_data = response.json()
-    respiratory_rate = 0  # Valor por defecto
-    if respiratory_rate_data.get("br"):
-        respiratory_rate = respiratory_rate_data.get("br", [{}])[0].get("value", 0)
-
-    # Temperatura corporal
-    temperature_url = f"https://api.fitbit.com/1/user/-/temp/core/date/{today}.json"
-    response = requests.get(temperature_url, headers=headers)
-    print(f"Temperature API response status: {response.status_code}")
-    print(f"Temperature API response: {response.json()}")
-    temperature_data = response.json()
-    temperature = temperature_data.get("value", 0)
-
-    # Guardar en la base de datos usando la nueva función insert_daily_summary
-    date = datetime.now().strftime("%Y-%m-%d")
     user_id = get_latest_user_id_by_email(email)
-    insert_daily_summary(
-        user_id=user_id,
-        date=date,
-        steps=steps,
-        heart_rate=heart_rate,
-        sleep_minutes=sleep_minutes,
-        calories=calories,
-        distance=distance,
-        floors=floors,
-        elevation=elevation,
-        active_minutes=active_minutes,
-        sedentary_minutes=sedentary_minutes,
-        nutrition_calories=nutrition_calories,
-        water=water,
-        oxygen_saturation=spo2,
-        respiratory_rate=respiratory_rate,
-        temperature=temperature
-    )
+    db = DatabaseManager()
+    
+    if not user_id:
+        print(f"Error: No se encontró user_id para el email {email}")
+        return False
 
-    # Evaluar alertas después de guardar los datos
-    alerts = evaluate_all_alerts(user_id)
-    if alerts:
-        print(f"Alertas generadas para {email}: {alerts}")
+    data = {
+        'steps': 0,
+        'distance': 0,
+        'calories': 0,
+        'floors': 0,
+        'elevation': 0,
+        'active_minutes': 0,
+        'sedentary_minutes': 0,
+        'heart_rate': 0,
+        'sleep_minutes': 0,
+        'nutrition_calories': 0,
+        'water': 0,
+        'spo2': 0,
+        'respiratory_rate': 0,
+        'temperature': 0
+    }
 
-    # Imprimir los datos recopilados
-    print(f"Email: {email}")
-    print(f"Date: {date}")
-    print(f"Steps: {steps}")
-    print(f"Distance: {distance} km")
-    print(f"Calories: {calories} kcal")
-    print(f"Floors: {floors}")
-    print(f"Elevation: {elevation} m")
-    print(f"Active Minutes: {active_minutes} min")
-    print(f"Sedentary Minutes: {sedentary_minutes} min")
-    print(f"Heart Rate: {heart_rate} bpm")
-    print(f"Sleep Minutes: {sleep_minutes} min")
-    print(f"Nutrition Calories: {nutrition_calories} kcal")
-    print(f"Water: {water} L")
-    print(f"SpO2: {spo2}%")
-    print(f"Respiratory Rate: {respiratory_rate} breaths/min")
-    print(f"Temperature: {temperature} °C")
+    try:
+        # Datos de actividad diaria
+        activity_url = f"https://api.fitbit.com/1/user/-/activities/date/{today}.json"
+        response = requests.get(activity_url, headers=headers)
+        response.raise_for_status()  # Lanzará una excepción si hay error HTTP
+        
+        activity_data = response.json()
+        if 'summary' in activity_data:
+            summary = activity_data['summary']
+            data.update({
+                'steps': summary.get('steps', 0),
+                'distance': summary.get('distances', [{}])[0].get('distance', 0),
+                'calories': summary.get('caloriesOut', 0),
+                'floors': summary.get('floors', 0),
+                'elevation': summary.get('elevation', 0),
+                'active_minutes': summary.get('veryActiveMinutes', 0),
+                'sedentary_minutes': summary.get('sedentaryMinutes', 0)
+            })
+
+        # Frecuencia cardíaca
+        heart_rate_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{today}/1d.json"
+        response = requests.get(heart_rate_url, headers=headers)
+        response.raise_for_status()
+        
+        heart_rate_data = response.json()
+        if 'activities-heart' in heart_rate_data and heart_rate_data['activities-heart']:
+            data['heart_rate'] = heart_rate_data['activities-heart'][0].get('value', {}).get('restingHeartRate', 0)
+
+        # Sueño
+        sleep_url = f"https://api.fitbit.com/1.2/user/-/sleep/date/{today}.json"
+        response = requests.get(sleep_url, headers=headers)
+        response.raise_for_status()
+        
+        sleep_data = response.json()
+        if 'sleep' in sleep_data:
+            data['sleep_minutes'] = sum(log.get('minutesAsleep', 0) for log in sleep_data['sleep'])
+
+        # Nutrición
+        nutrition_url = f"https://api.fitbit.com/1/user/-/foods/log/date/{today}.json"
+        response = requests.get(nutrition_url, headers=headers)
+        response.raise_for_status()
+        
+        nutrition_data = response.json()
+        if 'summary' in nutrition_data:
+            data['nutrition_calories'] = nutrition_data['summary'].get('calories', 0)
+
+        # Agua
+        water_url = f"https://api.fitbit.com/1/user/-/foods/log/water/date/{today}.json"
+        response = requests.get(water_url, headers=headers)
+        response.raise_for_status()
+        
+        water_data = response.json()
+        if 'summary' in water_data:
+            data['water'] = water_data['summary'].get('water', 0)
+
+        # SpO2
+        spo2_url = f"https://api.fitbit.com/1/user/-/spo2/date/{today}.json"
+        response = requests.get(spo2_url, headers=headers)
+        if response.status_code == 200:  # SpO2 podría no estar disponible
+            spo2_data = response.json()
+            if isinstance(spo2_data.get('value'), dict):
+                data['spo2'] = float(spo2_data['value'].get('avg', 0))
+            else:
+                data['spo2'] = float(spo2_data.get('value', 0))
+
+        # Frecuencia respiratoria
+        respiratory_rate_url = f"https://api.fitbit.com/1/user/-/br/date/{today}.json"
+        response = requests.get(respiratory_rate_url, headers=headers)
+        if response.status_code == 200:  # Frecuencia respiratoria podría no estar disponible
+            respiratory_data = response.json()
+            if isinstance(respiratory_data.get('value'), dict):
+                data['respiratory_rate'] = float(respiratory_data['value'].get('breathingRate', 0))
+            else:
+                data['respiratory_rate'] = float(respiratory_data.get('value', 0))
+
+        # Temperatura
+        temperature_url = f"https://api.fitbit.com/1/user/-/temp/core/date/{today}.json"
+        response = requests.get(temperature_url, headers=headers)
+        if response.status_code == 200:  # Temperatura podría no estar disponible
+            temperature_data = response.json()
+            data['temperature'] = temperature_data.get('value', 0)
+
+        # Guardar en la base de datos
+        insert_daily_summary(
+            user_id=user_id,
+            date=today,
+            **data
+        )
+
+        # Evaluar alertas después de guardar los datos
+        current_date = datetime.now()
+        alerts = evaluate_all_alerts(user_id, current_date)
+        if alerts:
+            print(f"Alertas generadas para {email}: {alerts}")
+
+        # Verificar calidad de datos
+        if any(v == 0 for v in [data['steps'], data['active_minutes'], data['heart_rate']]):
+            if db.connect():
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type='data_quality',
+                    priority='high',
+                    value=0,
+                    threshold='30',  # Valor mínimo esperado para considerar datos válidos
+                    timestamp=current_date
+                )
+                db.close()
+
+        # Log de datos recopilados
+        print(f"\nDatos recopilados para {email} en {today}:")
+        for key, value in data.items():
+            print(f"{key}: {value}")
+
+        return True
+
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            raise  # Reenviar error 401 para manejo de token expirado
+        print(f"Error HTTP al obtener datos de Fitbit: {e}")
+        return False
+    except Exception as e:
+        print(f"Error inesperado al obtener datos de Fitbit: {e}")
+        return False
 
 def process_emails(emails):
     """
     Procesa una lista de correos electrónicos para recopilar datos de Fitbit.
     """
-    for email in emails:
-        # Obtener el user_id más reciente asociado al correo electrónico
-        user_id = get_latest_user_id_by_email(email)
-        if not user_id:
-            print(f"No se encontró un usuario con el correo {email}.")
-            continue
-       
-       
-        # Obtener y desencriptar los tokens
-        access_token, refresh_token = get_user_tokens(email)
-        if not access_token or not refresh_token:
-            print(f"No se encontraron tokens válidos para el correo {email}.")
-            continue
-
-        # Intentar obtener los datos de Fitbit
+    # Filtrar correos electrónicos vacíos
+    valid_emails = [email for email in emails if email and email.strip()]
+    
+    if not valid_emails:
+        print("No se proporcionaron correos electrónicos válidos para procesar.")
+        return
+    
+    for email in valid_emails:
         try:
-            get_fitbit_data(access_token, email)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 401:  # Token expirado
-                print(f"Token expirado para el correo {email}. Intentando refrescar el token...")
-                new_access_token, new_refresh_token = refresh_access_token(refresh_token)
-                if new_access_token and new_refresh_token:
-                    # Actualizar los tokens en la base de datos
-                    update_users_tokens(email, new_access_token, new_refresh_token)
+            # Obtener el user_id más reciente asociado al correo electrónico
+            user_id = get_latest_user_id_by_email(email)
+            if not user_id:
+                print(f"No se encontró un usuario con el correo {email}. Verifique que el usuario esté registrado.")
+                continue
+           
+            # Obtener y desencriptar los tokens
+            access_token, refresh_token = get_user_tokens(email)
+            if not access_token or not refresh_token:
+                print(f"No se encontraron tokens válidos para el correo {email}. Es necesario vincular nuevamente el dispositivo.")
+                continue
 
-                    # Volver a intentar la solicitud con el nuevo token
-                    try:
-                        get_fitbit_data(new_access_token, email)
-                    except requests.exceptions.HTTPError as e:
-                        print(f"Error al obtener datos de Fitbit para el correo {email} después de refrescar el token: {e}")
+            # Intentar obtener los datos de Fitbit
+            try:
+                success = get_fitbit_data(access_token, email)
+                if success:
+                    print(f"Datos recopilados exitosamente para {email}.")
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 401:  # Token expirado
+                    print(f"Token expirado para el correo {email}. Intentando refrescar el token...")
+                    new_access_token, new_refresh_token = refresh_access_token(refresh_token)
+                    if new_access_token and new_refresh_token:
+                        # Actualizar los tokens en la base de datos
+                        update_users_tokens(email, new_access_token, new_refresh_token)
+
+                        # Volver a intentar la solicitud con el nuevo token
+                        try:
+                            success = get_fitbit_data(new_access_token, email)
+                            if success:
+                                print(f"Datos recopilados exitosamente para {email} después de refrescar el token.")
+                        except requests.exceptions.HTTPError as e:
+                            print(f"Error HTTP al obtener datos de Fitbit para el correo {email} después de refrescar el token: {e}")
+                    else:
+                        print(f"No se pudo refrescar el token para el correo {email}. Es necesario vincular nuevamente el dispositivo.")
                 else:
-                    print(f"No se pudo refrescar el token para el correo {email}.")
-            else:
-                print(f"Error al obtener datos de Fitbit para el correo {email}: {e}")
+                    print(f"Error HTTP al obtener datos de Fitbit para el correo {email}: {e}")
+        except Exception as e:
+            print(f"Error inesperado al procesar el correo {email}: {e}")
 
 if __name__ == "__main__":
     # Verificar que se proporcionen los argumentos necesarios

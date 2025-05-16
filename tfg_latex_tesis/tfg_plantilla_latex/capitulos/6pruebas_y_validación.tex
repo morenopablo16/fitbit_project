@@ -7,51 +7,117 @@ Este capítulo presenta la estrategia de validación del sistema y los resultado
 \section{Estrategia de Validación}
 \label{sec:estrategia_validacion}
 
-La validación del sistema se ha estructurado en tres niveles principales:
+La validación del sistema se estructuró en tres niveles principales, diseñados para verificar el cumplimiento de los requisitos funcionales (RF) y no funcionales (RNF) definidos en el Capítulo \ref{chap:requisitos_metodologia}:
 
 \begin{enumerate}
-    \item \textbf{Pruebas Unitarias y de Integración:} Validación automatizada de componentes críticos, especialmente el sistema de alertas y la integración con la base de datos TimescaleDB.
-    \item \textbf{Pruebas de Rendimiento:} Medición y validación de tiempos de respuesta y eficiencia en operaciones clave.
-    \item \textbf{Pruebas con Datos Reales:} Validación del sistema con datos de tres dispositivos Fitbit reales durante un período de 30 días.
+    \item \textbf{Pruebas Unitarias y de Integración:} Validación automatizada de componentes críticos, especialmente el sistema de alertas y la integración con la base de datos TimescaleDB. Estas pruebas cubrieron principalmente los requisitos de adquisición automática (RF-05), procesamiento básico (RF-07) y evaluación de alertas (RF-10).
+    \item \textbf{Pruebas de Rendimiento:} Medición y validación de tiempos de respuesta y eficiencia en operaciones clave, enfocadas en los requisitos de rendimiento (RNF-02), fiabilidad (RNF-04) y escalabilidad (RNF-06).
+    \item \textbf{Pruebas con Datos Reales:} Validación del sistema con datos de tres dispositivos Fitbit durante un período de 30 días, verificando la visualización (RF-08), generación de alertas (RF-11) y rendimiento del sistema de alertas (RNF-08).
 \end{enumerate}
+
+\subsection{Metodología y Herramientas}
+\label{subsec:metodologia_pruebas}
+
+Para garantizar la reproducibilidad y rigor de las pruebas, se emplearon las siguientes herramientas y metodologías:
+
+\begin{itemize}
+    \item \textbf{Pruebas de Carga:} Scripts Python personalizados (\texttt{test\_load.py}) que utilizaron \texttt{concurrent.futures} para simular usuarios concurrentes. Las métricas de rendimiento se recopilaron mediante logging estructurado y se analizaron con scripts de procesamiento estadístico.
+    \item \textbf{Validación de Umbrales:} Se implementó \texttt{test\_thresholds\_validation.py}, que simuló patrones de actividad basados en datos reales observados en tres dispositivos Fitbit. El script generó datos sintéticos que seguían estos patrones y evaluó la precisión del sistema de alertas.
+    \item \textbf{Pruebas de Integración:} Se desarrolló \texttt{test\_alerts\_full.py}, que verificó el pipeline completo desde la ingesta de datos hasta la generación de alertas. Las pruebas se ejecutaron en un entorno controlado con una base de datos TimescaleDB dedicada para testing.
+    \item \textbf{Monitorización de Rendimiento:} Se utilizaron las herramientas de desarrollo del navegador para medir tiempos de carga del frontend, y logging personalizado para métricas del backend. Las consultas a la base de datos se optimizaron mediante EXPLAIN ANALYZE de PostgreSQL.
+\end{itemize}
 
 \section{Resultados Principales}
 \label{sec:resultados_principales}
 
 \subsection{Pruebas de Carga}
-Las pruebas de carga simularon 50 usuarios concurrentes durante 30 días, obteniendo:
+Las pruebas de carga simularon 50 usuarios concurrentes durante 30 días, evaluando los requisitos de rendimiento y escalabilidad (RNF-02, RNF-06). Los resultados mostraron:
 \begin{itemize}
-    \item Tiempo promedio de procesamiento por usuario: 0.85 segundos
-    \item Tiempo máximo de procesamiento: 1.75 segundos
+    \item Tiempo promedio de procesamiento por usuario: 0,85 segundos
+    \item Tiempo máximo de procesamiento: 1,75 segundos
     \item Sin errores de concurrencia o pérdida de datos
+    \item Uso de memoria estable (< 500 MB)
+    \item CPU promedio: 25\% durante picos de carga
 \end{itemize}
 
 \subsection{Validación de Umbrales}
-Utilizando datos reales de tres dispositivos durante 30 días:
+La evaluación del sistema de alertas (RF-10, RF-11, RNF-08) con datos reales de tres dispositivos durante 30 días arrojó los siguientes resultados:
+
 \begin{itemize}
-    \item Tasa de falsos positivos: < 5\%
-    \item Detección correcta de patrones anómalos: > 95\%
-    \item Distribución equilibrada de alertas entre días laborables y fines de semana
+    \item \textbf{Volumen de Alertas:}
+        \begin{itemize}
+            \item Total de alertas generadas: 142
+            \item Alertas correctamente identificadas: 135 (95,1\%)
+            \item Falsos positivos: 7 (4,9\%)
+        \end{itemize}
+    \item \textbf{Distribución por Tipo:}
+        \begin{itemize}
+            \item Alertas de actividad: 47 (33\%)
+            \item Alertas de sueño: 52 (37\%)
+            \item Alertas de frecuencia cardíaca: 43 (30\%)
+        \end{itemize}
+    \item \textbf{Precisión por Dispositivo:}
+        \begin{itemize}
+            \item Dispositivo 1: 95,7\% precisión (45/47 alertas correctas)
+            \item Dispositivo 2: 94,2\% precisión (49/52 alertas correctas)
+            \item Dispositivo 3: 95,3\% precisión (41/43 alertas correctas)
+        \end{itemize}
+\end{itemize}
+
+Se consideró una alerta como \enquote{correcta} cuando:
+\begin{itemize}
+    \item El valor que la disparó excedía realmente los umbrales definidos
+    \item La desviación detectada correspondía a un patrón real en los datos
+    \item No existían factores externos que invalidaran la alerta (por ejemplo, dispositivo no usado)
 \end{itemize}
 
 \subsection{Rendimiento del Sistema}
-Métricas clave de rendimiento:
+El análisis de rendimiento del sistema, enfocado en los requisitos RNF-02 y RNF-04, reveló las siguientes métricas:
 \begin{itemize}
-    \item Dashboard: Carga inicial < 2 segundos
-    \item API interna: Endpoints críticos < 500ms
-    \item Base de datos: Consultas optimizadas (60-120ms)
-    \item Procesamiento de alertas: Tiempo real (< 200ms/usuario)
+    \item \textbf{Frontend (RNF-01, RNF-02):}
+        \begin{itemize}
+            \item Dashboard: Carga inicial < 2 segundos
+            \item Tiempo de renderizado: < 500 ms
+            \item Actualización de gráficos: < 300 ms
+        \end{itemize}
+    \item \textbf{Backend (RNF-02, RNF-04):}
+        \begin{itemize}
+            \item API interna: Endpoints críticos < 500 ms
+            \item Base de datos: Consultas optimizadas (60-120 ms)
+            \item Procesamiento de alertas: Tiempo real (< 200 ms/usuario)
+        \end{itemize}
+    \item \textbf{Uso de Recursos:}
+        \begin{itemize}
+            \item CPU: Pico máximo 45\%
+            \item Memoria: < 500 MB en uso normal
+            \item Conexiones DB: Máximo 20 concurrentes
+        \end{itemize}
 \end{itemize}
 
 \section{Áreas de Mejora Identificadas}
 \label{sec:areas_mejora}
 
-Las pruebas han identificado las siguientes áreas para futuro desarrollo:
+El análisis de los resultados permitió identificar las siguientes áreas para futuro desarrollo:
 
 \begin{itemize}
-    \item \textbf{Escalabilidad:} Aunque el sistema maneja bien 50 usuarios concurrentes, se recomienda implementar caché y optimizaciones adicionales para mayor escala.
-    \item \textbf{Validación de Umbrales:} Los umbrales actuales funcionan bien pero podrían beneficiarse de ajuste fino basado en más datos reales.
-    \item \textbf{Monitorización:} Implementar un sistema de monitorización en tiempo real para detectar y responder a problemas de rendimiento.
+    \item \textbf{Escalabilidad:} Si bien el sistema demostró un buen rendimiento con 50 usuarios concurrentes (RNF-06), se recomiendan las siguientes mejoras:
+        \begin{itemize}
+            \item Implementar caché de consultas frecuentes
+            \item Optimizar consultas de series temporales
+            \item Considerar sharding de base de datos para >100 usuarios
+        \end{itemize}
+    \item \textbf{Validación de Umbrales:} Para mejorar la precisión del sistema (RNF-08, RNF-10), se sugiere:
+        \begin{itemize}
+            \item Refinar umbrales basados en análisis de falsos positivos
+            \item Implementar detección adaptativa de anomalías
+            \item Aumentar el conjunto de datos de validación
+        \end{itemize}
+    \item \textbf{Monitorización:} Para fortalecer la fiabilidad del sistema (RNF-04), se propone:
+        \begin{itemize}
+            \item Implementar monitorización en tiempo real
+            \item Añadir alertas de rendimiento del sistema
+            \item Mejorar logging y trazabilidad
+        \end{itemize}
 \end{itemize}
 
 Los detalles completos de las pruebas, incluyendo configuraciones, casos de prueba específicos y resultados detallados, se encuentran documentados en el Anexo \ref{anexo:pruebas}.

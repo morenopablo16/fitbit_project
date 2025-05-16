@@ -31,6 +31,52 @@ El sistema se ha diseñado como una aplicación web con un backend que interact�
 \end{itemize}   
 La arquitectura está diseñada para minimizar la exposición de datos sensibles: los tokens de acceso y refresco se almacenan cifrados y nunca se exponen en el frontend, y todas las operaciones críticas se realizan en el backend autenticado. Esta estructura modular y segura facilita la mantenibilidad, la escalabilidad y el cumplimiento de los requisitos de privacidad.
 
+\section{Diseño de la Integración con Fitbit}
+\label{sec:diseno_integracion_fitbit}
+
+La integración con la API de Fitbit\textsuperscript{\textregistered} se ha diseñado priorizando la seguridad, la robustez y el cumplimiento normativo (RGPD). El sistema utiliza el flujo OAuth 2.0 con PKCE, estándar para aplicaciones web, que protege frente a ataques de interceptación y CSRF. La lógica de autenticación y autorización está desacoplada de la adquisición y almacenamiento de datos, permitiendo una gestión segura y flexible de los tokens.
+
+Los tokens de acceso y refresco se cifran inmediatamente tras su obtención y se almacenan en la base de datos, utilizando una clave secreta gestionada como variable de entorno (nunca en el código fuente). Los tokens solo se descifran en memoria cuando es necesario realizar una llamada a la API o refrescarlos.
+
+El sistema implementa una gestión robusta de tokens: antes de cada acceso a datos protegidos, se verifica la validez del token de acceso y, si es necesario, se utiliza el token de refresco para obtener uno nuevo. Si el refresco falla (por ejemplo, si el usuario ha revocado permisos), se notifica la incidencia y se requiere reautorizar la vinculación.
+
+La arquitectura modular permite, en el futuro, integrar otras APIs de dispositivos o servicios de salud con mínimos cambios en la lógica de autenticación y almacenamiento seguro.
+
+\begin{itemize}
+    \item \textbf{OAuth 2.0 con PKCE:} Se implementa el flujo Authorization Code Grant con PKCE para la vinculación inicial, utilizando parámetros de seguridad como \texttt{state} y \texttt{code\_challenge}.
+    \item \textbf{Gestión segura de tokens:} Los tokens se cifran antes de almacenarse y solo se descifran en memoria cuando es imprescindible. La clave de cifrado se gestiona externamente.
+    \item \textbf{Refresco automático y robusto:} El sistema refresca los tokens de forma transparente y registra cualquier error o revocación, permitiendo la intervención manual si es necesario.
+    \item \textbf{Control de errores y versionado:} Se gestionan los códigos de estado HTTP y el versionado de la API, asegurando la compatibilidad y la robustez ante cambios o incidencias externas.
+\end{itemize}
+
+\section{Diseño del Pipeline de Datos}
+\label{sec:diseno_pipeline}
+
+El pipeline de datos del sistema está diseñado para garantizar la adquisición, validación, almacenamiento y análisis eficiente de la información proveniente de los dispositivos Fitbit. El flujo se estructura en cinco componentes principales, como se ilustra en la Figura~\ref{fig:flujo_datos}:
+
+\begin{enumerate}
+    \item \textbf{Orquestación:} Scripts Python (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) ejecutados periódicamente por \texttt{cron} para la adquisición automática de datos.
+    \item \textbf{Adquisición:} Obtención de datos de la API de Fitbit mediante tokens OAuth 2.0 cifrados, con manejo robusto de errores y refresco automático de credenciales.
+    \item \textbf{Almacenamiento:} Persistencia en hipertablas TimescaleDB optimizadas para series temporales (\texttt{daily\_summaries}, \texttt{intraday\_metrics}, \texttt{sleep\_logs}).
+    \item \textbf{Procesamiento:} Evaluación automática de reglas de alerta basadas en umbrales científicos y patrones individuales, generando alertas clínicas cuando corresponde.
+    \item \textbf{Visualización:} Interfaz web con dashboards interactivos para consulta, filtrado y exportación de datos y alertas.
+\end{enumerate}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth, height=0.3\textheight]{imagenes/flujo_datos.png}
+    \caption{Flujo de datos desde la API de Fitbit hasta la visualización en el dashboard.}
+    \label{fig:flujo_datos}
+\end{figure}
+
+Este diseño modular desacopla la adquisición del análisis y la visualización, facilitando la escalabilidad y la integración futura de nuevas fuentes de datos o reglas de alerta. La evaluación de alertas se realiza de forma automática tras cada ingesta, comparando los datos recientes con líneas base individuales y umbrales predefinidos, almacenando los resultados en la tabla \texttt{alerts} para su posterior revisión clínica.
+
+\subsection{Evaluación Dinámica de Reglas de Alerta}
+La detección de anomalías y generación de alertas se realiza de forma automática tras cada ingesta de datos, mediante funciones desacopladas del frontend y definidas en un módulo específico. Las reglas pueden consultar ventanas temporales (por ejemplo, 7 días de pasos o sueño) y comparar los valores actuales con medias, umbrales o desviaciones estándar. El resultado se almacena en la tabla \texttt{alerts}, permitiendo su posterior revisión clínica.
+
+El diseño modular facilita la incorporación de nuevas reglas, la extensión a patrones más complejos o incluso la integración futura de algoritmos de aprendizaje automático.
+
+
 \section{Diseño del Backend (Aplicación Flask y Scripts)}
 \label{sec:diseno_backend}
 
@@ -62,19 +108,25 @@ Esta separación y modularidad permiten que la adquisición de datos no bloquee 
 \section{Diseño de la Base de Datos (PostgreSQL + TimescaleDB)}
 \label{sec:diseno_bd}
 
-Se utiliza una única base de datos \textbf{PostgreSQL}, aprovechando la extensión \textbf{TimescaleDB} para optimizar el manejo de datos de series temporales. La elección de TimescaleDB se debe a su integración nativa con PostgreSQL, su soporte para consultas SQL estándar y su capacidad para gestionar grandes volúmenes de datos temporales de forma eficiente, lo que resulta especialmente adecuado para aplicaciones de monitorización continua.
+El sistema utiliza PostgreSQL con la extensión TimescaleDB para optimizar el manejo de series temporales. Esta elección combina la robustez de un sistema relacional maduro con capacidades especializadas para datos temporales de alta frecuencia.
 
-El diseño se basa en una tabla relacional para la gestión de usuarios y vinculaciones, y un conjunto de hipertables para los datos temporales. La normalización del modelo permite mantener la integridad y facilitar la extensión futura (por ejemplo, añadiendo nuevas métricas o tipos de alertas).
+El modelo de datos se estructura en dos tipos de tablas:
 
 \begin{itemize}
-    \item \textbf{Tabla \texttt{users}:} Almacena la información básica de los usuarios y la vinculación con Fitbit\textsuperscript{\textregistered}, incluyendo nombre, email y credenciales cifradas. Es la tabla central para la gestión de usuarios y la referencia de integridad en el resto del modelo.
-    \item \textbf{Hipertabla \texttt{daily\_summaries}:} Guarda los resúmenes diarios de actividad, sueño y biomarcadores para cada usuario y fecha. Permite analizar tendencias y detectar cambios relevantes en la salud.
-    \item \textbf{Hipertabla \texttt{intraday\_metrics}:} Registra datos de alta frecuencia (minuto a minuto u hora a hora) como pasos, frecuencia cardíaca, calorías, etc. Es clave para la detección de patrones y anomalías intradía.
-    \item \textbf{Hipertabla \texttt{sleep\_logs}:} Almacena episodios de sueño detallados, incluyendo fases y eficiencia, para cada usuario. Permite análisis avanzados de calidad y patrones de sueño.
-    \item \textbf{Hipertabla \texttt{alerts}:} Registra todas las alertas generadas por el sistema, asociando cada evento con el usuario, el tipo de alerta, prioridad, valores disparadores y detalles. Es la base para la visualización y gestión clínica de incidencias.
+    \item \textbf{Tabla Relacional Principal:}
+        \begin{itemize}
+            \item \texttt{users}: Gestión de usuarios y vinculaciones Fitbit (nombre, email, tokens cifrados).
+        \end{itemize}
+    \item \textbf{Hipertablas TimescaleDB:}
+        \begin{itemize}
+            \item \texttt{daily\_summaries}: Resúmenes diarios de actividad y biomarcadores.
+            \item \texttt{intraday\_metrics}: Datos de alta frecuencia (pasos, FC, calorías).
+            \item \texttt{sleep\_logs}: Registros detallados de episodios de sueño.
+            \item \texttt{alerts}: Eventos clínicamente relevantes detectados.
+        \end{itemize}
 \end{itemize}
 
-La Figura~\ref{fig:esquema_relacional} muestra el esquema relacional completo, incluyendo las claves primarias y foráneas que aseguran la integridad referencial entre las tablas.
+La Figura~\ref{fig:esquema_relacional} ilustra el esquema relacional completo. El detalle de las sentencias SQL y la descripción de campos se encuentra en el \textbf{Anexo~\ref{app:db_schema}}.
 
 \begin{figure}[htbp]
     \centering
@@ -83,61 +135,10 @@ La Figura~\ref{fig:esquema_relacional} muestra el esquema relacional completo, i
     \label{fig:esquema_relacional}
 \end{figure}
 
-El detalle de las sentencias SQL \texttt{CREATE TABLE} y la explicación de cada campo se encuentra en el \textbf{Anexo~\ref{app:db_schema}}.
-
-\section{Diseño de la Integración con Fitbit}
-\label{sec:diseno_integracion_fitbit}
-
-La integración con la API de Fitbit\textsuperscript{\textregistered} se ha diseñado priorizando la seguridad, la robustez y el cumplimiento normativo (RGPD). El sistema utiliza el flujo OAuth 2.0 con PKCE, estándar para aplicaciones web, que protege frente a ataques de interceptación y CSRF. La lógica de autenticación y autorización está desacoplada de la adquisición y almacenamiento de datos, permitiendo una gestión segura y flexible de los tokens.
-
-Los tokens de acceso y refresco se cifran inmediatamente tras su obtención y se almacenan en la base de datos, utilizando una clave secreta gestionada como variable de entorno (nunca en el código fuente). Los tokens solo se descifran en memoria cuando es necesario realizar una llamada a la API o refrescarlos.
-
-El sistema implementa una gestión robusta de tokens: antes de cada acceso a datos protegidos, se verifica la validez del token de acceso y, si es necesario, se utiliza el token de refresco para obtener uno nuevo. Si el refresco falla (por ejemplo, si el usuario ha revocado permisos), se notifica la incidencia y se requiere reautorizar la vinculación.
-
-La arquitectura modular permite, en el futuro, integrar otras APIs de dispositivos o servicios de salud con mínimos cambios en la lógica de autenticación y almacenamiento seguro.
-
-\begin{itemize}
-    \item \textbf{OAuth 2.0 con PKCE:} Se implementa el flujo Authorization Code Grant con PKCE para la vinculación inicial, utilizando parámetros de seguridad como \texttt{state} y \texttt{code\_challenge}.
-    \item \textbf{Gestión segura de tokens:} Los tokens se cifran antes de almacenarse y solo se descifran en memoria cuando es imprescindible. La clave de cifrado se gestiona externamente.
-    \item \textbf{Refresco automático y robusto:} El sistema refresca los tokens de forma transparente y registra cualquier error o revocación, permitiendo la intervención manual si es necesario.
-    \item \textbf{Control de errores y versionado:} Se gestionan los códigos de estado HTTP y el versionado de la API, asegurando la compatibilidad y la robustez ante cambios o incidencias externas.
-\end{itemize}
-
-\section{Diseño del Pipeline de Datos}
-\label{sec:diseno_pipeline}
-
-El pipeline de datos del sistema está diseñado para garantizar la adquisición, validación, almacenamiento y análisis eficiente de la información proveniente de los dispositivos Fitbit, así como su posterior visualización y explotación clínica. El flujo general es el siguiente:
-
-\begin{enumerate}
-    \item \textbf{Orquestación por cron:} El planificador del sistema operativo (\texttt{cron}) ejecuta periódicamente los scripts de adquisición (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) mediante scripts \texttt{.sh}.
-    \item \textbf{Adquisición y validación:} Cada script obtiene la lista de usuarios y sus credenciales cifradas desde la base de datos, descifra los tokens y valida/refresca el acceso a la API de Fitbit. Si hay errores de autenticación, se registran y se continúa con el siguiente usuario.
-    \item \textbf{Obtención y almacenamiento de datos:} Para cada usuario, se descargan los datos diarios e intradía, se validan y se insertan en las hipertablas correspondientes de TimescaleDB (\texttt{daily\_summaries}, \texttt{intraday\_metrics}, \texttt{sleep\_logs}).
-    \item \textbf{Evaluación de alertas:} Tras la inserción de nuevos datos, se ejecuta la lógica de evaluación de alertas (módulo \texttt{alert\_rules.py}), que compara los datos recientes con los umbrales definidos y registra cualquier evento relevante en la tabla \texttt{alerts}.
-    \item \textbf{Visualización y explotación:} El backend Flask expone endpoints y plantillas que permiten al personal consultar, filtrar y exportar los datos y alertas, incluyendo la precarga eficiente del dashboard y la optimización de consultas para mejorar la experiencia de usuario.
-\end{enumerate}
-
-Este diseño desacopla completamente la adquisición y análisis de datos de la visualización, permitiendo escalar ambos componentes de forma independiente y facilitando la integración futura de nuevas fuentes de datos o reglas de alerta.
-
-\vspace{0.5cm}
-
-El flujo de datos, desde la adquisición en la API de Fitbit hasta la visualización en el dashboard, se resume en la Figura~\ref{fig:flujo_datos}. Este diagrama ilustra los pasos principales: adquisición, almacenamiento, procesamiento de alertas y visualización.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=1\textwidth, height=0.3\textheight]{imagenes/flujo_datos.png}
-    \caption{Flujo de datos desde la API de Fitbit hasta la visualización en el dashboard.}
-    \label{fig:flujo_datos}
-\end{figure}
-
-\subsection{Evaluación Dinámica de Reglas de Alerta}
-La detección de anomalías y generación de alertas se realiza de forma automática tras cada ingesta de datos, mediante funciones desacopladas del frontend y definidas en un módulo específico. Las reglas pueden consultar ventanas temporales (por ejemplo, 7 días de pasos o sueño) y comparar los valores actuales con medias, umbrales o desviaciones estándar. El resultado se almacena en la tabla \texttt{alerts}, permitiendo su posterior revisión clínica.
-
-El diseño modular facilita la incorporación de nuevas reglas, la extensión a patrones más complejos o incluso la integración futura de algoritmos de aprendizaje automático.
-
 \section{Diseño de la Interfaz de Usuario}
 \label{sec:diseno_ui}
 
-La interfaz de usuario (UI) del sistema está diseñada para ser intuitiva, accesible y eficiente, facilitando tanto la gestión administrativa como la visualización clínica de los datos monitorizados. Se compone de dos grandes bloques:
+La interfaz de usuario (UI) del sistema está diseñada para ser intuitiva, accesible y eficiente con soporte multilingüe (español/inglés) facilitando tanto la gestión administrativa como la visualización clínica de los datos monitorizados. Se compone de dos grandes bloques:
 
 \begin{itemize}
     \item \textbf{Interfaz de Gestión y Vinculación (Flask/HTML + Bootstrap):}
@@ -157,7 +158,7 @@ La interfaz de usuario (UI) del sistema está diseñada para ser intuitiva, acce
         \end{itemize}
 \end{itemize}
 
-La interfaz está pensada para facilitar la labor clínica y administrativa, permitiendo identificar rápidamente incidencias relevantes y acceder a los datos históricos de cada usuario. La modularidad y el uso de tecnologías estándar (Flask, Bootstrap, Chart.js) aseguran la mantenibilidad y la posibilidad de futuras ampliaciones.
+El diseño modular y el uso de tecnologías estándar (Flask, Bootstrap, Chart.js) facilitan el mantenimiento y la extensión del sistema, mientras que la internacionalización integrada mejora la accesibilidad para usuarios de diferentes regiones.
 
 \subsection*{Ficha de Usuario y Visualización Individual}
 Una de las vistas más relevantes del sistema es la \textbf{ficha de usuario} (\texttt{user\_detail.html}), que centraliza toda la información relevante de cada paciente o usuario monitorizado. Esta vista está diseñada para facilitar la toma de decisiones clínicas y el seguimiento personalizado, integrando:

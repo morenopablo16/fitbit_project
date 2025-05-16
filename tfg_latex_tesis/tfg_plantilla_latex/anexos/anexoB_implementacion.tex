@@ -417,3 +417,111 @@ def update_graphs(selected_email, start_date_str, end_date_str):
 
 \end{lstlisting}
 \textit{Nota: Este callback es complejo. Requiere funciones de base de datos robustas, un manejo cuidadoso de los tipos de datos (especialmente fechas/horas) y errores. El uso de Plotly Express puede simplificar la creación de figuras. Se ha añadido logging básico.}
+
+% --- Sección de Implementación de Base de Datos ---
+\section{Implementación de Base de Datos}
+\label{annex:code:db_implementation}
+
+\subsection{Estructura de Tablas y Consultas}
+La implementación utiliza PostgreSQL con la extensión TimescaleDB, organizando los datos en tablas específicas para cada tipo de información temporal:
+
+\begin{lstlisting}[caption={Estructura de tablas principales}, label={lst:table_structure}]
+-- Tabla de usuarios
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    access_token TEXT,
+    refresh_token TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de métricas intradía
+CREATE TABLE intraday_metrics (
+    id SERIAL,
+    user_id INTEGER REFERENCES users(id),
+    time TIMESTAMPTZ NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    value FLOAT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+-- Índices optimizados
+CREATE INDEX ON intraday_metrics (user_id, time DESC);
+CREATE INDEX ON intraday_metrics (time, type);
+\end{lstlisting}
+
+\subsection{Implementación de Consultas}
+Las consultas están diseñadas para ser eficientes y directas:
+
+\begin{lstlisting}[caption={Ejemplo de consultas implementadas en db.py}, label={lst:query_implementation}]
+def get_intraday_metrics(self, user_id, metric_type, start_time=None, end_time=None):
+    """Obtiene las métricas intradía de un usuario."""
+    query = """
+        SELECT time, value FROM intraday_metrics
+        WHERE user_id = %s AND type = %s
+    """
+    params = [user_id, metric_type]
+    
+    if start_time:
+        query += " AND time >= %s"
+        params.append(start_time)
+    
+    if end_time:
+        query += " AND time <= %s"
+        params.append(end_time)
+    
+    query += " ORDER BY time"
+    
+    return self.execute_query(query, params)
+
+def insert_intraday_metric(user_id, timestamp, metric_type, value):
+    """Inserta una métrica intradía."""
+    query = """
+        INSERT INTO intraday_metrics (user_id, time, type, value)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (user_id, time, type) 
+        DO UPDATE SET value = EXCLUDED.value
+    """
+    return execute_query(query, (user_id, timestamp, metric_type, value))
+\end{lstlisting}
+
+\subsection{Gestión de Conexiones}
+La clase DatabaseManager implementa una gestión eficiente de conexiones:
+
+\begin{lstlisting}[caption={Implementación del DatabaseManager}, label={lst:db_manager}]
+class DatabaseManager:
+    def __init__(self):
+        self.connection = None
+        self.cursor = None
+
+    def connect(self):
+        """Establece una conexión a la base de datos."""
+        try:
+            self.connection = psycopg2.connect(
+                host=DB_CONFIG["host"],
+                database=DB_CONFIG["database"],
+                user=DB_CONFIG["user"],
+                password=DB_CONFIG["password"]
+            )
+            self.cursor = self.connection.cursor()
+            return True
+        except Exception as e:
+            print(f"Error al conectar: {e}")
+            return False
+
+    def execute_query(self, query, params=None):
+        """Ejecuta una consulta SQL con parámetros opcionales."""
+        try:
+            self.cursor.execute(query, params)
+            if query.strip().upper().startswith('SELECT'):
+                return self.cursor.fetchall()
+            self.connection.commit()
+            return True
+        except Exception as e:
+            print(f"Error en consulta: {e}")
+            self.connection.rollback()
+            return None
+\end{lstlisting}
+
+Esta implementación proporciona una base sólida para el manejo de datos temporales, con un enfoque en la simplicidad y eficiencia de las consultas.

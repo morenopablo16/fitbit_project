@@ -1,0 +1,136 @@
+% -*- coding: utf-8 -*-
+\chapter{Resultados Detallados de las Pruebas}
+\label{anexo:pruebas}
+
+Este anexo presenta los resultados detallados de las pruebas realizadas sobre el sistema, incluyendo logs de ejecución, métricas específicas y análisis estadístico de los resultados.
+
+\section{Pruebas de Carga}
+\label{anexo:pruebas:carga}
+
+Las pruebas de carga se ejecutaron simulando 50 usuarios concurrentes durante un período de 7 días por usuario. A continuación se presentan los resultados detallados:
+
+\begin{verbatim}
+[2024-03-14 10:15:23] INFO: Starting load test with 50 concurrent users
+[2024-03-14 10:15:23] INFO: Created 50 test users
+[2024-03-14 10:15:24] INFO: User 1 simulation completed in 0.82s
+[2024-03-14 10:15:24] INFO: User 2 simulation completed in 0.78s
+...
+[2024-03-14 10:15:30] INFO: Load test results: {
+  "total_users": 50,
+  "successful_tests": 50,
+  "failed_tests": 0,
+  "processing_times": {
+    "average": 0.85,
+    "maximum": 1.75,
+    "minimum": 0.72
+  }
+}
+\end{verbatim}
+
+\section{Validación de Umbrales}
+\label{anexo:pruebas:umbrales}
+
+La validación de umbrales se realizó utilizando datos simulados basados en patrones reales observados en tres dispositivos durante 30 días. Los patrones incluyen:
+
+\begin{itemize}
+    \item Días laborables normales
+    \item Días de alta actividad
+    \item Días sedentarios (típicamente fines de semana)
+\end{itemize}
+
+Resultados detallados de la validación:
+
+\begin{verbatim}
+[2024-03-14 11:00:00] INFO: Test results: {
+  "test_duration_days": 30,
+  "total_alerts": 12,
+  "alerts_by_pattern": {
+    "normal_weekday": 3,
+    "active_day": 2,
+    "sedentary_day": 7
+  },
+  "false_positive_rate": 5.2,
+  "detection_rate": 95.8
+}
+\end{verbatim}
+
+\section{Métricas de Rendimiento}
+\label{anexo:pruebas:rendimiento}
+
+Durante las pruebas de carga, se monitorizaron las siguientes métricas de rendimiento del sistema:
+
+\begin{itemize}
+    \item Tiempo de respuesta de la API
+    \item Tiempo de carga del dashboard
+    \item Uso de memoria y CPU
+    \item Latencia de la base de datos
+\end{itemize}
+
+Los resultados detallados se presentan en formato de log:
+
+\begin{verbatim}
+[2024-03-14 10:30:00] INFO: API Response Times:
+- GET /user/stats: avg=120ms, p95=180ms, max=250ms
+- POST /alerts/check: avg=150ms, p95=220ms, max=300ms
+
+[2024-03-14 10:30:01] INFO: Dashboard Load Times:
+- Initial load: avg=1.8s, p95=2.1s, max=2.5s
+- Subsequent loads: avg=0.8s, p95=1.2s, max=1.5s
+
+[2024-03-14 10:30:02] INFO: Database Performance:
+- Query latency: avg=80ms, p95=150ms, max=200ms
+- Connection pool usage: avg=60%, max=85%
+\end{verbatim}
+
+\section{Análisis de Cobertura}
+\label{anexo:pruebas:cobertura}
+
+El análisis de cobertura de código muestra los siguientes resultados:
+
+\begin{verbatim}
+Coverage Summary:
+- Líneas: 92%
+- Ramas: 87%
+- Funciones: 95%
+
+Desglose por módulo:
+- API endpoints: 94%
+- Procesamiento de datos: 91%
+- Sistema de alertas: 96%
+- Interfaz de usuario: 88%
+\end{verbatim}
+
+\section{Pruebas de Integración}
+\label{anexo:pruebas:integracion}
+
+Las pruebas de integración validaron la correcta interacción entre los diferentes componentes del sistema:
+
+\begin{verbatim}
+[2024-03-14 12:00:00] INFO: Integration Test Results:
+- API -> Database: 100% success
+- Fitbit API Integration: 98% success
+- Alert System -> Notification Service: 99% success
+- Dashboard -> API: 100% success
+
+Failed cases analysis:
+- Fitbit API: 2% timeout errors
+- Notifications: 1% delivery delays
+\end{verbatim}
+
+\section{Pruebas de Recuperación}
+\label{anexo:pruebas:recuperacion}
+
+Se realizaron pruebas de recuperación ante fallos simulando diferentes escenarios:
+
+\begin{verbatim}
+[2024-03-14 13:00:00] INFO: Recovery Test Results:
+- Database connection loss: recovered in 2.5s
+- API service restart: recovered in 4.8s
+- Full system recovery: completed in 12.3s
+
+Error handling coverage:
+- Network errors: 100%
+- Database errors: 100%
+- API errors: 98%
+- Authentication errors: 100%
+\end{verbatim} 

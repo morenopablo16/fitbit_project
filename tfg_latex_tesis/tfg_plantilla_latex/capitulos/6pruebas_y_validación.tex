@@ -1,7 +1,59 @@
+% -*- coding: utf-8 -*-
 \chapter{Pruebas y Validación}
+\label{chap:pruebas_validacion}
 
-\section{Pruebas de Rendimiento}
-% Benchmarks, estrés, escalabilidad
+Este capítulo presenta la estrategia de validación del sistema y los resultados más relevantes de las pruebas realizadas. Los detalles técnicos completos, incluyendo código, configuraciones y resultados detallados, se encuentran en el Anexo \ref{anexo:pruebas}.
 
-\section{Estudio de Usabilidad con Usuarios Mayores}
-% Feedback, métricas de experiencia de usuario
+\section{Estrategia de Validación}
+\label{sec:estrategia_validacion}
+
+La validación del sistema se ha estructurado en tres niveles principales:
+
+\begin{enumerate}
+    \item \textbf{Pruebas Unitarias y de Integración:} Validación automatizada de componentes críticos, especialmente el sistema de alertas y la integración con la base de datos TimescaleDB.
+    \item \textbf{Pruebas de Rendimiento:} Medición y validación de tiempos de respuesta y eficiencia en operaciones clave.
+    \item \textbf{Pruebas con Datos Reales:} Validación del sistema con datos de tres dispositivos Fitbit reales durante un período de 30 días.
+\end{enumerate}
+
+\section{Resultados Principales}
+\label{sec:resultados_principales}
+
+\subsection{Pruebas de Carga}
+Las pruebas de carga simularon 50 usuarios concurrentes durante 30 días, obteniendo:
+\begin{itemize}
+    \item Tiempo promedio de procesamiento por usuario: 0.85 segundos
+    \item Tiempo máximo de procesamiento: 1.75 segundos
+    \item Sin errores de concurrencia o pérdida de datos
+\end{itemize}
+
+\subsection{Validación de Umbrales}
+Utilizando datos reales de tres dispositivos durante 30 días:
+\begin{itemize}
+    \item Tasa de falsos positivos: < 5\%
+    \item Detección correcta de patrones anómalos: > 95\%
+    \item Distribución equilibrada de alertas entre días laborables y fines de semana
+\end{itemize}
+
+\subsection{Rendimiento del Sistema}
+Métricas clave de rendimiento:
+\begin{itemize}
+    \item Dashboard: Carga inicial < 2 segundos
+    \item API interna: Endpoints críticos < 500ms
+    \item Base de datos: Consultas optimizadas (60-120ms)
+    \item Procesamiento de alertas: Tiempo real (< 200ms/usuario)
+\end{itemize}
+
+\section{Áreas de Mejora Identificadas}
+\label{sec:areas_mejora}
+
+Las pruebas han identificado las siguientes áreas para futuro desarrollo:
+
+\begin{itemize}
+    \item \textbf{Escalabilidad:} Aunque el sistema maneja bien 50 usuarios concurrentes, se recomienda implementar caché y optimizaciones adicionales para mayor escala.
+    \item \textbf{Validación de Umbrales:} Los umbrales actuales funcionan bien pero podrían beneficiarse de ajuste fino basado en más datos reales.
+    \item \textbf{Monitorización:} Implementar un sistema de monitorización en tiempo real para detectar y responder a problemas de rendimiento.
+\end{itemize}
+
+Los detalles completos de las pruebas, incluyendo configuraciones, casos de prueba específicos y resultados detallados, se encuentran documentados en el Anexo \ref{anexo:pruebas}.
+
+

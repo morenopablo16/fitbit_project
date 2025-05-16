@@ -49,6 +49,33 @@ Estos scripts operan de forma independiente, ejecutados por \texttt{cron}:
 \end{itemize}
 La ejecución mediante \texttt{cron} asegura la recogida periódica y automatizada de datos sin intervención manual. La robustez frente a errores y la modularidad de los scripts son aspectos clave de la implementación.
 \noindent\textit{Referencia de Código: véase Anexos \ref{anexo:codigo:fitbit_py} y \ref{anexo:codigo:fitbit_intraday_py}}
+
+\subsection{Sistema de Internacionalización}
+\label{subsec:impl_i18n}
+
+El sistema implementa un robusto mecanismo de internacionalización (i18n) utilizando Flask-Babel y un sistema de traducciones estructurado:
+
+\begin{itemize}
+    \item \textbf{Gestión de Traducciones:} Las traducciones se organizan en el módulo \texttt{translations.py} mediante un diccionario jerárquico que cubre todas las áreas de la aplicación:
+        \begin{itemize}
+            \item Elementos comunes de la interfaz
+            \item Mensajes de autenticación
+            \item Textos del dashboard
+            \item Gestión de dispositivos Fitbit
+            \item Mensajes de error
+            \item Sistema de alertas
+        \end{itemize}
+    \item \textbf{Integración con Flask:} Se utiliza Flask-Babel para:
+        \begin{itemize}
+            \item Detección automática del idioma del navegador
+            \item Cambio dinámico de idioma durante la sesión
+            \item Traducción de plantillas Jinja2
+        \end{itemize}
+    \item \textbf{Arquitectura Extensible:} El sistema está diseñado para facilitar la adición de nuevos idiomas y la actualización de traducciones existentes sin modificar el código base.
+\end{itemize}
+
+La implementación sigue las mejores prácticas de i18n, separando completamente el contenido de la lógica y permitiendo una experiencia de usuario consistente en múltiples idiomas.
+
 \section{Implementación de la Persistencia (Base de Datos)}
 \label{sec:impl_persistencia}
 
@@ -75,6 +102,19 @@ El módulo \texttt{db.py} abstrae todas las operaciones de acceso, inserción y 
 \end{itemize}
 
 El uso de TimescaleDB permite escalar el sistema a grandes volúmenes de datos y realizar análisis temporales complejos de forma eficiente. La estructura modular y la abstracción en \texttt{db.py} facilitan el mantenimiento y la extensión futura de la base de datos.
+
+\subsection{Optimización de Consultas con TimescaleDB}
+\label{subsec:impl_timescaledb_optimization}
+
+La implementación utiliza TimescaleDB como extensión de PostgreSQL para gestionar eficientemente los datos de series temporales. El sistema implementa las siguientes estrategias:
+
+\begin{itemize}
+    \item \textbf{Estructura de Datos:} Se utilizan tablas específicas para cada tipo de dato temporal (\texttt{daily\_summaries}, \texttt{intraday\_metrics}, \texttt{sleep\_logs}), con índices optimizados sobre los campos de tiempo y usuario.
+    \item \textbf{Consultas Eficientes:} Las consultas están diseñadas para ser simples y directas, filtrando por usuario y rangos temporales específicos, lo que permite aprovechar los índices de la base de datos.
+    \item \textbf{Gestión de Conexiones:} Se implementa un gestor de base de datos (\texttt{DatabaseManager}) que maneja eficientemente las conexiones y transacciones, asegurando un uso óptimo de los recursos.
+\end{itemize}
+
+Los detalles de implementación, incluyendo las consultas SQL y la estructura de las tablas, se encuentran en el Anexo~\ref{annex:code:db_implementation}. Esta implementación ha demostrado ser eficiente para el volumen de datos manejado en el prototipo, permitiendo consultas rápidas tanto para la visualización en tiempo real como para el análisis histórico.
 
 \section{Implementación de la Lógica de Procesamiento}
 \label{sec:impl_procesamiento}
@@ -134,7 +174,31 @@ Es importante destacar que un cumplimiento completo del RGPD requeriría políti
 \section{Implementación de la Visualización}
 \label{sec:impl_visualizacion}
 
-La interfaz de visualización se desarrolló como un dashboard interactivo utilizando Dash, integrado en la aplicación Flask.
+La interfaz de visualización se implementa utilizando Flask como backend y Chart.js para la generación de gráficos interactivos en el frontend. Esta combinación proporciona un equilibrio óptimo entre rendimiento y facilidad de mantenimiento.
+
+\subsection{Arquitectura de Visualización}
+La visualización se estructura en tres niveles:
+
+\begin{itemize}
+    \item \textbf{Backend (Flask):}
+        \begin{itemize}
+            \item Rutas para servir datos JSON optimizados
+            \item Preprocesamiento y agregación de datos
+            \item Gestión de sesiones y caché
+        \end{itemize}
+    \item \textbf{Frontend (Chart.js):}
+        \begin{itemize}
+            \item Gráficos interactivos y responsivos
+            \item Actualización dinámica de datos
+            \item Personalización de estilos y temas
+        \end{itemize}
+    \item \textbf{Integración:}
+        \begin{itemize}
+            \item APIs REST para actualización de datos
+            \item Websockets para actualizaciones en tiempo real
+            \item Sistema de caché para optimizar rendimiento
+        \end{itemize}
+\end{itemize}
 
 \subsection{Layout del Dashboard}
 Se definió una estructura clara utilizando \texttt{dash\_html\_components} y \texttt{dash\_core\_components} (ahora \texttt{html} y \texttt{dcc} en versiones recientes de Dash), incluyendo:

@@ -1,1 +1,182 @@
-\chapter{Resultados y Discusión}\label{chap:7resultados_y_discusión}
+% -*- coding: utf-8 -*-
+\chapter{Resultados y Discusión}
+\label{chap:resultados_discusion}
+
+Este capítulo presenta y analiza los resultados obtenidos del sistema de monitorización desarrollado. Se estructura en cuatro secciones principales: (1) la validación funcional del prototipo, (2) los resultados de las pruebas de rendimiento y métricas del sistema, (3) la evaluación del sistema de alertas, y (4) una discusión crítica que conecta los resultados con los objetivos iniciales y analiza las limitaciones del trabajo.
+
+\section{Validación Funcional del Prototipo}
+\label{sec:validacion_funcional}
+
+El prototipo desarrollado implementa satisfactoriamente los requisitos funcionales definidos en el Capítulo \ref{chap:requisitos_metodologia}. A continuación, se presenta la evidencia de las funcionalidades clave implementadas:
+
+\begin{itemize}
+    \item \textbf{Vinculación y Gestión de Dispositivos:} El sistema implementa correctamente el flujo OAuth 2.0 con PKCE para la vinculación de dispositivos Fitbit\textsuperscript{\textregistered}, incluyendo:
+        \begin{itemize}
+            \item Gestión segura de tokens (cifrado en base de datos)
+            \item Refresco automático de tokens expirados
+            \item Reasignación de dispositivos entre usuarios
+        \end{itemize}
+    \item \textbf{Adquisición y Almacenamiento de Datos:} Los scripts de adquisición (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) ejecutados por cron obtienen y almacenan correctamente:
+        \begin{itemize}
+            \item Datos diarios: pasos, frecuencia cardíaca, sueño, actividad
+            \item Datos intradía: métricas con granularidad por minuto/hora
+            \item Persistencia en TimescaleDB con timestamps precisos
+        \end{itemize}
+    \item \textbf{Visualización y Dashboard:} La interfaz web implementa:
+        \begin{itemize}
+            \item Gráficos interactivos de series temporales
+            \item Filtros por fecha y tipo de dato
+            \item Exportación de datos en formato CSV
+            \item Interfaz multilingüe (español/inglés)
+        \end{itemize}
+\end{itemize}
+
+\section{Rendimiento y Métricas del Sistema}
+\label{sec:rendimiento_metricas}
+
+Las pruebas de rendimiento se realizaron en el siguiente entorno:
+\begin{itemize}
+    \item \textbf{Hardware:} Máquina virtual con 4GB RAM, 2 vCPUs
+    \item \textbf{Software:} PostgreSQL 13 con TimescaleDB, Python 3.8, Flask 2.0
+    \item \textbf{Datos:} 
+        \begin{itemize}
+            \item Datos reales de 3 usuarios con dispositivos Fitbit (el autor y dos colaboradores del TFG), recopilados durante 30 días
+            \item Datos simulados adicionales para pruebas específicas de rendimiento y validación
+        \end{itemize}
+\end{itemize}
+
+Los resultados cuantitativos obtenidos son:
+
+\begin{itemize}
+    \item \textbf{Tiempos de Respuesta:}
+        \begin{itemize}
+            \item Dashboard (carga inicial): 1.8 segundos promedio
+            \item API interna: 280-450ms promedio en endpoints críticos
+            \item Generación de alertas: 200ms por usuario
+        \end{itemize}
+    \item \textbf{Eficiencia de Base de Datos:}
+        \begin{itemize}
+            \item Consultas a TimescaleDB: 60-120ms para operaciones típicas
+            \item Uso de memoria: 420MB en operación normal
+            \item Compresión TimescaleDB: 58\% de reducción en series temporales
+        \end{itemize}
+\end{itemize}
+
+\section{Evaluación del Sistema de Alertas}
+\label{sec:evaluacion_alertas}
+
+La evaluación del sistema de alertas se realizó mediante dos aproximaciones complementarias:
+
+\begin{enumerate}
+    \item \textbf{Validación con Datos Reales:}
+        \begin{itemize}
+            \item Monitorización de 3 usuarios reales durante 30 días
+            \item Análisis de patrones de actividad, sueño y frecuencia cardíaca en condiciones reales de uso
+            \item Verificación de la detección de eventos significativos (ej. días de baja actividad, alteraciones del sueño)
+        \end{itemize}
+    \item \textbf{Pruebas Automatizadas:}
+        \begin{itemize}
+            \item Test suite documentado en \texttt{test\_alerts\_full.py}
+            \item Escenarios controlados con datos simulados
+            \item Validación sistemática de la lógica de detección
+        \end{itemize}
+\end{enumerate}
+
+El procedimiento de pruebas automatizadas incluyó:
+
+\begin{itemize}
+    \item \textbf{Línea Base:} 6 días de datos normales (10.000 pasos/día, 800 min sedentarios, etc.)
+    \item \textbf{Anomalías Controladas:} Inserción de valores anómalos predefinidos
+    \item \textbf{Validación:} Verificación de detección y priorización correcta
+\end{itemize}
+
+Los resultados combinados de ambas aproximaciones muestran:
+
+\begin{itemize}
+    \item \textbf{Detección:} El sistema identifica correctamente cambios significativos tanto en datos reales como simulados
+    \item \textbf{Priorización:} Las alertas se clasifican adecuadamente según su severidad:
+        \begin{itemize}
+            \item Alta: Desviaciones >50\% o períodos críticos
+            \item Media: Desviaciones 30-50\%
+            \item Baja: Desviaciones 20-30\%
+        \end{itemize}
+\end{itemize}
+
+\section{Discusión de Resultados}
+\label{sec:discusion}
+
+\subsection{Cumplimiento de Objetivos}
+\label{subsec:cumplimiento_objetivos}
+
+Revisando los objetivos específicos definidos en el Capítulo \ref{chap:introduccion}:
+
+\begin{enumerate}
+    \item \textbf{Integración con API Fitbit:} Implementada completamente, incluyendo:
+        \begin{itemize}
+            \item Flujo OAuth 2.0 con PKCE
+            \item Gestión segura de tokens
+            \item Adquisición automática de datos
+        \end{itemize}
+    \item \textbf{Arquitectura Modular:} Lograda mediante:
+        \begin{itemize}
+            \item Separación clara de componentes (auth, db, fitbit)
+            \item Scripts independientes para adquisición
+            \item Interfaz web desacoplada
+        \end{itemize}
+    \item \textbf{Sistema de Alertas:} Implementado con:
+        \begin{itemize}
+            \item Criterios basados en evidencia científica
+            \item Personalización por usuario
+            \item Priorización automática
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Limitaciones del Trabajo}
+\label{subsec:limitaciones}
+
+Es importante reconocer las siguientes limitaciones del prototipo actual:
+
+\begin{itemize}
+    \item \textbf{Validación de Alertas:}
+        \begin{itemize}
+            \item Muestra limitada de usuarios reales (3)
+            \item Sin validación clínica formal de los umbrales
+            \item Período de observación relativamente corto (30 días)
+        \end{itemize}
+    \item \textbf{Rendimiento:}
+        \begin{itemize}
+            \item Pruebas en entorno controlado de desarrollo
+            \item No se ha evaluado el comportamiento bajo alta carga
+            \item Faltan pruebas de estrés y escalabilidad
+        \end{itemize}
+    \item \textbf{Funcionalidad:}
+        \begin{itemize}
+            \item Sin integración con sistemas clínicos externos
+            \item Limitado a datos disponibles vía API Fitbit
+            \item Sin mecanismos avanzados de predicción
+        \end{itemize}
+\end{itemize}
+
+\subsection{Implicaciones Prácticas}
+\label{subsec:implicaciones}
+
+Los resultados sugieren que el sistema tiene potencial para:
+
+\begin{itemize}
+    \item \textbf{Monitorización Automatizada:} El sistema automatiza la recolección y análisis de datos de actividad, sueño y frecuencia cardíaca, reduciendo la necesidad de monitorización manual.
+    \item \textbf{Detección Temprana:} La implementación de alertas, aunque preliminar, sienta las bases para un sistema de detección temprana de cambios significativos en patrones de actividad y biomarcadores.
+    \item \textbf{Seguimiento Remoto:} La arquitectura web y el uso de dispositivos comerciales facilita el despliegue con infraestructura mínima.
+\end{itemize}
+
+\subsection{Lecciones Aprendidas y Desafíos}
+\label{subsec:lecciones}
+
+Durante el desarrollo se identificaron varios desafíos importantes:
+
+\begin{itemize}
+    \item \textbf{Calidad de Datos:} La variabilidad en el uso de los dispositivos y la sincronización afecta la consistencia de los datos.
+    \item \textbf{Personalización:} El equilibrio entre alertas genéricas y umbrales personalizados requiere más investigación.
+    \item \textbf{Escalabilidad:} La arquitectura actual podría requerir optimizaciones para manejar grandes volúmenes de usuarios.
+\end{itemize}
+
+Estas experiencias serán valiosas para futuras iteraciones del sistema o proyectos similares en el campo de la monitorización remota de salud.

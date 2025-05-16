@@ -1,0 +1,419 @@
+% !TEX root = ../main.tex % Indica a algunos editores cuál es el fichero raíz
+\chapter{Anexos de Código de Implementación Especifico} % Título consistente con Anexo A
+\label{anexo:implementacion_detalles} % Etiqueta general para el anexo
+
+% --- Sección de crontab ---
+\section{Configuración de \texttt{cron}}
+\label{annex:code:crontab}
+Ejemplo de la configuración utilizada en \texttt{crontab} para la ejecución periódica de los scripts de adquisición de datos, asegurando que se ejecuten dentro del entorno virtual correcto y redirigiendo la salida a ficheros de log.
+\begin{lstlisting}[language=bash, caption={Ejemplo de configuración de crontab para scripts de adquisición.}, label={lst:crontab_example}]
+# Activar entorno virtual y ejecutar script de datos diarios dos veces al dia
+# Ejecutar a las 9:05 y 22:05 cada día
+5 9,22 * * * cd /ruta/completa/al/proyecto && /ruta/completa/al/venv/bin/python fitbit.py >> /ruta/completa/al/proyecto/logs/cron_daily.log 2>&1
+
+# Activar entorno virtual y ejecutar script de datos intradia cada 15 minutos
+# Ejecutar en los minutos 0, 15, 30, 45 de cada hora
+*/15 * * * * cd /ruta/completa/al/proyecto && /ruta/completa/al/venv/bin/python fitbit_intraday.py >> /ruta/completa/al/proyecto/logs/cron_intraday.log 2>&1
+\end{lstlisting}
+\textit{Nota: Las rutas (\texttt{/ruta/completa/al/...}) deben reemplazarse por las rutas absolutas correctas en el sistema de despliegue.}
+
+% --- Sección de inserción ---
+\section{Función de Inserción en TimescaleDB (\texttt{insert\_intraday\_metrics})}
+\label{annex:code:insert_intraday}
+Ejemplo de función en \texttt{db.py} para insertar eficientemente datos en la hipertabla \texttt{intraday\_metrics} utilizando \texttt{psycopg2.extras.execute\_values}. Incluye manejo básico de errores y conflictos.
+\begin{lstlisting}[caption={Ejemplo de función de inserción masiva en TimescaleDB (\texttt{db.py}).}, label={lst:insert_intraday_code}]
+import psycopg2
+from psycopg2.extras import execute_values # Para inserción eficiente
+import logging # Mejor usar logging que print para mensajes
+
+# Configurar logging (preferiblemente al inicio de db.py o app.py)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Asumiendo que 'conn' es una conexión psycopg2 válida
+
+def insert_intraday_metrics(conn, data_list):
+    """
+    Inserta una lista de métricas intradía en la hipertabla.
+    data_list: lista de tuplas [(time, user_email, type, value), ...]
+                time debe ser un objeto datetime con timezone (idealmente UTC).
+    """
+    if not data_list:
+        logging.info("No hay datos intradía para insertar.")
+        return True # Nada que insertar
+
+    sql = """
+        INSERT INTO intraday_metrics (time, user_email, type, value)
+        VALUES %s
+        ON CONFLICT (time, user_email, type) DO NOTHING;
+        -- Estrategia de conflicto: Ignorar duplicados.
+        -- Alternativa: ON CONFLICT (time, user_email, type)
+        -- DO UPDATE SET value = EXCLUDED.value; (Actualizar si existe)
+    """
+    cursor = None # Inicializar cursor fuera del try para el finally
+    try:
+        cursor = conn.cursor()
+        # execute_values es eficiente para inserciones múltiples
+        execute_values(cursor, sql, data_list, page_size=100) # page_size ajustable
+        conn.commit()
+        logging.info(f"Insertadas/Ignoradas {len(data_list)} métricas intradía.")
+        return True
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.error(f"Error insertando métricas intradía: {error}")
+        if conn:
+            conn.rollback() # Deshacer transacción en caso de error
+        return False
+    finally:
+        if cursor:
+            cursor.close() # Siempre cerrar el cursor
+
+# --- Ejemplo de preparación de datos en fitbit_intraday.py ---
+# (Incluir ejemplo de parsing de tiempo y construcción de data_list
+#  como en la respuesta anterior, asegurando manejo de timezone)
+# from datetime import datetime, timezone
+# import pytz
+# ... (código de parse_fitbit_time y bucle de procesamiento) ...
+\end{lstlisting}
+\textit{Nota: La implementación real debe incluir un manejo robusto de zonas horarias, errores de parsing y podría beneficiarse de logging más detallado.}
+
+% --- Sección de consulta ---
+\section{Función de Consulta en TimescaleDB (\texttt{get\_hr\_data})}
+\label{annex:code:get_hr}
+Ejemplo esquemático de una función en \texttt{db.py} para recuperar datos de frecuencia cardíaca para el dashboard, filtrando por usuario y rango de tiempo.
+\begin{lstlisting}[caption={Ejemplo de función de consulta de FC (\texttt{db.py}).}, label={lst:get_hr_code}]
+import psycopg2
+from datetime import datetime
+import logging
+# import pandas as pd # Opcional: devolver como DataFrame
+
+def get_hr_data(conn, user_email: str, start_date: datetime, end_date: datetime):
+    """
+    Recupera datos de frecuencia cardíaca para un usuario en un rango de fechas.
+    start_date y end_date deben ser objetos datetime (preferiblemente aware, UTC).
+    """
+    # Asegurarse que las fechas de entrada son conscientes de zona horaria si es necesario
+    # O convertir a UTC si la columna 'time' está en UTC
+    # Ejemplo: Asumiendo que start/end_date son naive, y BD está en UTC
+    # start_date_utc = start_date.replace(tzinfo=timezone.utc)
+    # end_date_utc = end_date.replace(tzinfo=timezone.utc)
+
+    sql = """
+        SELECT time, value
+        FROM intraday_metrics
+        WHERE user_email = %s
+          AND type = 'heart_rate'
+          AND time >= %s -- Fecha/hora de inicio inclusiva
+          AND time < %s  -- Fecha/hora de fin exclusiva
+        ORDER BY time ASC;
+    """
+    results = []
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        # Pasar las fechas como parámetros
+        cursor.execute(sql, (user_email, start_date, end_date))
+        results = cursor.fetchall() # Lista de tuplas [(time, value), ...]
+        logging.info(f"Recuperados {len(results)} puntos de FC para {user_email}.")
+
+        # --- Opcional: Convertir a DataFrame de Pandas ---
+        # if results:
+        #     df = pd.DataFrame(results, columns=['time', 'value'])
+        #     # Asegurar que la columna de tiempo sea datetime y tenga timezone
+        #     df['time'] = pd.to_datetime(df['time'], utc=True)
+        #     return df
+        # else:
+        #     # Devolver DataFrame vacío con columnas definidas
+        #     return pd.DataFrame(columns=['time', 'value'])
+        # --- Fin Opcional Pandas ---
+
+        return results # Devuelve lista de tuplas por defecto
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.error(f"Error recuperando datos de FC para {user_email}: {error}")
+        # return pd.DataFrame(columns=['time', 'value']) # O DataFrame vacío
+        return [] # Lista vacía en caso de error
+    finally:
+        if cursor:
+            cursor.close()
+
+# --- Ejemplo de uso en el callback del dashboard ---
+# db_conn = db.connect_to_db()
+# if db_conn:
+#     hr_data_tuples = db.get_hr_data(db_conn, selected_email, start_dt_obj, end_dt_obj)
+#     db_conn.close()
+#     # Procesar hr_data_tuples para generar el gráfico Plotly...
+\end{lstlisting}
+\textit{Nota: El manejo preciso de las fechas y zonas horarias (\texttt{start\_date}, \texttt{end\_date}) al pasarlas a la consulta SQL es crucial y depende de cómo se almacenen en la BD (con o sin zona horaria) y cómo se reciban del DatePicker.}
+
+% --- Sección de layout de Dash ---
+\section{Layout Básico del Dashboard (\texttt{app.py} o \texttt{dashboard.py})}
+\label{annex:code:dash_layout}
+Estructura básica del layout de la aplicación Dash definida en Python, utilizando los componentes de \texttt{dash} para crear la interfaz interactiva.
+\begin{lstlisting}[caption={Ejemplo de layout de Dash integrado en Flask.}, label={lst:dash_layout_code}]
+import dash
+# En versiones nuevas de Dash (>=2.0):
+from dash import dcc, html
+# En versiones antiguas:
+# import dash_core_components as dcc
+# import dash_html_components as html
+from dash.dependencies import Input, Output, State
+# from flask_login import login_required # Para proteger ruta Flask
+
+# --- Asumiendo 'server' es la instancia de Flask ---
+# app_dash = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/')
+# # Configurar Dash para servir assets locales si los tienes (CSS, JS)
+# # app_dash.config.suppress_callback_exceptions = True # Si callbacks están en otro fichero
+
+# --- Layout de Dash ---
+# (Puede estar en app.py o importado de dashboard_layout.py)
+# layout = html.Div([ ... ]) # Definición del layout como antes...
+
+def create_dashboard_layout():
+    """Función que devuelve el layout para permitir actualizaciones si es necesario."""
+    return html.Div([
+        html.H1("Panel de Monitorización de Residentes"),
+        # Dropdown para seleccionar residente
+        html.Div([
+            html.Label("Seleccionar Residente:"),
+            dcc.Dropdown(
+                id='resident-dropdown',
+                options=[
+                    # Las opciones se cargan dinámicamente con un callback
+                ],
+                placeholder="Seleccione un residente...",
+                clearable=False, # Evitar que quede vacío si solo hay 1 opción
+                style={'width': '50%'} # Ajustar estilo si es necesario
+            )
+        ], style={'padding': 10}),
+
+        # Selector de rango de fechas
+        html.Div([
+            html.Label("Seleccionar Rango de Fechas:"),
+            dcc.DatePickerRange(
+                id='date-picker-range',
+                start_date_placeholder_text="Fecha Inicio",
+                end_date_placeholder_text="Fecha Fin",
+                display_format='YYYY-MM-DD',
+                # Podrías establecer fechas iniciales por defecto
+                # initial_visible_month=datetime.date.today(),
+                # start_date=datetime.date.today() - datetime.timedelta(days=7),
+                # end_date=datetime.date.today(),
+                clearable=True,
+                style={'marginLeft': '10px'}
+            )
+        ], style={'padding': 10, 'display': 'flex', 'alignItems': 'center'}),
+
+        html.Hr(), # Separador visual
+
+        # Contenedor para los gráficos (se actualizan con callbacks)
+        html.Div(id='graphs-container', children=[
+            html.Div([
+                html.H3("Frecuencia Cardíaca"),
+                dcc.Loading( # Añadir indicador de carga
+                    type="default",
+                    children=dcc.Graph(id='hr-graph')
+                )
+            ]),
+            html.Div([
+                html.H3("Pasos Diarios"),
+                 dcc.Loading(
+                    type="default",
+                    children=dcc.Graph(id='steps-graph')
+                 )
+            ]),
+            html.Div([
+                html.H3("Resumen del Sueño"),
+                 dcc.Loading(
+                    type="default",
+                    children=dcc.Graph(id='sleep-graph')
+                 )
+            ]),
+            # Añadir más gráficos aquí si es necesario
+        ])
+        # dcc.Store(id='intermediate-data-store') # Para almacenar datos intermedios
+    ])
+
+# Asignar el layout a la app Dash
+# app_dash.layout = create_dashboard_layout
+
+# --- Ruta Flask para servir el dashboard ---
+# @server.route('/dashboard/')
+# @login_required # Proteger la ruta
+# def dashboard_page():
+#     # Renderizar la plantilla base de Flask que contiene el layout de Dash
+#     # O directamente servir app_dash.index() si no necesitas plantilla Flask
+#     return app_dash.index() # Método estándar para servir Dash standalone/integrado
+
+\end{lstlisting}
+\textit{Nota: Se han añadido componentes \texttt{dcc.Loading} para mejorar la experiencia de usuario mientras se cargan los datos.}
+
+% --- Sección de callback de Dash ---
+\section{Callback Principal del Dashboard (\texttt{app.py} o \texttt{dashboard\_callbacks.py})}
+\label{annex:code:dash_callback}
+Ejemplo esquemático del callback principal que actualiza los gráficos del dashboard. Muestra la estructura de inputs, outputs y la lógica de consulta y generación de figuras Plotly.
+\begin{lstlisting}[caption={Ejemplo de callback principal en Dash para actualizar gráficos.}, label={lst:dash_callback_code}]
+from dash.dependencies import Input, Output, State
+import plotly.graph_objs as go
+import plotly.express as px # Alternativa para crear figuras más rápido
+from datetime import datetime, date, timedelta
+import logging
+# import db # Asumiendo funciones de db.py
+# import pandas as pd # Si se usa Pandas para procesar
+
+# Asumiendo 'app_dash' es la instancia de la app Dash
+
+# --- Callback para poblar el dropdown de residentes (ejecutar al inicio) ---
+@app_dash.callback(
+    Output('resident-dropdown', 'options'),
+    Input('resident-dropdown', 'id') # Input dummy para disparar al cargar
+)
+def update_resident_options(_):
+    options = []
+    conn = None
+    try:
+        conn = db.connect_to_db()
+        if conn:
+            # Necesitas una función en db.py que devuelva {'name': ..., 'email': ...}
+            users = db.get_linked_users(conn)
+            options = [{'label': f"{user['name']} ({user['email']})", 'value': user['email']}
+                       for user in sorted(users, key=lambda u: u.get('name', ''))] # Ordenar por nombre
+        else:
+            logging.error("No se pudo conectar a BD para cargar residentes.")
+    except Exception as e:
+        logging.error(f"Error cargando lista de residentes: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return options
+
+# --- Callback principal para actualizar gráficos ---
+@app_dash.callback(
+    [Output('hr-graph', 'figure'),
+     Output('steps-graph', 'figure'),
+     Output('sleep-graph', 'figure')],
+    [Input('resident-dropdown', 'value'),
+     Input('date-picker-range', 'start_date'),
+     Input('date-picker-range', 'end_date')],
+    # prevent_initial_call=True # Evitar ejecución inicial si no hay valores por defecto
+)
+def update_graphs(selected_email, start_date_str, end_date_str):
+    """
+    Callback para actualizar todos los gráficos basado en residente y fechas.
+    """
+    # --- Crear figuras vacías por defecto ---
+    def create_empty_figure(title="Seleccione residente y rango de fechas"):
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            xaxis = {"visible": False},
+            yaxis = {"visible": False},
+            annotations = [{
+                "text": "No hay datos para mostrar.",
+                "xref": "paper",
+                "yref": "paper",
+                "showarrow": False,
+                "font": {"size": 16}
+            }]
+        )
+        return fig
+
+    hr_fig = create_empty_figure("Frecuencia Cardíaca")
+    steps_fig = create_empty_figure("Pasos Diarios")
+    sleep_fig = create_empty_figure("Resumen del Sueño")
+
+    # --- Validar Inputs ---
+    if not selected_email or not start_date_str or not end_date_str:
+        # Si falta algún input, devolver figuras vacías
+        return hr_fig, steps_fig, sleep_fig
+
+    # --- Procesar Fechas ---
+    try:
+        # Convertir string a objeto date (DatePickerRange devuelve date)
+        start_date_obj = date.fromisoformat(start_date_str)
+        end_date_obj = date.fromisoformat(end_date_str)
+
+        # Convertir a datetime para consultas (inicio del día y fin del día+1)
+        # ¡Ajustar según cómo esperen las funciones de BD y la zona horaria!
+        start_dt = datetime.combine(start_date_obj, datetime.min.time())
+        end_dt = datetime.combine(end_date_obj + timedelta(days=1), datetime.min.time())
+
+    except (ValueError, TypeError) as e:
+        logging.error(f"Error procesando fechas: {e}")
+        # Devolver figuras vacías si las fechas son inválidas
+        return hr_fig, steps_fig, sleep_fig
+
+    # --- Conexión y Consultas a BD ---
+    conn = None
+    try:
+        conn = db.connect_to_db()
+        if not conn:
+            logging.error("No se pudo conectar a BD para actualizar gráficos.")
+            # Actualizar figuras para mostrar error de conexión
+            error_title = "Error de Conexión a Base de Datos"
+            hr_fig.update_layout(title=error_title)
+            steps_fig.update_layout(title=error_title)
+            sleep_fig.update_layout(title=error_title)
+            return hr_fig, steps_fig, sleep_fig
+
+        # --- Generar Gráfico de Frecuencia Cardíaca ---
+        hr_data = db.get_hr_data(conn, selected_email, start_dt, end_dt)
+        if hr_data: # Asume lista de tuplas (time, value)
+            times, values = zip(*hr_data)
+            # Usar Plotly Express para simplificar
+            hr_fig = px.line(x=list(times), y=list(values), labels={'x':'Hora', 'y':'Pulsaciones/min'})
+            hr_fig.update_layout(title=f'Frecuencia Cardíaca ({selected_email})')
+            hr_fig.update_traces(mode='lines+markers') # Añadir marcadores si se desea
+        else:
+            hr_fig = create_empty_figure(f'Sin datos de FC ({selected_email})')
+
+        # --- Generar Gráfico de Pasos Diarios ---
+        steps_data = db.get_steps_data(conn, selected_email, start_date_obj, end_date_obj) # Pasar date
+        if steps_data: # Asume lista de tuplas (date, steps)
+            dates, steps = zip(*steps_data)
+            steps_fig = px.bar(x=list(dates), y=list(steps), labels={'x':'Fecha', 'y':'Número de Pasos'})
+            steps_fig.update_layout(title=f'Pasos Diarios ({selected_email})')
+        else:
+            steps_fig = create_empty_figure(f'Sin datos de Pasos ({selected_email})')
+
+        # --- Generar Gráfico de Sueño ---
+        sleep_data = db.get_sleep_data(conn, selected_email, start_dt, end_dt) # Pasar datetime
+        if sleep_data: # Asume lista de dicts con fases
+            # Procesar para formato apilado (ej. usando Pandas o bucle)
+            # df_sleep = pd.DataFrame(sleep_data)
+            # df_sleep['date'] = pd.to_datetime(df_sleep['start_time']).dt.date
+            # df_melted = df_sleep.melt(id_vars='date',
+            #                         value_vars=['minutes_in_rem', 'minutes_in_light',
+            #                                     'minutes_in_deep', 'minutes_awake'],
+            #                         var_name='Fase', value_name='Minutos')
+            # sleep_fig = px.bar(df_melted, x='date', y='Minutos', color='Fase',
+            #                    labels={'date':'Noche del', 'Minutos':'Minutos en Fase'})
+            # sleep_fig.update_layout(title=f'Fases del Sueño ({selected_email})')
+
+            # Alternativa sin Pandas (más verboso):
+            dates_sleep = [log['start_time'].date() for log in sleep_data]
+            fig_data = [
+                go.Bar(name='REM', x=dates_sleep, y=[log.get('minutes_in_rem', 0) for log in sleep_data]),
+                go.Bar(name='Ligero', x=dates_sleep, y=[log.get('minutes_in_light', 0) for log in sleep_data]),
+                go.Bar(name='Profundo', x=dates_sleep, y=[log.get('minutes_in_deep', 0) for log in sleep_data]),
+                go.Bar(name='Despierto', x=dates_sleep, y=[log.get('minutes_awake', 0) for log in sleep_data])
+            ]
+            sleep_fig = go.Figure(data=fig_data)
+            sleep_fig.update_layout(barmode='stack', title=f'Fases del Sueño ({selected_email})',
+                                    xaxis_title='Noche del', yaxis_title='Minutos')
+
+        else:
+            sleep_fig = create_empty_figure(f'Sin datos de Sueño ({selected_email})')
+
+    except Exception as e:
+        logging.error(f"Error general en callback update_graphs: {e}", exc_info=True)
+        # Mostrar error genérico en los gráficos
+        error_title_gen = "Error al generar gráficos"
+        hr_fig.update_layout(title=error_title_gen)
+        steps_fig.update_layout(title=error_title_gen)
+        sleep_fig.update_layout(title=error_title_gen)
+    finally:
+        if conn:
+            conn.close() # Asegurarse siempre de cerrar la conexión
+
+    return hr_fig, steps_fig, sleep_fig
+
+\end{lstlisting}
+\textit{Nota: Este callback es complejo. Requiere funciones de base de datos robustas, un manejo cuidadoso de los tipos de datos (especialmente fechas/horas) y errores. El uso de Plotly Express puede simplificar la creación de figuras. Se ha añadido logging básico.}

@@ -569,10 +569,10 @@ function showAlertDetails(alertId) {
             anomalyValue = minValue;
             anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
         } else if (baseAlertType === 'heart' || baseAlertType === 'heart_rate') {
-            borderColor = 'rgb(255, 99, 132)';
-            backgroundColor = 'rgba(255, 99, 132, 0.2)';
-            metricLabel = 'Frecuencia Cardíaca';
-            yAxisLabel = 'Frecuencia Cardíaca (bpm)';
+                    borderColor = 'rgb(255, 99, 132)';
+                    backgroundColor = 'rgba(255, 99, 132, 0.2)';
+                    metricLabel = 'Frecuencia Cardíaca';
+                    yAxisLabel = 'Frecuencia Cardíaca (bpm)';
             // Buscar el valor máximo anómalo
             let maxValue = Math.max(...alert.intraday_data.values);
             anomalyIndices = alert.intraday_data.values.map((v, i) => v === maxValue ? i : -1).filter(i => i !== -1);
@@ -581,8 +581,8 @@ function showAlertDetails(alertId) {
         } else if (alert.alert_type === 'intraday_activity_drop') {
             borderColor = 'rgb(40, 167, 69)';
             backgroundColor = 'rgba(40, 167, 69, 0.2)';
-            metricLabel = 'Pasos';
-            yAxisLabel = 'Pasos';
+                    metricLabel = 'Pasos';
+                    yAxisLabel = 'Pasos';
             
             // Extraer horas de inicio y fin del intervalo sin actividad de los detalles
             const detailsText = alert.details || '';

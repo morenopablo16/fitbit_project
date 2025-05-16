@@ -1,0 +1,40 @@
+
+\chapter{Validación y Ajuste del Sistema de Alertas}
+\label{anexo:validacion_alertas}
+
+Este anexo detalla las pruebas realizadas para validar la funcionalidad del sistema de alertas y describe el proceso propuesto para su ajuste futuro.
+
+\section{Resultados de las Pruebas de Validación con Datos Simulados}
+% --- INICIO SECCIÓN A COMPLETAR POR EL USUARIO ---
+Aquí se presentarían los resultados detallados de las pruebas unitarias y de integración realizadas. Por ejemplo:
+\begin{itemize}
+    \item Pruebas unitarias para `check\_activity\_drop`: Superadas X/Y casos de prueba, incluyendo manejo de datos faltantes y valores límite.
+    \item Pruebas de integración: Se simularon 5 usuarios con datos de 30 días. El escenario de 'inicio de gripe' generó correctamente alertas de 'Caída de actividad' (Prioridad Media) y 'Cambio RHR' (Prioridad Alta) en el día esperado. El escenario de 'normalidad' no generó alertas. El escenario con 'datos muy ruidosos' generó Z falsos positivos que necesitarían ajuste del filtrado.
+    \item (Incluir tablas o resúmenes si se dispone de ellos).
+\end{itemize}
+Estos resultados indican que la lógica implementada funciona según lo diseñado en los escenarios probados, pero subrayan la necesidad de validación con datos reales.
+% --- FIN SECCIÓN A COMPLETAR POR EL USUARIO ---
+
+\section{Ejemplos de Casos de Uso}
+% (Mantener los ejemplos de la respuesta anterior o adaptarlos)
+\textbf{Caso 1: Detección de posible inicio de infección.} ...
+
+\textbf{Caso 2: Alteración del sueño.} ...
+
+\section{Proceso Propuesto para Ajuste y Calibración de Umbrales}
+\label{anexo:ajuste_umbrales}
+La optimización de los umbrales y la lógica de priorización es un proceso iterativo esencial para la utilidad clínica del sistema \cite{krumholz_thresholds_clinical_alerts_2011}. Un enfoque metodológico requeriría:
+\begin{enumerate}
+    \item \textbf{Recopilación de Datos y Eventos Reales ("Ground Truth"):} Implementar el sistema en un piloto controlado. Registrar las alertas generadas y, crucialmente, obtener información validada (por clínicos, cuidadores o el propio usuario) sobre el estado de salud real en el momento de la alerta y en periodos sin alerta. Esto permite clasificar las alertas (Verdadero Positivo - VP, Falso Positivo - FP) y los no-eventos (Verdadero Negativo - VN, Falso Negativo - FN).
+    \item \textbf{Análisis de Rendimiento Diagnóstico:} Calcular métricas clave para los umbrales actuales:
+        \begin{itemize}
+            \item Sensibilidad (Recall): $VP / (VP + FN)$ - Capacidad de detectar eventos reales.
+            \item Especificidad: $VN / (VN + FP)$ - Capacidad de identificar correctamente la ausencia de eventos.
+            \item Valor Predictivo Positivo (Precisión): $VP / (VP + FP)$ - Probabilidad de que una alerta sea real.
+            \item Valor Predictivo Negativo: $VN / (VN + FN)$ - Probabilidad de que la ausencia de alerta sea correcta.
+        \end{itemize}
+    \item \textbf{Optimización de Umbrales (Curvas ROC):} Variar sistemáticamente los umbrales de decisión (ej., del 10% al 50% de caída de actividad) y recalcular las métricas anteriores para cada valor. Graficar la Sensibilidad vs. (1 - Especificidad) para generar una curva ROC. El punto de la curva que ofrezca el mejor compromiso (según el objetivo: maximizar detección vs. minimizar falsas alarmas) indica el umbral óptimo.
+    \item \textbf{Evaluación de Contextualización y Priorización:} Comparar el rendimiento diagnóstico usando umbrales fijos vs. umbrales adaptados a la línea base individual. Evaluar si la lógica de priorización implementada se correlaciona con la severidad clínica real de los eventos detectados.
+    \item \textbf{Iteración y Monitorización Continua:} Ajustar los umbrales y la lógica en el sistema basándose en los resultados del análisis. Continuar monitorizando el rendimiento del sistema de alertas de forma periódica tras los ajustes.
+\end{enumerate}
+Este proceso requiere una infraestructura para la recopilación de feedback y datos validados, y potencialmente la colaboración con expertos clínicos \cite{weist_validation_alert_systems_2017}.

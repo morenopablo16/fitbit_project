@@ -39,7 +39,7 @@ def check_activity_drop(user_id, current_date):
             
         today_steps = today_data[3] or 0
         today_active_minutes = today_data[9] or 0
-        
+            
         # Calcular porcentajes de caída
         steps_drop = ((avg_steps - today_steps) / avg_steps * 100)
         active_minutes_drop = ((avg_active_minutes - today_active_minutes) / avg_active_minutes * 100)
@@ -131,7 +131,7 @@ def check_sedentary_increase(user_id, current_date):
         if avg_sedentary < 60:
             print(f"Promedio de tiempo sedentario demasiado bajo ({avg_sedentary} minutos) para generar alertas fiables.")
             return False
-            
+        
         # Obtener los valores de hoy
         today_data = next((s for s in daily_summaries if s[2] == current_date.date()), None)
         if not today_data or today_data[11] is None:
@@ -224,7 +224,7 @@ def check_sleep_duration_change(user_id, current_date):
         if avg_sleep < 60:
             print(f"Promedio de sueño demasiado bajo ({avg_sleep} minutos) para generar alertas fiables.")
             return False
-            
+        
         # Obtener los valores de hoy
         today_data = next((s for s in daily_summaries if s[2] == current_date.date()), None)
         if not today_data or today_data[4] is None:
@@ -304,16 +304,16 @@ def check_heart_rate_anomaly(user_id, current_date):
                     return False
                 details = (f"Anomalía en frecuencia cardíaca: {anomaly_percentage:.1f}% de lecturas anómalas. "
                            f"Valor máximo: {max_anomaly_value:.0f} bpm a las {max_anomaly_time.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
-                db.insert_alert(
-                    user_id=user_id,
-                    alert_type="heart_rate_anomaly",
-                    priority=priority,
+                    db.insert_alert(
+                        user_id=user_id,
+                        alert_type="heart_rate_anomaly",
+                        priority=priority,
                     triggering_value=max_anomaly_value,
-                    threshold=threshold,
+                        threshold=threshold,
                     timestamp=max_anomaly_time,
                     details=details
-                )
-                return True
+                    )
+                    return True
             finally:
                 db.close()
     except Exception as e:
@@ -551,21 +551,21 @@ def evaluate_all_alerts(user_id, current_date):
             alerts_triggered = True
         # Verificar anomalías en frecuencia cardíaca - No se ejecuta si no hay datos intradía
         try:
-            if check_heart_rate_anomaly(user_id, current_date):
-                alerts_triggered = True
+        if check_heart_rate_anomaly(user_id, current_date):
+            alerts_triggered = True
         except Exception as e:
             print(f"Se omitió la verificación de anomalías en frecuencia cardíaca debido a un error: {e}")
             print("Esto es normal si no tienes acceso a datos intradía de Fitbit.")
         # Verificar cambios en el sueño
         try:
-            if check_sleep_duration_change(user_id, current_date):
-                alerts_triggered = True
+        if check_sleep_duration_change(user_id, current_date):
+            alerts_triggered = True
         except Exception as e:
             print(f"Error al verificar cambios en el sueño: {e}")
         # Verificar aumento en tiempo sedentario
         try:
-            if check_sedentary_increase(user_id, current_date):
-                alerts_triggered = True
+        if check_sedentary_increase(user_id, current_date):
+            alerts_triggered = True
         except Exception as e:
             print(f"Error al verificar aumento en tiempo sedentario: {e}")
         # Verificar calidad de datos

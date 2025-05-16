@@ -1,0 +1,193 @@
+% !TEX root = ../main.tex % Indica a algunos editores cuál es el fichero raíz
+\chapter{Implementación}
+\label{chap:implementacion}
+
+Este capítulo detalla el proceso de construcción del sistema de monitorización remota, materializando el diseño arquitectónico expuesto en el Capítulo \ref{chap:diseno_arquitectura} en componentes software funcionales. Se aborda la configuración del entorno, la implementación de los componentes del backend (aplicación web y scripts de adquisición), la configuración y manejo de la base de datos, la lógica de procesamiento de datos, las medidas de seguridad aplicadas y la interfaz de visualización. Finalmente, se comentan algunos de los desafíos técnicos encontrados. El código fuente completo está disponible en el repositorio del proyecto \citep{github_repo_proyecto}.
+
+\section{Entorno de Desarrollo y Tecnologías}
+\label{sec:impl_entorno}
+
+La implementación del prototipo se ha realizado utilizando un conjunto de tecnologías seleccionadas por su adecuación a los requisitos del proyecto y su robustez en entornos de producción. El lenguaje de programación principal es \textbf{Python} (versión 3.x) \citep{python_website}, aprovechando su flexibilidad y la riqueza de su ecosistema para desarrollo web, integración de APIs y procesamiento de datos.
+
+Las herramientas y librerías clave empleadas son:
+\begin{itemize}
+    \item \textbf{Control de Versiones:} \textbf{Git} y \textbf{GitHub} \citep{github_repo_proyecto} para el control de versiones
+    \item \textbf{Backend Web:} \textbf{Flask} \citep{flask_docs} como microframework para construir la aplicación web principal (\texttt{app.py}), gestionando rutas, peticiones y respuestas HTTP. Se complementa con \textbf{Flask-Login} para la gestión de sesiones y autenticación del personal.
+    \item \textbf{Base de Datos:} \textbf{PostgreSQL} \citep{postgresql_docs} como sistema gestor de base de datos relacional, extendido con \textbf{TimescaleDB} \citep{timescaledb_docs} para la gestión eficiente de datos de series temporales. La interacción desde Python se realiza mediante la librería \textbf{psycopg2}.
+    \item \textbf{Seguridad:} \textbf{cryptography} \citep{cryptography_docs} se emplea para el cifrado simétrico (Fernet) de los tokens OAuth 2.0 almacenados en la base de datos. Las claves y credenciales sensibles se gestionan mediante variables de entorno, nunca en el código fuente.
+    \item \textbf{Comunicaciones API:} \textbf{requests} \citep{requests_docs} para realizar las llamadas HTTP a la API web de Fitbit.
+    \item \textbf{Visualización:} La interfaz de usuario y el dashboard se implementan con \textbf{Flask}, plantillas \textbf{Jinja2}, \textbf{Bootstrap} para el diseño responsivo y \textbf{Chart.js} para la generación de gráficos interactivos en el navegador. Esta pila permite una integración directa con el backend y una experiencia de usuario moderna y eficiente.
+    \item \textbf{Planificación de Tareas:} El sistema \textbf{cron} del sistema operativo se utiliza para lanzar los scripts de adquisición de datos (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) a intervalos regulares, mediante scripts wrapper.
+\end{itemize}
+
+La elección de estas tecnologías permite una arquitectura modular, fácilmente mantenible y escalable, y facilita el despliegue en servidores Linux estándar. Todas las dependencias son de código abierto y ampliamente utilizadas en la industria, lo que garantiza soporte y seguridad a largo plazo.
+
+\section{Implementación del Backend}
+\label{sec:impl_backend}
+
+El backend del sistema se compone de dos bloques principales: la aplicación web desarrollada con Flask y los scripts independientes de adquisición de datos. Esta separación permite una arquitectura modular, robusta y fácilmente extensible.
+
+\subsection{Aplicación Web Flask (\texttt{app.py})}
+La aplicación Flask centraliza las siguientes funcionalidades:
+\begin{itemize}
+    \item \textbf{Autenticación del Personal:} Gestiona el inicio y cierre de sesión del personal autorizado utilizando Flask-Login y credenciales almacenadas de forma segura (variables de entorno).
+    \item \textbf{Gestión de Vinculaciones:} Proporciona rutas y plantillas HTML (Jinja2) para visualizar cuentas de Fitbit, asociar nombres a emails y gestionar vinculaciones activas.
+    \item \textbf{Orquestación del Flujo OAuth 2.0:} Inicia el proceso de autorización con Fitbit, gestiona el intercambio de códigos por tokens mediante el módulo \texttt{auth.py}, y almacena los tokens cifrados en la base de datos (módulo \texttt{db.py}).
+    \item \textbf{Precarga del Dashboard de Alertas:} Implementa una optimización que precarga en sesión los datos más recientes de cada usuario (resúmenes diarios, métricas intradía, registros de sueño y alertas) para acelerar la carga inicial del dashboard y mejorar la experiencia de usuario.
+    \item \textbf{Visualización y Dashboard:} Sirve las vistas principales (dashboard de alertas, ficha de usuario, estadísticas) mediante rutas Flask y plantillas Jinja2, integrando Bootstrap y Chart.js para la visualización interactiva de datos clínicos y alertas.
+\end{itemize}
+\noindent\textit{Referencia de Código: véase Anexo \ref{anexo:codigo:app_py}}
+
+\subsection{Scripts de Adquisición (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py})}
+Estos scripts operan de forma independiente, ejecutados por \texttt{cron}:
+\begin{itemize}
+    \item \textbf{Iteración sobre Usuarios:} Recuperan la lista de usuarios vinculados y sus credenciales cifradas de la base de datos. Cada usuario se procesa de forma independiente, lo que permite que un fallo en un usuario no afecte al resto.
+    \item \textbf{Gestión de Tokens:} Para cada usuario, descifran los tokens y gestionan su ciclo de vida: comprueban la expiración del token de acceso y, si es necesario, intentan refrescarlo utilizando el token de refresco y el endpoint correspondiente de la API de Fitbit. Los nuevos tokens se cifran y actualizan en la base de datos. Se implementa una gestión robusta de errores para evitar que un fallo de token detenga el procesamiento global.
+    \item \textbf{Llamadas a la API de Fitbit:} Utilizan el token de acceso válido para solicitar los datos de actividad, sueño o frecuencia cardíaca a los endpoints RESTful de la API de Fitbit, especificando el usuario, el periodo de tiempo y el formato deseado (JSON), utilizando la librería \texttt{requests}. Se implementa manejo de códigos de estado HTTP (200, 401, 403, 429), y se registran los errores para su posterior revisión.
+    \item \textbf{Persistencia de Datos:} Una vez obtenidos y procesados los datos, los scripts llaman a las funciones de inserción del módulo \texttt{db.py} (ej. \texttt{insert\_intraday\_metric}, \texttt{insert\_daily\_summary}, \texttt{insert\_sleep\_log}) para almacenarlos en las hipertablas TimescaleDB correspondientes. La lógica de persistencia está desacoplada de la lógica de adquisición, facilitando el mantenimiento y la extensión futura.
+    \item \textbf{Evaluación de Alertas:} Tras almacenar los datos, los scripts invocan la lógica de evaluación de alertas (módulo \texttt{alert\_rules.py}), que analiza los datos recientes y genera alertas clínicas si se cumplen los criterios definidos. Esta lógica está desacoplada y es fácilmente extensible.
+\end{itemize}
+La ejecución mediante \texttt{cron} asegura la recogida periódica y automatizada de datos sin intervención manual. La robustez frente a errores y la modularidad de los scripts son aspectos clave de la implementación.
+\noindent\textit{Referencia de Código: véase Anexos \ref{anexo:codigo:fitbit_py} y \ref{anexo:codigo:fitbit_intraday_py}}
+\section{Implementación de la Persistencia (Base de Datos)}
+\label{sec:impl_persistencia}
+
+La capa de persistencia se basa en \textbf{PostgreSQL} extendido con \textbf{TimescaleDB}, gestionada a través del módulo \texttt{db.py} utilizando \texttt{psycopg2}. Esta combinación permite almacenar y consultar eficientemente grandes volúmenes de datos temporales y clínicos.
+
+\subsection{Estructura de la Base de Datos}
+El esquema principal incluye las siguientes tablas:
+\begin{itemize}
+    \item \textbf{users}: Información básica de los usuarios, tokens cifrados y metadatos de vinculación.
+    \item \textbf{daily\_summaries}: Resúmenes diarios de actividad, sueño y biomarcadores por usuario y fecha (hipertabla TimescaleDB).
+    \item \textbf{intraday\_metrics}: Métricas intradía (pasos, frecuencia cardíaca, calorías, minutos activos) con timestamp preciso (hipertabla TimescaleDB).
+    \item \textbf{sleep\_logs}: Registros detallados de sueño por usuario y periodo (hipertabla TimescaleDB).
+    \item \textbf{alerts}: Alertas clínicas generadas automáticamente, con tipo, prioridad, valores disparadores y estado de reconocimiento (hipertabla TimescaleDB).
+\end{itemize}
+Todas las tablas relevantes están vinculadas mediante claves foráneas y optimizadas con índices sobre los campos temporales y de usuario, lo que acelera las consultas y análisis longitudinales.
+
+\subsection{Gestión y Acceso a Datos}
+El módulo \texttt{db.py} abstrae todas las operaciones de acceso, inserción y actualización de datos, incluyendo:
+\begin{itemize}
+    \item \textbf{Conexión segura}: Uso de credenciales gestionadas por variables de entorno.
+    \item \textbf{Gestión de tokens}: Almacenamiento cifrado de tokens OAuth 2.0 mediante la librería \texttt{cryptography}.
+    \item \textbf{Inserción eficiente}: Funciones como \texttt{insert\_daily\_summary}, \texttt{insert\_intraday\_metric}, \texttt{insert\_sleep\_log} y \texttt{insert\_alert} utilizan inserciones masivas y gestionan conflictos con \texttt{ON CONFLICT DO UPDATE} para evitar duplicados y mantener la integridad.
+    \item \textbf{Consultas optimizadas}: Funciones para recuperar datos diarios, intradía, de sueño y alertas, filtrando por usuario y rango temporal, y devolviendo los resultados en formatos útiles para el backend y la visualización.
+\end{itemize}
+
+El uso de TimescaleDB permite escalar el sistema a grandes volúmenes de datos y realizar análisis temporales complejos de forma eficiente. La estructura modular y la abstracción en \texttt{db.py} facilitan el mantenimiento y la extensión futura de la base de datos.
+
+\section{Implementación de la Lógica de Procesamiento}
+\label{sec:impl_procesamiento}
+
+La lógica de procesamiento transforma los datos crudos obtenidos de la API de Fitbit en información estructurada y útil para el análisis clínico y la visualización. Este procesamiento se realiza principalmente en los scripts \texttt{fitbit.py} y \texttt{fitbit\_intraday.py}, y sigue el siguiente flujo general:
+
+\begin{enumerate}
+    \item \textbf{Adquisición de datos:} Se obtienen los datos diarios e intradía de la API de Fitbit mediante peticiones autenticadas (\texttt{requests}), para cada usuario vinculado.
+    \item \textbf{Parsing y validación:} Se extraen los valores relevantes de las respuestas JSON, validando que los datos tengan el formato y rango esperado antes de procesarlos.
+    \item \textbf{Formateo de timestamps:} Se convierten todas las fechas y horas a objetos \texttt{datetime} de Python con zona horaria (UTC), asegurando la coherencia temporal en la base de datos.
+    \item \textbf{Cálculos derivados y transformación:} Se realizan cálculos adicionales (por ejemplo, sumar minutos de sueño, convertir unidades, calcular promedios) y se estructuran los datos en el formato requerido por las tablas destino.
+    \item \textbf{Almacenamiento:} Los datos procesados se insertan en las tablas correspondientes (\texttt{daily\_summaries}, \texttt{intraday\_metrics}, \texttt{sleep\_logs}) mediante las funciones del módulo \texttt{db.py}. Se emplean inserciones masivas y mecanismos de \texttt{ON CONFLICT DO UPDATE} para evitar duplicados y mantener la integridad.
+    \item \textbf{Evaluación de alertas:} Tras almacenar los datos, se invoca la lógica de evaluación de alertas (módulo \texttt{alert\_rules.py}), que aplica reglas clínicas sobre los datos recientes y genera alertas si se cumplen los criterios definidos. Esta lógica está desacoplada del almacenamiento, lo que facilita su extensión y mantenimiento.
+\end{enumerate}
+
+El diseño modular y desacoplado de la lógica de procesamiento permite añadir nuevas reglas de alerta, métricas o fuentes de datos en el futuro sin modificar el núcleo del sistema. Además, se han implementado mecanismos de manejo de errores y logging para asegurar la robustez del pipeline y facilitar la depuración en caso de incidencias.
+
+\subsection{Robustez y Manejo de Errores}
+\label{subsec:robustez_errores}
+
+El sistema ha sido diseñado para ser robusto y tolerante a fallos, asegurando la continuidad del servicio incluso ante incidencias en la adquisición de datos, errores de la API de Fitbit o problemas en la base de datos. A continuación se describen los principales mecanismos implementados:
+
+\begin{itemize}
+    \item \textbf{Gestión de errores en la adquisición de datos:} Los scripts de adquisición (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) encapsulan cada petición a la API de Fitbit en bloques \texttt{try...except}, registrando los errores y continuando con el siguiente usuario en caso de fallo. Esto evita que un error puntual detenga la recolección global de datos.
+    \item \textbf{Manejo de tokens expirados o inválidos:} Si se detecta un token de acceso expirado, el sistema intenta refrescarlo automáticamente utilizando el token de refresco. Si el refresco falla, se registra el incidente y se notifica la necesidad de reautorización, sin afectar al resto de usuarios.
+    \item \textbf{Validación y limpieza de datos:} Antes de almacenar los datos, se validan los formatos y rangos fisiológicos esperados. Los valores nulos, inconsistentes o fuera de rango se gestionan adecuadamente para evitar la corrupción de la base de datos.
+    \item \textbf{Persistencia atómica y control de integridad:} Las operaciones de inserción y actualización en la base de datos utilizan transacciones atómicas y mecanismos de \texttt{ON CONFLICT DO UPDATE} para evitar duplicados y mantener la integridad referencial.
+    \item \textbf{Logging detallado:} Todos los errores y eventos relevantes se registran en archivos de log, facilitando la monitorización y el diagnóstico de incidencias.
+    \item \textbf{Diseño modular y desacoplado:} La separación entre adquisición, procesamiento, almacenamiento y generación de alertas permite aislar fallos y facilita la recuperación ante errores, así como la extensión futura del sistema.
+\end{itemize}
+
+Estos mecanismos aseguran que el sistema pueda operar de forma continua y fiable, minimizando el impacto de errores puntuales y facilitando el mantenimiento y la escalabilidad a largo plazo.
+
+\section{Implementación de la Seguridad (OAuth, RGPD)}
+\label{sec:impl_seguridad}
+
+La seguridad y el cumplimiento normativo (RGPD \citep{rgpd_texto_oficial}) fueron consideraciones centrales durante la implementación.
+
+\subsection{Autenticación y Autorización (OAuth 2.0)}
+La integración con Fitbit se implementó siguiendo las mejores prácticas de OAuth 2.0 \citep{oauth_spec_rfc6749}:
+\begin{itemize}
+    \item \textbf{Flujo Authorization Code con PKCE:} Se implementó este flujo, considerado el más seguro para aplicaciones web con backend \citep{oauth_security_bcp_rfc8252}. El módulo \texttt{auth.py} y las rutas de Flask en \texttt{app.py} gestionan la generación del \texttt{code\_verifier} y \texttt{code\_challenge}, el parámetro \texttt{state} para prevenir CSRF, el intercambio del código de autorización por tokens, y el manejo seguro de \texttt{client\_id} y \texttt{client\_secret}.
+    \item \textbf{Gestión Segura de Tokens:} Los tokens de acceso y refresco se consideran información altamente sensible. Se cifran inmediatamente después de su obtención utilizando cifrado simétrico (AES mediante Fernet en la librería \texttt{cryptography}) con una clave secreta gestionada externamente (variable de entorno, no en el código fuente). Solo se descifran en memoria en el momento exacto de su uso.
+    \item \textbf{Refresco de Tokens:} La lógica para refrescar tokens caducados se implementó de forma robusta, manejando posibles errores y actualizando los tokens en la base de datos de forma atómica.
+    \item \textbf{HTTPS:} Aunque la configuración de HTTPS es a nivel de despliegue (servidor web/proxy inverso), el diseño asume y requiere que toda la comunicación (frontend-backend, backend-Fitbit API) se realice sobre HTTPS para proteger los datos en tránsito. Se recomienda seguir buenas prácticas de seguridad web como las delineadas por OWASP \citep{owasp_top10}.
+\end{itemize}
+\noindent\textit{Referencia de Código: véase Anexo \ref{anexo:codigo:auth_py}}
+\subsection{Consideraciones RGPD}
+Se implementaron medidas técnicas y organizativas básicas alineadas con los principios del RGPD \citep{aepd_principios_rgpd}:
+\begin{itemize}
+    \item \textbf{Consentimiento:} El flujo OAuth 2.0 actúa como mecanismo para obtener el consentimiento explícito del usuario (o su representante autorizado) para acceder a los datos de Fitbit. Los permisos (\texttt{scopes}) solicitados se limitan a los necesarios para la funcionalidad (minimización de datos).
+    \item \textbf{Seguridad de Datos:} El cifrado de tokens en reposo y el uso de HTTPS en tránsito contribuyen a la integridad y confidencialidad. El control de acceso a la aplicación mediante login protege contra accesos no autorizados.
+    \item \textbf{Minimización:} Solo se solicitan y almacenan los datos definidos en los requisitos (FC, pasos, sueño).
+\end{itemize}
+Es importante destacar que un cumplimiento completo del RGPD requeriría políticas de privacidad detalladas, mecanismos para ejercer los derechos ARSOPOL+ (Acceso, Rectificación, Supresión, Oposición, Portabilidad, Limitación), y posiblemente una Evaluación de Impacto relativa a la Protección de Datos (EIPD) en un entorno de producción real.
+
+\section{Implementación de la Visualización}
+\label{sec:impl_visualizacion}
+
+La interfaz de visualización se desarrolló como un dashboard interactivo utilizando Dash, integrado en la aplicación Flask.
+
+\subsection{Layout del Dashboard}
+Se definió una estructura clara utilizando \texttt{dash\_html\_components} y \texttt{dash\_core\_components} (ahora \texttt{html} y \texttt{dcc} en versiones recientes de Dash), incluyendo:
+\begin{itemize}
+    \item Título principal y secciones para controles y gráficos.
+    \item Componentes interactivos: \texttt{dcc.Dropdown} para seleccionar el residente y \texttt{dcc.DatePickerRange} para el intervalo temporal.
+    \item Contenedores \texttt{dcc.Graph} para mostrar las visualizaciones generadas con Plotly (frecuencia cardíaca, pasos, sueño).
+\end{itemize}
+Un ejemplo de la estructura del layout se encuentra en el Anexo \ref{annex:code:dash_layout}.
+
+\subsection{Callbacks para Interactividad}
+La funcionalidad dinámica se implementó mediante callbacks de Dash:
+\begin{itemize}
+    \item \textbf{Población del Dropdown:} Un callback inicial consulta la base de datos (usando \texttt{db.get\_linked\_users}) para obtener la lista de residentes vinculados y actualizar las opciones del \texttt{dcc.Dropdown}.
+    \item \textbf{Actualización de Gráficos:} El callback principal se activa con cambios en el dropdown de residente o en el selector de fechas. Este callback:
+        \begin{enumerate}
+            \item Obtiene el email y las fechas seleccionadas.
+            \item Llama a las funciones de consulta en \texttt{db.py} (\texttt{get\_hr\_data}, \texttt{get\_steps\_data}, etc.) para recuperar los datos de TimescaleDB.
+            \item Procesa los datos recuperados (posiblemente con Pandas \citep{pandas_docs}).
+            \item Genera las figuras de Plotly (\texttt{go.Figure}) para cada gráfico.
+            \item Devuelve las figuras para actualizar los componentes \texttt{dcc.Graph} correspondientes.
+        \end{enumerate}
+\end{itemize}
+Un ejemplo de este callback se muestra en el Anexo \ref{annex:code:dash_callback}. La implementación asegura que la visualización sea reactiva a las selecciones del personal.
+
+\subsection{Implementación del Dashboard de Alertas}
+El dashboard de alertas está implementado como una ruta protegida en Flask (\texttt{/livelyageing/dashboard/alerts}) que consulta la base de datos para obtener las alertas filtradas según los parámetros seleccionados por el usuario. La plantilla \texttt{alerts\_dashboard.html} gestiona la visualización, el filtrado, la paginación y la exportación a CSV. El reconocimiento de alertas se realiza mediante peticiones AJAX a la API interna, actualizando el estado en la base de datos sin recargar la página. Además, se integra la visualización de datos intradía relevantes para cada alerta, permitiendo un análisis clínico más completo.
+
+\subsection{Implementación del Dashboard de Usuarios y Ficha de Usuario}
+El dashboard de usuarios muestra un listado con búsqueda y estado de actividad, y permite acceder a la ficha de cada usuario. La ficha de usuario (\texttt{user\_detail.html}) integra múltiples pestañas: resumen diario, datos intradía (con gráficos interactivos), resumen semanal, alertas recientes y análisis de inactividad. Los datos se obtienen mediante rutas Flask y APIs internas, y se visualizan con Chart.js y Bootstrap para una experiencia moderna y responsiva. La exportación de datos se realiza mediante rutas dedicadas que generan archivos CSV bajo demanda. La actualización dinámica de los datos y la interacción con el usuario se gestionan mediante AJAX, mejorando la usabilidad y la eficiencia del sistema.
+
+\section{Desafíos y Soluciones Técnicas}
+\label{sec:impl_desafios}
+
+Durante la implementación surgieron diversos desafíos técnicos que requirieron soluciones específicas:
+
+\begin{itemize}
+    \item \textbf{Manejo de Zonas Horarias:} Coordinar las zonas horarias entre la API de Fitbit (que puede usar la hora local del usuario), Python y PostgreSQL (que almacena \texttt{TIMESTAMPTZ} típicamente en UTC) fue complejo. La solución implicó intentar obtener la zona horaria del usuario desde Fitbit (si es posible) o asumir una por defecto, y convertir consistentemente todos los timestamps a UTC antes de almacenarlos en la base de datos, utilizando librerías como \texttt{datetime} y potencialmente \texttt{pytz} o el módulo \texttt{zoneinfo}.
+    \item \textbf{Gestión de Límites de Tasa de la API (Rate Limiting):} La API de Fitbit \citep{fitbit_api_reference} impone límites en el número de peticiones que una aplicación puede realizar en un periodo determinado. Aunque no se implementó un sistema sofisticado de gestión de caché o colas, la ejecución espaciada mediante \texttt{cron} y el procesamiento de usuarios de forma secuencial ayudaron a mitigar el riesgo de exceder los límites básicos. En un sistema con muchos usuarios, serían necesarias estrategias más avanzadas (ej. esperar y reintentar con backoff exponencial, caché de respuestas).
+    \item \textbf{Complejidad de los Callbacks de Dash:} El callback principal que actualiza todos los gráficos puede volverse complejo y potencialmente lento si las consultas a la base de datos o el procesamiento de datos son costosos. Se intentó mantener las consultas eficientes (aprovechando TimescaleDB) y el procesamiento directo. Para dashboards más complejos, podrían explorarse técnicas como callbacks en paralelo (si aplica), almacenamiento en caché de resultados intermedios (\texttt{dcc.Store}), o incluso dividir en múltiples callbacks más pequeños.
+    \item \textbf{Gestión Segura de Claves:} Asegurar que la clave de cifrado para los tokens (\texttt{ENCRYPTION\_KEY}) y las credenciales de la API de Fitbit (\texttt{client\_id}, \texttt{client\_secret}) no se almacenen directamente en el código fuente fue crucial. La solución adoptada fue gestionarlas a través de variables de entorno, cargadas por la aplicación al inicio. En entornos de producción, se podrían usar sistemas de gestión de secretos más robustos.
+    \item \textbf{Robustez de los Scripts de Adquisición:} Asegurar que un error al procesar un usuario (ej. token inválido, error inesperado de la API) no detuviera la adquisición para los demás usuarios. Esto se logró implementando bloques \texttt{try...except} alrededor del procesamiento de cada usuario individual y registrando los errores adecuadamente (utilizando el módulo \texttt{logging} de Python) para su posterior revisión.
+\end{itemize}
+Abordar estos desafíos fue esencial para lograr un prototipo funcional y razonablemente robusto.
+
+\subsection{Criterios y Técnicas para la Generación de Alertas}
+El sistema implementa un conjunto de reglas y umbrales (\textit{thresholds}) para la detección automática de situaciones de alerta en los datos de los usuarios. Estos umbrales han sido definidos combinando:
+
+\begin{itemize}
+    \item \textbf{Evidencia científica y guías clínicas:} Se han consultado estudios en gerontología, cardiología y medicina del sueño para establecer valores de referencia y cambios clínicamente relevantes~\cite{Smith2019, Owen2020, Irwin2015}.
+    \item \textbf{Técnicas estadísticas:} Para la detección de anomalías en variables como la frecuencia cardíaca, se emplean métodos basados en la desviación estándar respecto a la media individual, lo que permite una personalización automática de los umbrales.
+    \item \textbf{Porcentajes de cambio:} En métricas como pasos, tiempo sedentario o duración del sueño, se utilizan umbrales porcentuales (por ejemplo, caídas del 30\% o 50\%) para adaptarse a la línea base de cada usuario y detectar cambios significativos en su patrón habitual.
+    \item \textbf{Validación empírica:} Los umbrales han sido ajustados y validados con datos de prueba para asegurar un equilibrio entre sensibilidad (detectar problemas reales) y especificidad (evitar falsas alarmas).
+\end{itemize}
+
+La lógica de generación de alertas incluye tanto reglas basadas en cambios diarios (porcentuales o absolutos) como la detección de anomalías intradía mediante análisis de series temporales. Para una descripción detallada de los umbrales, criterios y su justificación científica, véase la Tabla~\ref{tab:anexo_umbrales_alertas} en el anexo.

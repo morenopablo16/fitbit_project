@@ -148,9 +148,9 @@ def get_intraday_data(access_token, email):
                     for point in dataset:
                         time_str = point.get('time')
                         value = point.get('value')
-                        if time_str and value:
-                            timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
-                            insert_intraday_metric(user_id, timestamp, 'heart_rate', value)
+                if time_str and value:
+                    timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    insert_intraday_metric(user_id, timestamp, 'heart_rate', value)
                             total_heart_rate_points += 1
                     
                     logger.info(f"Guardados {total_heart_rate_points} puntos de frecuencia cardíaca con detalle {detail_level}")
@@ -172,7 +172,7 @@ def get_intraday_data(access_token, email):
         if steps_response.status_code == 200:
             steps_data = steps_response.json()
             
-            if 'activities-steps-intraday' in steps_data:
+        if 'activities-steps-intraday' in steps_data:
                 intraday_data = steps_data['activities-steps-intraday']
                 dataset = intraday_data.get('dataset', [])
                 logger.info(f"Puntos de datos de pasos: {len(dataset)}")
@@ -187,9 +187,9 @@ def get_intraday_data(access_token, email):
                     for point in dataset:
                         time_str = point.get('time')
                         value = point.get('value')
-                        if time_str and value:
-                            timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
-                            insert_intraday_metric(user_id, timestamp, 'steps', value)
+                if time_str and value:
+                    timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    insert_intraday_metric(user_id, timestamp, 'steps', value)
                             total_steps_points += 1
                     
                     logger.info(f"Guardados {total_steps_points} puntos de pasos con detalle {detail_level}")
@@ -211,7 +211,7 @@ def get_intraday_data(access_token, email):
         if calories_response.status_code == 200:
             calories_data = calories_response.json()
             
-            if 'activities-calories-intraday' in calories_data:
+        if 'activities-calories-intraday' in calories_data:
                 intraday_data = calories_data['activities-calories-intraday']
                 dataset = intraday_data.get('dataset', [])
                 logger.info(f"Puntos de datos de calorías: {len(dataset)}")
@@ -226,9 +226,9 @@ def get_intraday_data(access_token, email):
                     for point in dataset:
                         time_str = point.get('time')
                         value = point.get('value')
-                        if time_str and value:
-                            timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
-                            insert_intraday_metric(user_id, timestamp, 'calories', value)
+                if time_str and value:
+                    timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    insert_intraday_metric(user_id, timestamp, 'calories', value)
                             total_calories_points += 1
                     
                     logger.info(f"Guardados {total_calories_points} puntos de calorías con detalle {detail_level}")
@@ -307,9 +307,9 @@ def get_intraday_data(access_token, email):
                     for point in dataset:
                         time_str = point.get('time')
                         value = point.get('value')
-                        if time_str and value:
-                            timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
-                            insert_intraday_metric(user_id, timestamp, 'active_zone_minutes', value)
+                    if time_str and value:
+                        timestamp = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M:%S")
+                        insert_intraday_metric(user_id, timestamp, 'active_zone_minutes', value)
                             total_active_zone_points += 1
                     
                     logger.info(f"Guardados {total_active_zone_points} puntos de minutos activos con detalle {detail_level}")
@@ -336,7 +336,7 @@ def get_intraday_data(access_token, email):
         
         if total_points > 0:
             logger.info("\n✅ RECOLECCIÓN DE DATOS INTRADÍA EXITOSA")
-            return True
+        return True
         else:
             logger.warning("\n❌ NO SE PUDIERON RECOLECTAR DATOS INTRADÍA")
             logger.warning("Posibles causas:")
@@ -378,38 +378,38 @@ def process_emails(emails):
     
     for email in valid_emails:
         try:
-            # Obtener el user_id más reciente asociado al correo electrónico
-            user_id = get_latest_user_id_by_email(email)
-            if not user_id:
+        # Obtener el user_id más reciente asociado al correo electrónico
+        user_id = get_latest_user_id_by_email(email)
+        if not user_id:
                 logger.warning(f"No se encontró un usuario con el correo {email}. Verifique que el usuario esté registrado.")
-                continue
-           
-            # Obtener y desencriptar los tokens
-            access_token, refresh_token = get_user_tokens(email)
-            if not access_token or not refresh_token:
+            continue
+       
+        # Obtener y desencriptar los tokens
+        access_token, refresh_token = get_user_tokens(email)
+        if not access_token or not refresh_token:
                 logger.warning(f"No se encontraron tokens válidos para el correo {email}. Es necesario vincular nuevamente el dispositivo.")
-                continue
+            continue
 
-            # Intentar obtener los datos de Fitbit
-            try:
+        # Intentar obtener los datos de Fitbit
+        try:
                 logger.info(f"Iniciando recolección de datos intradía para {email}")
                 success = get_intraday_data(access_token, email)
                 if success:
                     logger.info(f"Datos intradía recopilados exitosamente para {email}.")
-            except requests.exceptions.HTTPError as e:
+        except requests.exceptions.HTTPError as e:
                 if hasattr(e, 'response') and e.response and e.response.status_code == 401:
                     logger.warning(f"Token expirado para el correo {email}. Intentando refrescar el token...")
-                    new_access_token, new_refresh_token = refresh_access_token(refresh_token)
-                    if new_access_token and new_refresh_token:
-                        # Actualizar los tokens en la base de datos
-                        update_users_tokens(email, new_access_token, new_refresh_token)
+                new_access_token, new_refresh_token = refresh_access_token(refresh_token)
+                if new_access_token and new_refresh_token:
+                    # Actualizar los tokens en la base de datos
+                    update_users_tokens(email, new_access_token, new_refresh_token)
 
-                        # Volver a intentar la solicitud con el nuevo token
-                        try:
+                    # Volver a intentar la solicitud con el nuevo token
+                    try:
                             success = get_intraday_data(new_access_token, email)
                             if success:
                                 logger.info(f"Datos intradía recopilados exitosamente para {email} después de refrescar el token.")
-                        except requests.exceptions.HTTPError as e:
+                    except requests.exceptions.HTTPError as e:
                             logger.error(f"Error HTTP al obtener datos intradía para {email} después de refrescar el token: {e}")
                     else:
                         logger.error(f"No se pudo refrescar el token para {email}. Es necesario vincular nuevamente el dispositivo.")

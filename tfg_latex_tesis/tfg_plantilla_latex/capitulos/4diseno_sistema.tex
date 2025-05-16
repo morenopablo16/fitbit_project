@@ -1,0 +1,237 @@
+    % -*- coding: utf-8 -*-
+% --- Capítulo 4 ---
+% (Asegúrate de que la etiqueta \label es única y la usas para referencias)
+\chapter{Diseño y Arquitectura del Sistema}
+\label{chap:diseno_arquitectura} 
+
+En este capítulo se describe la arquitectura software global del sistema de monitorización y se detallan las decisiones de diseño clave tomadas para cada uno de sus componentes principales, basándose en la implementación realizada y disponible en el repositorio del proyecto \cite{github_repo_proyecto}. El diseño busca satisfacer los requisitos funcionales y no funcionales definidos en el capítulo anterior, con especial énfasis en la modularidad, la seguridad y la gestión eficiente de los datos.
+
+\section{Arquitectura General}
+\label{sec:arquitectura_general}
+
+El sistema se ha diseñado como una aplicación web con un backend que interactúa con una base de datos PostgreSQL (donde se habilita la extensión TimescaleDB para las tablas de métricas) y la API externa de Fitbit\textsuperscript{\textregistered}. La adquisición de datos se realiza mediante scripts Python independientes ejecutados periódicamente por el planificador del sistema operativo (`cron`). La figura \ref{fig:arquitectura_general} ilustra esta arquitectura.
+
+
+ \begin{figure}[htbp] 
+    \centering
+    \includegraphics[width=0.9\textwidth]{imagenes/arquitectura_general.png}
+    \caption{Arquitectura General del Sistema de Monitorización.}
+    \label{fig:arquitectura_general}
+ \end{figure}
+
+\textit{(Descripción conceptual de la Figura \ref{fig:arquitectura_general}):}
+\begin{itemize}
+    \item \textbf{Cliente Web (Navegador del Personal):} Interfaz de usuario HTML/CSS/JavaScript renderizada por Flask, con plantillas Jinja2 y visualizaciones interactivas implementadas con Chart.js. El sistema está diseñado desde el backend para soportar internacionalización (español/inglés), mejorando la accesibilidad y usabilidad para diferentes perfiles de usuario.
+    \item \textbf{Aplicación Web Backend (Flask App - \texttt{app.py}):} Punto de entrada principal para las interacciones del personal. Gestiona autenticación, interfaz/lógica de vinculación, y sirve las páginas del dashboard y APIs internas. La arquitectura desacopla la lógica de negocio (gestión de usuarios, tokens, alertas) de la presentación, facilitando la escalabilidad y el mantenimiento.
+    \item \textbf{Módulos Python del Backend:} Componentes lógicos como \texttt{auth.py}, \texttt{db.py}, \texttt{encryption.py} utilizados por la app Flask y los scripts.
+    \item \textbf{Scripts de Adquisición de Datos (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}):} Procesos Python independientes para obtener datos diarios e intradía de la API Fitbit, manejando tokens y almacenamiento. Esta separación permite que la adquisición de datos no bloquee la aplicación web y pueda escalarse o adaptarse a nuevas fuentes de datos en el futuro.
+    \item \textbf{Planificador del Sistema (`cron`):} Utilidad del sistema operativo que ejecuta periódicamente los scripts de adquisición (\texttt{.sh}).
+    \item \textbf{Base de Datos (PostgreSQL + TimescaleDB):} Instancia PostgreSQL con tabla relacional \texttt{users} (configuración, tokens cifrados) y hipertables TimescaleDB para datos de series temporales.
+    \item \textbf{API Externa de Fitbit\textsuperscript{\textregistered}:} Servicio externo que provee los datos y maneja la autorización OAuth 2.0.
+\end{itemize}   
+La arquitectura está diseñada para minimizar la exposición de datos sensibles: los tokens de acceso y refresco se almacenan cifrados y nunca se exponen en el frontend, y todas las operaciones críticas se realizan en el backend autenticado. Esta estructura modular y segura facilita la mantenibilidad, la escalabilidad y el cumplimiento de los requisitos de privacidad.
+
+\section{Diseño del Backend (Aplicación Flask y Scripts)}
+\label{sec:diseno_backend}
+
+El backend se compone de dos partes principales que interactúan a través de la base de datos:
+
+\begin{enumerate}
+    \item \textbf{Aplicación Web Flask (\texttt{app.py}):} Actúa como el servidor web principal y gestiona las interacciones síncronas del personal. Utiliza Flask-Login para la autenticación (compartida) y protege todas las rutas críticas, asegurando que solo usuarios autenticados puedan acceder a los datos sensibles. El sistema soporta internacionalización mediante Flask-Babel y plantillas multilenguaje, permitiendo cambiar el idioma de la interfaz de forma dinámica. La lógica de negocio está modularizada en diferentes archivos (\texttt{auth.py}, \texttt{db.py}, etc.), facilitando el mantenimiento y la extensión del sistema. El backend implementa una API REST interna para operaciones AJAX (precarga de dashboard, exportación de datos, actualización dinámica de alertas), mejorando la experiencia de usuario y la eficiencia. Además, se ha diseñado un sistema de logs y manejo robusto de errores para registrar incidencias y facilitar el diagnóstico. Entre sus responsabilidades clave destacan:
+        \begin{itemize}
+            \item Servir las páginas HTML para el login, la selección de email, la asignación de nombre y las confirmaciones (usando plantillas Jinja2 multilenguaje).
+            \item Gestionar el flujo OAuth 2.0: generar parámetros (`state`, `code\_challenge`), construir la URL de autorización, manejar la redirección del usuario a Fitbit\textsuperscript{\textregistered} y procesar el `callback`.
+            \item Interactuar con \texttt{auth.py} para obtener los tokens a partir del código de autorización.
+            \item Interactuar con \texttt{db.py} y \texttt{encryption.py} para guardar/actualizar la información del usuario y los tokens cifrados en la tabla \texttt{users}.
+            \item Servir el dashboard y exponer endpoints API para la precarga y actualización eficiente de datos, optimizando la latencia y la escalabilidad.
+            \item Gestionar logs y errores de forma centralizada para garantizar la robustez del sistema.
+        \end{itemize}
+
+    \item \textbf{Scripts de Adquisición de Datos (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}):} Son procesos Python independientes ejecutados por `cron`. Cada script típicamente realiza un bucle sobre los usuarios activos recuperados de la base de datos (\texttt{db.py}) y para cada uno:
+        \begin{itemize}
+            \item Obtiene y descifra los tokens (\texttt{encryption.py}, \texttt{db.py}).
+            \item Verifica la validez del token de acceso (\texttt{expires\_at}). Si es necesario, intenta refrescarlo usando el token de refresco (\texttt{auth.py}, \texttt{fitbit.py}) y actualiza los tokens cifrados y la expiración en la BD (\texttt{db.py}).
+            \item Si los tokens son válidos, realiza las llamadas correspondientes a la API de Fitbit\textsuperscript{\textregistered} (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}).
+            \item Procesa la respuesta JSON y maneja posibles errores, registrando los fallos y continuando con el siguiente usuario para garantizar la robustez.
+            \item Se conecta a la BD (\texttt{db.py}) para insertar los datos procesados en las tablas/hipertablas de TimescaleDB apropiadas.
+            \item Tras la inserción, ejecuta la lógica de evaluación de alertas de forma desacoplada, permitiendo la extensión futura a reglas más complejas o nuevos tipos de datos.
+        \end{itemize}
+\end{enumerate}
+Esta separación y modularidad permiten que la adquisición de datos no bloquee la aplicación web, facilitan la escalabilidad (añadiendo más scripts o fuentes de datos) y mejoran la mantenibilidad del sistema.
+
+\section{Diseño de la Base de Datos (PostgreSQL + TimescaleDB)}
+\label{sec:diseno_bd}
+
+Se utiliza una única base de datos \textbf{PostgreSQL}, aprovechando la extensión \textbf{TimescaleDB} para optimizar el manejo de datos de series temporales. La elección de TimescaleDB se debe a su integración nativa con PostgreSQL, su soporte para consultas SQL estándar y su capacidad para gestionar grandes volúmenes de datos temporales de forma eficiente, lo que resulta especialmente adecuado para aplicaciones de monitorización continua.
+
+El diseño se basa en una tabla relacional para la gestión de usuarios y vinculaciones, y un conjunto de hipertables para los datos temporales. La normalización del modelo permite mantener la integridad y facilitar la extensión futura (por ejemplo, añadiendo nuevas métricas o tipos de alertas).
+
+\begin{itemize}
+    \item \textbf{Tabla \texttt{users}:} Almacena la información básica de los usuarios y la vinculación con Fitbit\textsuperscript{\textregistered}, incluyendo nombre, email y credenciales cifradas. Es la tabla central para la gestión de usuarios y la referencia de integridad en el resto del modelo.
+    \item \textbf{Hipertabla \texttt{daily\_summaries}:} Guarda los resúmenes diarios de actividad, sueño y biomarcadores para cada usuario y fecha. Permite analizar tendencias y detectar cambios relevantes en la salud.
+    \item \textbf{Hipertabla \texttt{intraday\_metrics}:} Registra datos de alta frecuencia (minuto a minuto u hora a hora) como pasos, frecuencia cardíaca, calorías, etc. Es clave para la detección de patrones y anomalías intradía.
+    \item \textbf{Hipertabla \texttt{sleep\_logs}:} Almacena episodios de sueño detallados, incluyendo fases y eficiencia, para cada usuario. Permite análisis avanzados de calidad y patrones de sueño.
+    \item \textbf{Hipertabla \texttt{alerts}:} Registra todas las alertas generadas por el sistema, asociando cada evento con el usuario, el tipo de alerta, prioridad, valores disparadores y detalles. Es la base para la visualización y gestión clínica de incidencias.
+\end{itemize}
+
+La Figura~\ref{fig:esquema_relacional} muestra el esquema relacional completo, incluyendo las claves primarias y foráneas que aseguran la integridad referencial entre las tablas.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imagenes/esquema_relacional.png}
+    \caption{Esquema relacional de la base de datos del sistema.}
+    \label{fig:esquema_relacional}
+\end{figure}
+
+El detalle de las sentencias SQL \texttt{CREATE TABLE} y la explicación de cada campo se encuentra en el \textbf{Anexo~\ref{app:db_schema}}.
+
+\section{Diseño de la Integración con Fitbit}
+\label{sec:diseno_integracion_fitbit}
+
+La integración con la API de Fitbit\textsuperscript{\textregistered} se ha diseñado priorizando la seguridad, la robustez y el cumplimiento normativo (RGPD). El sistema utiliza el flujo OAuth 2.0 con PKCE, estándar para aplicaciones web, que protege frente a ataques de interceptación y CSRF. La lógica de autenticación y autorización está desacoplada de la adquisición y almacenamiento de datos, permitiendo una gestión segura y flexible de los tokens.
+
+Los tokens de acceso y refresco se cifran inmediatamente tras su obtención y se almacenan en la base de datos, utilizando una clave secreta gestionada como variable de entorno (nunca en el código fuente). Los tokens solo se descifran en memoria cuando es necesario realizar una llamada a la API o refrescarlos.
+
+El sistema implementa una gestión robusta de tokens: antes de cada acceso a datos protegidos, se verifica la validez del token de acceso y, si es necesario, se utiliza el token de refresco para obtener uno nuevo. Si el refresco falla (por ejemplo, si el usuario ha revocado permisos), se notifica la incidencia y se requiere reautorizar la vinculación.
+
+La arquitectura modular permite, en el futuro, integrar otras APIs de dispositivos o servicios de salud con mínimos cambios en la lógica de autenticación y almacenamiento seguro.
+
+\begin{itemize}
+    \item \textbf{OAuth 2.0 con PKCE:} Se implementa el flujo Authorization Code Grant con PKCE para la vinculación inicial, utilizando parámetros de seguridad como \texttt{state} y \texttt{code\_challenge}.
+    \item \textbf{Gestión segura de tokens:} Los tokens se cifran antes de almacenarse y solo se descifran en memoria cuando es imprescindible. La clave de cifrado se gestiona externamente.
+    \item \textbf{Refresco automático y robusto:} El sistema refresca los tokens de forma transparente y registra cualquier error o revocación, permitiendo la intervención manual si es necesario.
+    \item \textbf{Control de errores y versionado:} Se gestionan los códigos de estado HTTP y el versionado de la API, asegurando la compatibilidad y la robustez ante cambios o incidencias externas.
+\end{itemize}
+
+\section{Diseño del Pipeline de Datos}
+\label{sec:diseno_pipeline}
+
+El pipeline de datos del sistema está diseñado para garantizar la adquisición, validación, almacenamiento y análisis eficiente de la información proveniente de los dispositivos Fitbit, así como su posterior visualización y explotación clínica. El flujo general es el siguiente:
+
+\begin{enumerate}
+    \item \textbf{Orquestación por cron:} El planificador del sistema operativo (\texttt{cron}) ejecuta periódicamente los scripts de adquisición (\texttt{fitbit.py}, \texttt{fitbit\_intraday.py}) mediante scripts \texttt{.sh}.
+    \item \textbf{Adquisición y validación:} Cada script obtiene la lista de usuarios y sus credenciales cifradas desde la base de datos, descifra los tokens y valida/refresca el acceso a la API de Fitbit. Si hay errores de autenticación, se registran y se continúa con el siguiente usuario.
+    \item \textbf{Obtención y almacenamiento de datos:} Para cada usuario, se descargan los datos diarios e intradía, se validan y se insertan en las hipertablas correspondientes de TimescaleDB (\texttt{daily\_summaries}, \texttt{intraday\_metrics}, \texttt{sleep\_logs}).
+    \item \textbf{Evaluación de alertas:} Tras la inserción de nuevos datos, se ejecuta la lógica de evaluación de alertas (módulo \texttt{alert\_rules.py}), que compara los datos recientes con los umbrales definidos y registra cualquier evento relevante en la tabla \texttt{alerts}.
+    \item \textbf{Visualización y explotación:} El backend Flask expone endpoints y plantillas que permiten al personal consultar, filtrar y exportar los datos y alertas, incluyendo la precarga eficiente del dashboard y la optimización de consultas para mejorar la experiencia de usuario.
+\end{enumerate}
+
+Este diseño desacopla completamente la adquisición y análisis de datos de la visualización, permitiendo escalar ambos componentes de forma independiente y facilitando la integración futura de nuevas fuentes de datos o reglas de alerta.
+
+\vspace{0.5cm}
+
+El flujo de datos, desde la adquisición en la API de Fitbit hasta la visualización en el dashboard, se resume en la Figura~\ref{fig:flujo_datos}. Este diagrama ilustra los pasos principales: adquisición, almacenamiento, procesamiento de alertas y visualización.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth, height=0.3\textheight]{imagenes/flujo_datos.png}
+    \caption{Flujo de datos desde la API de Fitbit hasta la visualización en el dashboard.}
+    \label{fig:flujo_datos}
+\end{figure}
+
+\subsection{Evaluación Dinámica de Reglas de Alerta}
+La detección de anomalías y generación de alertas se realiza de forma automática tras cada ingesta de datos, mediante funciones desacopladas del frontend y definidas en un módulo específico. Las reglas pueden consultar ventanas temporales (por ejemplo, 7 días de pasos o sueño) y comparar los valores actuales con medias, umbrales o desviaciones estándar. El resultado se almacena en la tabla \texttt{alerts}, permitiendo su posterior revisión clínica.
+
+El diseño modular facilita la incorporación de nuevas reglas, la extensión a patrones más complejos o incluso la integración futura de algoritmos de aprendizaje automático.
+
+\section{Diseño de la Interfaz de Usuario}
+\label{sec:diseno_ui}
+
+La interfaz de usuario (UI) del sistema está diseñada para ser intuitiva, accesible y eficiente, facilitando tanto la gestión administrativa como la visualización clínica de los datos monitorizados. Se compone de dos grandes bloques:
+
+\begin{itemize}
+    \item \textbf{Interfaz de Gestión y Vinculación (Flask/HTML + Bootstrap):}
+        \begin{itemize}
+            \item Implementada mediante plantillas Jinja2 renderizadas por Flask (\texttt{app.py}), con soporte completo para internacionalización (español/inglés).
+            \item Incluye páginas para login, vinculación de dispositivos, asignación y reasignación de usuarios, y confirmaciones de acciones.
+            \item Utiliza formularios HTML y Bootstrap para garantizar una experiencia de usuario moderna y responsiva.
+            \item El flujo de vinculación guía al usuario de forma clara a través del proceso OAuth 2.0, mostrando mensajes de error y confirmación según corresponda.
+        \end{itemize}
+    \item \textbf{Dashboard de Visualización y Alertas:}
+        \begin{itemize}
+            \item Implementado como un conjunto de vistas Flask con plantillas Jinja2 y componentes interactivos (JavaScript, Chart.js).
+            \item Permite visualizar resúmenes diarios, métricas intradía, patrones de sueño y alertas recientes para cada usuario.
+            \item Incluye filtros avanzados (por usuario, fecha, tipo de alerta, prioridad, etc.) y opciones de exportación a CSV.
+            \item La precarga de datos y la optimización de consultas mejoran la velocidad de carga y la experiencia de usuario, especialmente en el dashboard de alertas.
+            \item El diseño es accesible y responsivo, adaptándose a diferentes dispositivos y perfiles de usuario.
+        \end{itemize}
+\end{itemize}
+
+La interfaz está pensada para facilitar la labor clínica y administrativa, permitiendo identificar rápidamente incidencias relevantes y acceder a los datos históricos de cada usuario. La modularidad y el uso de tecnologías estándar (Flask, Bootstrap, Chart.js) aseguran la mantenibilidad y la posibilidad de futuras ampliaciones.
+
+\subsection*{Ficha de Usuario y Visualización Individual}
+Una de las vistas más relevantes del sistema es la \textbf{ficha de usuario} (\texttt{user\_detail.html}), que centraliza toda la información relevante de cada paciente o usuario monitorizado. Esta vista está diseñada para facilitar la toma de decisiones clínicas y el seguimiento personalizado, integrando:
+
+\begin{itemize}
+    \item \textbf{Resumen de datos personales:} nombre, email, fecha de registro y estado de actividad reciente.
+    \item \textbf{Métricas clave del día:} pasos, frecuencia cardíaca, horas de sueño, calorías, etc., resaltando visualmente cualquier valor anómalo o alerta activa.
+    \item \textbf{Alertas recientes:} listado de alertas generadas en los últimos días, con posibilidad de reconocerlas directamente desde la ficha.
+    \item \textbf{Gráficos interactivos:} evolución semanal de pasos, sueño, frecuencia cardíaca y minutos activos, así como visualización intradía y análisis de patrones de inactividad, implementados con Chart.js.
+    \item \textbf{Tabs de navegación:} acceso rápido a diferentes vistas (resumen diario, intradía, semanal, alertas, inactividad).
+    \item \textbf{Exportación y actualización:} botones para exportar datos a CSV y actualizar la información en tiempo real.
+    \item \textbf{Accesibilidad y usabilidad:} diseño responsivo, iconografía clara, leyendas de colores para priorización y mensajes de estado.
+\end{itemize}
+
+Esta ficha ejemplifica la integración de todos los módulos del sistema (adquisición, almacenamiento, análisis y visualización), permitiendo al personal sanitario o gestor acceder de forma rápida y comprensible a la información más relevante para cada usuario.
+
+\subsection{Diseño del Módulo de Alertas}
+\label{subsec:diseno_alertas}
+
+El módulo de alertas es un componente central del sistema, encargado de analizar los datos almacenados y detectar automáticamente situaciones clínicas relevantes o anomalías en la actividad, el sueño o la frecuencia cardíaca de los usuarios. Su diseño es modular y desacoplado del frontend, permitiendo su ejecución periódica tras cada ingesta de datos y facilitando la extensión futura con nuevas reglas o métricas.
+
+\begin{itemize}
+    \item \textbf{Acceso a datos históricos:} El módulo dispone de funciones específicas (en \texttt{db.py}) para recuperar las métricas necesarias en ventanas temporales (por ejemplo, los últimos 7 días de pasos o sueño) y realizar comparaciones con la línea base individual de cada usuario.
+    \item \textbf{Lógica de comparación y reglas:} Las reglas de alerta están implementadas en Python (\texttt{alert\_rules.py}) y se basan en umbrales científicos, porcentajes de cambio, desviaciones estándar o rangos fisiológicos. Cada función evalúa si los datos actuales superan los límites definidos y, en caso afirmativo, genera una alerta con prioridad, tipo, valor disparador y detalles clínicos.
+    \item \textbf{Registro y gestión de alertas:} Las alertas detectadas se almacenan en la tabla \texttt{alerts}, asociando cada evento con el usuario, la métrica, la prioridad y una descripción. Esto permite su posterior visualización, filtrado y exportación desde el dashboard.
+    \item \textbf{Extensibilidad:} El diseño permite añadir fácilmente nuevas reglas, métricas o fuentes de datos, así como adaptar los umbrales según la evidencia clínica o la experiencia práctica.
+\end{itemize}
+
+\subsubsection*{Manejo de Datos Faltantes o Erróneos}
+La calidad de los datos de wearables puede verse afectada por desconexiones, falta de uso o errores de medición. El sistema implementa estrategias robustas para minimizar falsas alarmas y garantizar la fiabilidad de las alertas:
+\begin{itemize}
+    \item Se requiere un porcentaje mínimo de días con datos válidos en las ventanas temporales para evaluar una alerta (por ejemplo, al menos 5 de 7 días).
+    \item Se aplican filtros de rango fisiológico antes de procesar los datos (por ejemplo, descartar valores de frecuencia cardíaca fuera de 30-200 bpm o pasos diarios superiores a 50.000).
+    \item Los datos faltantes críticos generan alertas de calidad de datos, permitiendo al personal identificar posibles problemas de uso o sincronización.
+\end{itemize}
+
+\subsubsection*{Optimización y Rendimiento}
+Dado el volumen potencial de datos y la necesidad de evaluaciones históricas frecuentes, el sistema optimiza el acceso y procesamiento mediante:
+\begin{itemize}
+    \item Índices compuestos en las hipertablas de TimescaleDB (por ejemplo, sobre \texttt{(user\_id, time)}) para acelerar las consultas.
+    \item Cálculos eficientes en los scripts, reutilizando los datos recuperados para varias métricas cuando es posible.
+    \item Procesamiento asíncrono y desacoplado mediante la ejecución periódica por \texttt{cron}, evitando que la evaluación de alertas afecte la experiencia de usuario en la interfaz web.
+\end{itemize}
+
+\subsubsection*{Diagrama de Flujo del Proceso de Detección de Alertas}
+El proceso lógico para la detección y registro de alertas sigue el flujo ilustrado en la Figura~\ref{fig:diagrama_alertas}:
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth,height=0.6\textheight]{imagenes/diagrama_alertas.png} 
+    \caption{Diagrama de flujo del proceso de detección y priorización de alertas. Muestra la obtención de datos, preprocesamiento, evaluación de criterios individuales y combinados, asignación de prioridad y registro.}
+    \label{fig:diagrama_alertas}
+\end{figure}
+
+Este diseño permite que la evaluación de alertas se beneficie de las optimizaciones de consulta de TimescaleDB y se mantenga desacoplada de la interfaz de usuario, garantizando robustez, escalabilidad y relevancia clínica.
+
+\subsection{Arquitectura de la Interfaz Web y Dashboards}
+\label{sec:arquitectura_dashboard}
+
+La interfaz web del sistema está compuesta por dos dashboards principales:
+
+\begin{itemize}
+    \item \textbf{Dashboard de Alertas:} Permite al personal autorizado visualizar, filtrar y exportar todas las alertas generadas por el sistema. Incluye filtros por fecha, usuario, tipo de alerta, prioridad y estado de reconocimiento. Cada alerta puede ser reconocida manualmente y se muestra información detallada, incluyendo datos intradía relevantes y contexto clínico.
+    \item \textbf{Dashboard de Usuarios:} Presenta un listado de todos los usuarios monitorizados, con búsqueda por nombre o email y estado de actividad reciente. Desde aquí se accede a la ficha de usuario.
+\end{itemize}
+
+La \textbf{ficha de usuario} incluye:
+\begin{itemize}
+    \item Resumen diario de métricas clave (pasos, frecuencia cardíaca, sueño, calorías, etc.).
+    \item Visualización de datos intradía (gráficos de pasos, FC, calorías, minutos activos).
+    \item Resumen semanal (tendencias de pasos, sueño, actividad, etc.).
+    \item Listado de alertas recientes y posibilidad de exportarlas.
+    \item Análisis de patrones de inactividad (detección de periodos prolongados sin actividad).
+    \item Exportación de datos históricos e intradía en formato CSV.
+\end{itemize}
+
+La navegación entre dashboards y fichas de usuario es intuitiva y está protegida por autenticación. El diseño prioriza la claridad visual y la accesibilidad para facilitar la toma de decisiones clínicas.

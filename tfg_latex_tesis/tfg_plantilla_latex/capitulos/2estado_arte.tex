@@ -7,25 +7,16 @@ Este capítulo revisa el estado actual de la monitorización remota de salud en 
 \section{Monitorización Remota de Salud en Personas Mayores}
 \label{sec:ea_monitorizacion_remota}
 
-La monitorización remota de pacientes (RPM, por sus siglas en inglés, \textbf{Remote Patient Monitoring}) ha ganado relevancia en los últimos años, impulsada por los avances tecnológicos y la necesidad de modelos de atención sanitaria más eficientes \cite{noah2022mobile}. En personas mayores, la RPM permite la detección temprana de deterioros, la reducción de hospitalizaciones y la mejora de la independencia y la tranquilidad de usuarios y cuidadores \cite{bashshur2018telemedicine}.
+La monitorización remota de pacientes (RPM, por sus siglas en inglés, \textbf{Remote Patient Monitoring}) ha ganado relevancia impulsada por la necesidad de modelos de atención sanitaria más eficientes, especialmente para la población mayor \cite{noah2022mobile}. En España, donde más del 20\% de la población supera los 65 años \cite{ine_proyeccion_2022_2072}, la RPM permite la detección temprana de deterioros y la mejora de la independencia de usuarios y cuidadores \cite{bashshur2018telemedicine}.
 
-Existen diversas aproximaciones a la RPM, desde sistemas basados en sensores ambientales instalados en el hogar hasta el uso de dispositivos médicos específicos o, cada vez más, el aprovechamiento de dispositivos de consumo como smartphones y wearables \cite{majumder2017wearable}. Sin embargo, la implementación exitosa de sistemas RPM para la población mayor también enfrenta desafíos importantes. Entre ellos destacan la usabilidad y aceptación de la tecnología por parte de los usuarios mayores, la gestión de la gran cantidad de datos generados, la necesidad de garantizar la fiabilidad y precisión de los datos, la interoperabilidad entre diferentes dispositivos y sistemas, y la gestión de la privacidad y seguridad de datos de salud altamente sensibles \cite{lee2021challenges}.
+Las aproximaciones a la RPM varían desde sensores ambientales hasta dispositivos médicos específicos o wearables de consumo \cite{majumder2017wearable}. Los principales desafíos incluyen la usabilidad para usuarios mayores, la gestión de datos masivos, la fiabilidad de las mediciones y la privacidad de datos sensibles \cite{lee2021challenges}.
 
 \subsection{Bases científicas y enfoque práctico para la detección de alertas}
 \label{subsec:bases_alertas}
 
-Más allá de la simple visualización, el valor añadido de la monitorización remota reside en la detección temprana de cambios relevantes en la salud del usuario. En este sistema, la selección de parámetros y la lógica de alerta se fundamentan en la literatura científica, pero se implementan mediante reglas y umbrales explícitos, adaptados a la práctica real y a las limitaciones de los datos disponibles por Fitbit. Los principales parámetros monitorizados son:
+El sistema implementa reglas y umbrales basados en evidencia científica, adaptados a las limitaciones de los datos disponibles por Fitbit. Los principales parámetros monitorizados incluyen actividad física (caídas del 30-50\% respecto a la media semanal) \cite{rebelo_physical_inactivity_consequences_2020, who_guidelines_2020}, sedentarismo \cite{bellettiere_pa_sedentary_aging_women_2017}, patrones de sueño \cite{nsf_older_adult_sleep_2022} y frecuencia cardíaca \cite{kang_hrv_thresholds_mortality_2021}. Los umbrales detallados y su justificación se documentan en el Anexo~\ref{anexo:umbrales_alertas}.
 
-\begin{itemize}
-    \item \textbf{Actividad física:} Se monitorizan caídas porcentuales significativas respecto a la media semanal individual, siguiendo la evidencia de que reducciones del 30\% o 50\% en la actividad habitual pueden indicar deterioro funcional o riesgo de eventos adversos \cite{rebelo_physical_inactivity_consequences_2020, who_guidelines_2020}. El sistema genera alertas cuando la actividad diaria cae por debajo de estos umbrales, calculados dinámicamente para cada usuario.
-    \item \textbf{Sedentarismo:} Se detectan aumentos notables en el tiempo sedentario, comparando el valor diario con la línea base personal. Umbrales del 30\% y 50\% de incremento se emplean para alertas de prioridad media y alta, respectivamente, en línea con estudios recientes \cite{bellettiere_pa_sedentary_aging_women_2017}.
-    \item \textbf{Sueño:} Se evalúan cambios en la duración del sueño respecto al patrón habitual del usuario. Variaciones superiores al 30\% (tanto por exceso como por defecto) generan alertas, dado su vínculo con deterioro cognitivo y fragilidad \cite{nsf_older_adult_sleep_2022, westman_sleep_cognition_nordic_2024, pinto_sleep_frailty_review_2025}.
-    \item \textbf{Frecuencia cardíaca:} Se monitorizan anomalías en la frecuencia cardíaca en reposo (RHR) y su variabilidad (HRV), comparando los valores diarios con la media y desviación estándar individual. Se generan alertas si se superan umbrales relativos (por ejemplo, más de 2 desviaciones estándar respecto a la media semanal), siguiendo recomendaciones de la literatura \cite{kang_hrv_thresholds_mortality_2021, shaffer_overview_hrv_2017}.
-\end{itemize}
-
-Todos los umbrales se documentan y justifican en los anexos técnicos, y se calculan de forma personalizada para cada usuario.
-
-\subsection{Sistemas de alerta en salud digital: enfoque implementado y efectividad}
+\subsection{Sistemas de alerta en salud digital}
 \label{subsec:sistemas_alerta_comparativa}
 
 La generación de alertas en este sistema se basa en un enfoque de reglas y umbrales explícitos, implementados en el backend (véase \texttt{alert\_rules.py}), por ser la opción más transparente y trazable para entornos clínicos y de cuidado. Este método, ampliamente utilizado en salud digital \cite{alam_alert_systems_review_2019}, permite adaptar fácilmente los criterios a nuevas evidencias o necesidades del usuario. Aunque existen enfoques más complejos (como modelos predictivos o integración de múltiples fuentes), en este TFG se prioriza la robustez, la interpretabilidad y la facilidad de validación.
@@ -41,45 +32,30 @@ La definición de umbrales se basa en la literatura científica y en la experien
 \section{Dispositivos Wearables: El Caso de Fitbit}
 \label{sec:ea_fitbit}
 
-El mercado de dispositivos wearables ha experimentado un crecimiento exponencial, ofreciendo una amplia gama de productos capaces de monitorizar diversos parámetros fisiológicos y de actividad \cite{fortune_wearable_market}. Fitbit\textsuperscript{\textregistered} (ahora parte de Google) se ha consolidado como una de las marcas líderes en el segmento de pulseras y relojes de actividad física y bienestar. Sus dispositivos suelen incluir sensores como acelerómetros (para contar pasos y detectar movimiento/sueño) y fotopletismógrafos (PPG) para medir la frecuencia cardíaca \cite{fitbit_how_hr_works}.
+El mercado de dispositivos wearables ha experimentado un crecimiento exponencial \cite{fortune_wearable_market}. Fitbit\textsuperscript{\textregistered}, ahora parte de Google, es líder en pulseras y relojes de actividad física, con dispositivos que incluyen acelerómetros y fotopletismógrafos (PPG) para medir movimiento y frecuencia cardíaca \cite{fitbit_how_hr_works}.
 
-Los datos típicamente accesibles a través de la API de Fitbit\textsuperscript{\textregistered} incluyen resúmenes diarios y, en algunos casos, datos intradía (con granularidad variable) de pasos, distancia, calorías quemadas, minutos de actividad, fases y duración del sueño, y frecuencia cardíaca \cite{fitbit_api_reference}. Si bien estos dispositivos no son instrumentos médicos certificados, diversos estudios han evaluado su precisión. Por ejemplo, la medición de la frecuencia cardíaca en reposo suele considerarse razonablemente precisa, aunque puede disminuir durante actividad física intensa. La detección de fases del sueño y el conteo de pasos también muestran una correlación aceptable con métodos de referencia en muchos estudios, aunque existen limitaciones y variabilidad entre dispositivos y condiciones de uso \cite{haghayegh2019accuracy, nelson2016validity}. Es crucial tener en cuenta estas consideraciones al interpretar los datos y diseñar el sistema. La adquisición de Fitbit por Google puede afectar la disponibilidad futura de la API \cite{google_fitbit_acquisition_info}.
+Su API proporciona datos diarios e intradía de actividad física, sueño y frecuencia cardíaca \cite{fitbit_api_reference}. Aunque no son dispositivos médicos certificados, estudios validan su precisión aceptable en mediciones como frecuencia cardíaca en reposo, fases del sueño y conteo de pasos, con ciertas limitaciones según el dispositivo y condiciones de uso \cite{haghayegh2019accuracy, nelson2016validity}. Estas consideraciones son cruciales al interpretar los datos. La adquisición por Google podría afectar la disponibilidad futura de la API \cite{google_fitbit_acquisition_info}.
 \section{Tecnologías Habilitadoras}
 \label{sec:ea_tecnologias}
 
-El desarrollo del sistema de monitorización propuesto se apoya en un conjunto de tecnologías clave que se describen a continuación.
-
 \subsection{API de Fitbit y OAuth 2.0}
 \label{subsec:ea_fitbit_api_oauth}
-
 El acceso a los datos de los usuarios de Fitbit\textsuperscript{\textregistered} se realiza exclusivamente a través de su API web oficial. Se trata de una API RESTful que utiliza el formato JSON para el intercambio de datos \cite{fitbit_api_reference}. Proporciona diversos \textit{endpoints} para obtener información del perfil del usuario, resúmenes de actividad diaria, datos de series temporales (como frecuencia cardíaca o pasos a lo largo del día con cierta granularidad), información sobre el sueño, etc. Para poder acceder a los datos de un usuario, es imprescindible obtener su consentimiento explícito a través del protocolo de autorización estándar \textbf{OAuth 2.0} \cite{oauth_spec_rfc6749}.
 
-En este proyecto, se implementa el flujo \textit{Authorization Code Grant} de OAuth 2.0, considerado el más seguro para aplicaciones web con backend. Dado que la aplicación web desarrollada está pensada para ser operada por personal autorizado (ej. un recepcionista o cuidador en una residencia) y no directamente por el usuario final (la persona mayor), el flujo de vinculación se adapta ligeramente:
-\begin{enumerate}
-    \item El personal autorizado inicia sesión en la aplicación web del sistema de monitorización.
-    \item Dentro de la aplicación, selecciona al residente o usuario final cuya cuenta de Fitbit\textsuperscript{\textregistered} desea vincular (identificado por su nombre y correo electrónico asociado a Fitbit\textsuperscript{\textregistered}).
-    \item La aplicación web redirige el navegador del personal autorizado a la página de inicio de sesión y autorización de Fitbit\textsuperscript{\textregistered}, indicando los permisos (scopes) específicos que la aplicación necesita (ej. leer datos de frecuencia cardíaca, leer datos de actividad).
-    \item El personal autorizado (o, idealmente, el propio residente si está presente y puede hacerlo) introduce las credenciales de la cuenta de Fitbit\textsuperscript{\textregistered} del residente y autoriza explícitamente a la aplicación a acceder a los datos solicitados en nombre de ese residente.
-    \item Fitbit\textsuperscript{\textregistered} redirige el navegador de vuelta a la aplicación web del sistema, incluyendo un código de autorización temporal en la URL de redirección.
-    \item El backend de la aplicación web recibe este código de autorización. De forma segura y sin exponerlo al navegador, intercambia este código (junto con las credenciales de la aplicación cliente registrada en Fitbit\textsuperscript{\textregistered}) directamente con el servidor de autorización de Fitbit\textsuperscript{\textregistered} para obtener un token de acceso (Access Token) y un token de refresco (Refresh Token) asociados a la cuenta del residente.
-    \item El token de acceso se almacena de forma segura asociado al residente y se utiliza para realizar las llamadas posteriores a la API para obtener sus datos. Estos tokens tienen una vida útil limitada (ej. 8 horas).
-    \item Cuando el token de acceso expira, el backend utiliza el token de refresco para obtener nuevos tokens automáticamente.
-\end{enumerate}
+En este proyecto, se implementa el flujo \textit{Authorization Code Grant} de OAuth 2.0, considerado el más seguro para aplicaciones web con backend. Los detalles técnicos completos del proceso de autenticación y autorización, incluyendo diagramas de secuencia, ejemplos de respuestas de la API, y la gestión de tokens, se encuentran documentados en el Anexo~\ref{anexo:oatuh_fitbit}.
 La correcta y segura gestión de estos tokens (almacenamiento cifrado o seguro, uso exclusivo en el backend, uso de HTTPS en todas las comunicaciones) es fundamental para la seguridad y privacidad del sistema \cite{oauth_security_bcp_rfc8252}.
 
 \subsection{Arquitecturas de Microservicios}
 \label{subsec:ea_microservicios}
 
-Frente a las arquitecturas monolíticas tradicionales, donde toda la funcionalidad de la aplicación reside en un único proceso desplegable, la arquitectura de microservicios estructura la aplicación como una colección de servicios pequeños, autónomos y débilmente acoplados \cite{fowler_microservices}. Cada servicio se centra en una capacidad de negocio específica, se comunica con otros servicios a través de APIs bien definidas (normalmente sobre HTTP/REST o colas de mensajes) y puede ser desarrollado, desplegado y escalado de forma independiente \cite{newman_building_microservices}.
+Frente a las arquitecturas tradicionales, donde toda la funcionalidad de la aplicación reside en un único proceso desplegable, la arquitectura de microservicios estructura la aplicación como una colección de servicios pequeños, autónomos y débilmente acoplados \cite{fowler_microservices}. Cada servicio se centra en una capacidad de negocio específica, se comunica con otros servicios a través de APIs bien definidas (normalmente sobre HTTP/REST o colas de mensajes) y puede ser desarrollado, desplegado y escalado de forma independiente \cite{newman_building_microservices}.
 
 Las ventajas clave de este enfoque, relevantes para nuestro sistema, incluyen:
 \begin{itemize}
     \item \textbf{Escalabilidad Independiente:} Cada servicio puede escalarse horizontalmente según sus necesidades específicas (ej. escalar más instancias del servicio de adquisición de datos si hay muchos usuarios).
-    \item \textbf{Resiliencia:} Un fallo en un servicio no tiene por qué detener todo el sistema; otros servicios pueden seguir funcionando (con mecanismos de tolerancia a fallos como \textit{circuit breakers}).
     \item \textbf{Flexibilidad Tecnológica:} Cada servicio puede desarrollarse con la tecnología más adecuada para su tarea específica (diferentes lenguajes, bases de datos).
     \item \textbf{Despliegue Independiente:} Los cambios en un servicio pueden desplegarse sin necesidad de redesplegar todo el sistema, agilizando las actualizaciones.
 \end{itemize}
-Sin embargo, los microservicios también introducen complejidad en áreas como la gestión distribuida de datos, la monitorización de múltiples servicios, el despliegue orquestado (donde herramientas como Docker y Kubernetes son muy útiles) y la necesidad de una cultura DevOps madura \cite{newman_building_microservices}. Para este TFG, se adopta un enfoque pragmático, diseñando un número limitado de microservicios bien definidos para aprovechar las ventajas de modularidad y escalabilidad potencial.
 
 \subsection{Bases de Datos de Series Temporales}
 \label{subsec:ea_db_timeseries}
@@ -100,9 +76,9 @@ Ejemplos populares de TSDB incluyen InfluxDB y TimescaleDB (una extensión para 
 
 El backend del sistema, responsable de orquestar la autenticación, la adquisición de datos, el procesamiento y la exposición de APIs internas o para el frontend, se ha desarrollado utilizando \textbf{Python}. Python es una elección popular para el desarrollo web y el procesamiento de datos debido a su sintaxis clara, su amplio ecosistema de librerías y su gran comunidad \cite{python_website}.
 
-Como framework web ligero para construir las APIs de los microservicios, se ha empleado \textbf{Flask} \cite{flask_docs}. Flask es un microframework que proporciona las herramientas básicas para el enrutamiento de peticiones HTTP y la gestión de respuestas, permitiendo una gran flexibilidad para elegir y añadir otras librerías según sea necesario (ej. para la interacción con la base de datos, serialización de datos, etc.). Esto se alinea con la filosofía de microservicios, manteniendo cada componente lo más ligero posible.
+Como framework web para construir las APIs de los microservicios, se ha empleado \textbf{Flask} \cite{flask_docs}, un microframework ligero que se alinea con la filosofía de microservicios al mantener cada componente simple y modular.
 
-Para la adquisición periódica de datos desde la API de Fitbit\textsuperscript{\textregistered} (una tarea que debe ejecutarse de forma programada en segundo plano para cada usuario vinculado), se utiliza la librería \textbf{APScheduler} \cite{apscheduler_docs}. APScheduler permite definir trabajos (jobs) que se ejecutan en intervalos fijos, en fechas específicas o según expresiones cron, siendo adecuada para tareas de planificación dentro de una aplicación Python, como la consulta periódica a la API de Fitbit para cada usuario registrado.
+Para la adquisición periódica de datos desde la API de Fitbit\textsuperscript{\textregistered} (una tarea que debe ejecutarse de forma programada en segundo plano para cada usuario vinculado), se utiliza \textbf{crontab}, el planificador de tareas estándar de sistemas Unix/Linux. Crontab permite definir trabajos (jobs) que se ejecutan según expresiones cron, siendo una solución robusta y probada para la ejecución programada de scripts.
 
 \subsection{Tecnologías de Frontend/Visualización}
 \label{subsec:ea_frontend_viz}

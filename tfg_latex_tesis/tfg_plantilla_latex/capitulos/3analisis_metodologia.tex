@@ -2,73 +2,101 @@
 \chapter{Análisis y Metodología}
 \label{chap:requisitos_metodologia}
 
-Este capítulo detalla los requisitos que debe cumplir el sistema desarrollado y la metodología seguida durante su construcción. Los requisitos se dividen en funcionales, que describen las capacidades del sistema, y no funcionales, que especifican sus atributos de calidad.
+Este capítulo detalla los requisitos funcionales y no funcionales del sistema, así como la metodología seguida durante su desarrollo.
 
-\section{Requisitos Funcionales}
-\label{sec:requisitos_funcionales}
+\section{Requisitos del Sistema}
+\label{sec:requisitos}
 
-Los requisitos funcionales (RF) definen las tareas y servicios específicos que el sistema de monitorización debe ser capaz de realizar. Han sido identificados a partir de los objetivos del proyecto definidos en el Capítulo \ref{chap:introduccion} y las necesidades del escenario de uso previsto (personal autorizado monitorizando a residentes/ancianos). A continuación, se enumeran los requisitos funcionales clave implementados en el prototipo:
+\subsection{Requisitos Funcionales}
+\label{subsec:requisitos_funcionales}
 
-\begin{description}
-    \item[RF-01: Autenticación de Personal] El sistema proporciona un mecanismo de inicio de sesión para el personal autorizado, utilizando credenciales compartidas (usuario/contraseña) gestionadas mediante variables de entorno. Permite también cerrar la sesión de forma segura.
-    \item[RF-02: Gestión de Vinculaciones Fitbit\textsuperscript{\textregistered}-Nombre] El sistema permite al personal autorizado:
-        \begin{itemize}
-            \item Visualizar la lista de cuentas de email de Fitbit\textsuperscript{\textregistered} disponibles para vincular (obtenidas de la base de datos).
-            \item Asociar un nombre identificativo a una cuenta de email de Fitbit\textsuperscript{\textregistered} durante el proceso de vinculación inicial o al reasignar un dispositivo/email ya existente.
-            \item Visualizar la lista de cuentas actualmente vinculadas, mostrando el nombre asociado y el email de Fitbit\textsuperscript{\textregistered}. 
-        \end{itemize}
-        Cada email de Fitbit se asocia a un único nombre en cada momento.
-    \item[RF-03: Vinculación de Cuentas Fitbit\textsuperscript{\textregistered} (OAuth 2.0)] Tras seleccionar un email y asociarle un nombre, el sistema gestiona de forma transparente y segura el flujo de autorización OAuth 2.0 (\textit{Authorization Code Grant}) con Fitbit\textsuperscript{\textregistered}, redirigiendo al usuario a Fitbit para la autenticación y autorización de permisos, y manejando el callback para obtener los tokens.
-    \item[RF-04: Gestión de Reasignación] El sistema permite reasignar una cuenta de email de Fitbit\textsuperscript{\textregistered} a un nuevo nombre identificativo, gestionando la reautorización si los tokens no son válidos.
-    \item[RF-05: Adquisición Automática de Datos] El sistema obtiene periódicamente los datos de salud y actividad disponibles (frecuencia cardíaca, patrones de sueño, pasos) de todas las cuentas Fitbit\textsuperscript{\textregistered} activamente vinculadas y con tokens válidos, mediante scripts programados con \textbf{cron}.
-    \item[RF-06: Almacenamiento de Datos Temporales] El sistema persiste de forma estructurada los datos adquiridos de Fitbit\textsuperscript{\textregistered} en la base de datos de series temporales (TimescaleDB), asegurando que cada dato quede asociado al email y nombre correspondientes y conserve su información temporal (timestamp).
-    \item[RF-07: Procesamiento Básico de Datos] El sistema realiza un procesamiento mínimo sobre los datos crudos recibidos de la API antes de su almacenamiento o visualización, como la validación de formato y cálculo del tiempo total de sueño, extracción de pasos totales diarios, etc.
-    \item[RF-08: Visualización de Datos Históricos] El sistema ofrece un panel de visualización (dashboard) accesible vía web para el personal autorizado. Este panel permite seleccionar un residente (por su nombre/email asociado) y mostrar de forma clara e intuitiva sus datos históricos (frecuencia cardíaca, sueño, actividad) mediante gráficos interactivos y tablas resumen.
-    \item[RF-09: Gestión Segura de Tokens] El sistema implementa mecanismos seguros para el almacenamiento y la gestión del ciclo de vida (obtención, uso, refresco, manejo de errores en la revocación) de los tokens de acceso y refresco de OAuth 2.0 obtenidos de Fitbit\textsuperscript{\textregistered}. Los tokens se almacenan cifrados en la base de datos.
-    \item[RF-10: Evaluación de Criterios de Alerta] El sistema evalúa periódicamente los datos almacenados (actividad, sueño, FC) contra un conjunto predefinido de criterios y umbrales para identificar posibles situaciones de alerta.
-    \item[RF-11: Generación y Registro de Alertas] Ante la detección de una condición de alerta según los criterios definidos, el sistema registra dicho evento y lo muestra en el dashboard para su revisión por el personal autorizado.
-    \item[RF-12: Priorización y Contextualización de Alertas] El sistema asigna niveles de prioridad (bajo, medio, alto) a las alertas basándose en la magnitud de la desviación respecto al umbral y compara los valores actuales con la línea base reciente del propio usuario.
-\end{description}
+Los requisitos funcionales definen las capacidades específicas que el sistema debe proporcionar. La Tabla~\ref{tab:requisitos_funcionales} resume los requisitos identificados, agrupados por área funcional y con su prioridad asociada.
 
-Estos requisitos funcionales constituyen la base sobre la cual se ha diseñado e implementado la funcionalidad del prototipo actual.
+\begin{table}[htbp]
+\caption{Requisitos Funcionales del Sistema}
+\label{tab:requisitos_funcionales}
+\begin{tabular}{|p{0.17\textwidth}|p{0.65\textwidth}|p{0.12\textwidth}|}
+\hline
+\textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} \\
+\hline
+\multicolumn{3}{|l|}{\textit{Gestión de Usuarios y Autenticación}} \\
+\hline
+RF-01 & Autenticación del personal mediante credenciales compartidas y gestión de sesiones & Alta \\
+RF-02 & Vinculación y gestión de cuentas Fitbit (OAuth 2.0) con nombres identificativos & Alta \\
+\hline
+\multicolumn{3}{|l|}{\textit{Adquisición y Almacenamiento}} \\
+\hline
+RF-03 & Obtención automática y periódica de datos de salud y actividad vía API Fitbit & Alta \\
+RF-04 & Persistencia estructurada de datos en TimescaleDB con asociación usuario-tiempo & Alta \\
+\hline
+\multicolumn{3}{|l|}{\textit{Procesamiento y Alertas}} \\
+\hline
+RF-05 & Evaluación continua de datos contra umbrales predefinidos y personalizados & Alta \\
+RF-06 & Generación y registro de alertas con priorización y contextualización & Alta \\
+\hline
+\multicolumn{3}{|l|}{\textit{Visualización y Gestión}} \\
+\hline
+RF-07 & Dashboard web para visualización de datos históricos y alertas & Media \\
+RF-08 & Gestión de reasignación de dispositivos y actualización de vinculaciones & Media \\
+\hline
+\end{tabular}
+\end{table}
 
-% -*- coding: utf-8 -*-
+\subsection{Requisitos No Funcionales}
+\label{subsec:requisitos_no_funcionales}
 
-% --- Resto del Capítulo 3 ---
+La Tabla~\ref{tab:requisitos_no_funcionales} presenta los requisitos no funcionales, agrupados por categorías de atributos de calidad.
+\begin{table}[htbp]
+\caption{Requisitos No Funcionales del Sistema}
+\label{tab:requisitos_no_funcionales}
+\begin{tabular}{|p{0.17\textwidth}|p{0.75\textwidth}|}
+\hline
+\textbf{Categoría} & \textbf{Requisitos} \\
+\hline
+Seguridad & 
+\begin{itemize}
+\item Autenticación robusta y gestión segura de sesiones
+\item Cifrado de tokens OAuth 2.0 y comunicaciones HTTPS
+\item Protección contra vulnerabilidades web (OWASP Top 10)
+\end{itemize} \\
+\hline
+Rendimiento & 
+\begin{itemize}
+\item Adquisición eficiente respetando límites de API
+\item Consultas optimizadas en TimescaleDB
+\item Dashboard web con carga fluida
+\end{itemize} \\
+\hline
+Fiabilidad & 
+\begin{itemize}
+\item Ejecución robusta de scripts programados
+\item Manejo adecuado de errores y registro de incidencias
+\item Minimización de falsos positivos en alertas
+\end{itemize} \\
+\hline
+Usabilidad & 
+\begin{itemize}
+\item Interfaz intuitiva para personal autorizado
+\item Mensajes claros y orientativos
+\item Visualización efectiva de datos y alertas
+\end{itemize} \\
+\hline
+Mantenibilidad & 
+\begin{itemize}
+\item Código modular y documentado
+\item Control de versiones (Git)
+\item Arquitectura extensible
+\end{itemize} \\
+\hline
+\end{tabular}
+\end{table}
 
-\section{Requisitos No Funcionales}
-\label{sec:requisitos_no_funcionales}
-
-Además de las funciones que debe realizar, el sistema debe cumplir ciertos atributos de calidad y restricciones operativas, conocidos como Requisitos No Funcionales (RNF). Estos requisitos definen \textit{cómo} debe operar el sistema. Para este proyecto, se han considerado los siguientes RNF clave:
-
-\begin{description}
-    \item[RNF-01: Usabilidad (Interfaz de Personal)] La interfaz web destinada al personal autorizado debe ser intuitiva y fácil de usar, especialmente en las tareas críticas como la vinculación/reasignación de dispositivos y la visualización de datos (cuando esté implementada). Los mensajes de error deben ser claros y orientativos.
-    \item[RNF-02: Rendimiento (Adquisición y Almacenamiento)] El proceso de adquisición de datos, tanto diario como intradía, se ejecuta mediante scripts programados con cron, respetando los límites de la API de Fitbit\textsuperscript{\textregistered} y procesando los datos de múltiples usuarios de forma eficiente. La escritura en la base de datos PostgreSQL/TimescaleDB es adecuada para el volumen de datos manejado en el prototipo. El dashboard web permite una consulta fluida de los datos históricos.
-    \item[RNF-03: Seguridad]
-        \begin{itemize}
-            \item Autenticación: El acceso a la aplicación web está protegido mediante autenticación compartida.
-            \item Autorización: Solo el personal autenticado puede realizar acciones o ver datos.
-            \item Gestión de Tokens: Los tokens OAuth 2.0 se almacenan cifrados en la base de datos y se transmiten de forma segura.
-            \item Comunicaciones: Toda la comunicación sensible se realiza sobre HTTPS en entornos de producción.
-            \item Protección Web: El sistema aplica buenas prácticas de seguridad web para prevenir vulnerabilidades comunes, siguiendo recomendaciones como las del OWASP Top 10 \cite{owasp_top10}.
-        \end{itemize}
-    \item[RNF-04: Fiabilidad y Disponibilidad] El sistema debe ser razonablemente fiable. La ejecución programada de los scripts de adquisición mediante `cron` debe ser robusta. Los scripts y la aplicación web deben manejar correctamente errores esperables (ej. fallos de red, errores de la API Fitbit, errores de BD) registrando la información relevante para diagnóstico sin detener por completo el servicio.
-    \item[RNF-05: Mantenibilidad] El código fuente está organizado en módulos Python (`app.py`, `auth.py`, `db.py`, `fitbit.py`, etc.), es legible y está comentado. Se utiliza el sistema de control de versiones Git, con el repositorio alojado en GitHub \cite{github_repo_proyecto}, para gestionar los cambios y facilitar la colaboración o futuras revisiones.
-    \item[RNF-06: Escalabilidad (Diseño)] La arquitectura (aplicación Flask modular, scripts independientes de adquisición, base de datos PostgreSQL/TimescaleDB) proporciona una base que podría escalarse (ej. ejecutando más instancias de los scripts de adquisición, escalando la base de datos) si fuera necesario manejar un mayor volumen de usuarios o datos en el futuro.
-    \item[RNF-07: Privacidad (Cumplimiento RGPD)] El sistema se ha diseñado siguiendo los principios del RGPD, incluyendo el cifrado de tokens y la gestión del consentimiento mediante el flujo OAuth.
-    \item[RNF-08:] \textbf{Rendimiento y Fiabilidad de Alertas:} La evaluación de los criterios de alerta se realiza de forma eficiente y la lógica de detección es robusta frente a datos faltantes o erróneos, minimizando falsos positivos dentro de lo posible con los criterios definidos.
-    \item[RNF-09:] \textbf{Latencia de Alertas:} El tiempo entre la disponibilidad del dato relevante y la generación/registro de la alerta debe ser suficientemente bajo para permitir una respuesta oportuna (ej., dentro de X horas para alertas diarias, Y minutos para intradía).
-    \item[RNF-10:] \textbf{Precisión de Alertas:} El sistema debe diseñarse para minimizar las falsas alarmas (falsos positivos) y la omisión de eventos reales (falsos negativos), aunque se reconoce el compromiso inherente (trade-off) entre sensibilidad y especificidad con los sistemas basados en reglas.
-\end{description}
-
-\textit{(Nota: La sección 3.3 sobre Casos de Uso se omite en esta versión para mayor brevedad).}
+Los detalles técnicos de implementación de estos requisitos se desarrollan en los capítulos posteriores.
 
 \section{Metodología de Desarrollo}
 \label{sec:metodologia}
 
-El desarrollo de este Trabajo Fin de Grado se ha abordado siguiendo un enfoque principalmente \textbf{iterativo e incremental}, adaptado a la naturaleza exploratoria y de creación de prototipos propia de un proyecto académico de este tipo. No se siguió estrictamente una metodología ágil formal como Scrum, pero se adoptaron algunos de sus principios, como la flexibilidad ante cambios y la entrega de valor funcional en ciclos cortos.
-
-Las fases principales del desarrollo se pueden resumir en:
+El desarrollo siguió un enfoque iterativo e incremental adaptado a la naturaleza exploratoria del proyecto, con las siguientes fases principales:
 
 \begin{enumerate}
     \item \textbf{Investigación y Definición (Fase Inicial):}

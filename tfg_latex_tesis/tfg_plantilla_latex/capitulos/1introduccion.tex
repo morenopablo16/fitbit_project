@@ -1,26 +1,26 @@
 % -*- coding: utf-8 -*- % Para asegurar codificación correcta
 \chapter{Introducción}
 \label{chap:introduccion}
-A continuación se introduce el contexto y la motivación de este proyecto, para luego definir sus objetivos, alcance y la organización general de este documento
+A continuación se introduce el contexto y la motivación de este proyecto, para luego definir sus objetivos, alcance y la organización general de este documento.
+
 \section{Contexto y Motivación}
 \label{sec:intro_contexto}
 
-El envejecimiento de la población es una realidad demográfica global, especialmente acentuada en España, donde, según el Instituto Nacional de Estadística, más del 20\% de la población tiene más de 65 años y se prevé que esta cifra siga aumentando en las próximas décadas \cite{ine_proyeccion_2022_2072}. Este fenómeno implica un incremento en la prevalencia de enfermedades crónicas y una mayor demanda de servicios sanitarios y de cuidados de larga duración, lo que genera una presión significativa sobre los sistemas de salud y las familias \cite{who_ageing_health}. En este escenario, la tecnología emerge como un aliado fundamental para desarrollar soluciones innovadoras que mejoren la calidad de vida de las personas mayores, promuevan su autonomía y faciliten su cuidado.
+El envejecimiento de la población es una realidad demográfica global, especialmente acentuada en España, donde, según el Instituto Nacional de Estadística, más del 20\% de la población tiene más de 65 años y se prevé que esta cifra siga aumentando en las próximas décadas \cite{ine_proyeccion_2022_2072}. Este fenómeno implica un incremento en la prevalencia de enfermedades crónicas y una mayor demanda de servicios sanitarios y de cuidados de larga duración, lo que genera una presión significativa sobre los sistemas de salud y las familias \cite{who_ageing_health}.
 
-La monitorización remota de la salud, apoyada en dispositivos electrónicos y sensores, ofrece un enorme potencial para el seguimiento continuo y no invasivo de indicadores fisiológicos y de actividad \cite{majumder2017wearable}. Los dispositivos vestibles o \textit{wearables}, como las pulseras de actividad y los relojes inteligentes, se han popularizado enormemente en los últimos años. Entre ellos, Fitbit\textsuperscript{\textregistered} destaca por su amplia adopción, facilidad de integración mediante API y coste accesible, lo que lo convierte en una opción idónea para proyectos de monitorización remota.
+La monitorización remota de la salud, apoyada en dispositivos vestibles como Fitbit\textsuperscript{\textregistered}, ofrece un potencial significativo para el seguimiento continuo y no invasivo de indicadores fisiológicos y de actividad \cite{majumder2017wearable}. Estos dispositivos, que se han popularizado por su facilidad de uso y coste accesible, generan datos valiosos que, adecuadamente procesados, pueden contribuir a una atención más proactiva y personalizada.
 
-La motivación principal de este Trabajo Fin de Grado (TFG) radica en explorar y aprovechar el potencial de estos dispositivos comerciales, específicamente los de Fitbit\textsuperscript{\textregistered}, para construir un sistema que facilite la monitorización remota de personas mayores por parte de sus cuidadores o personal sanitario. El objetivo es contribuir a una atención más proactiva, permitiendo detectar posibles cambios en el estado de salud de forma temprana y mejorando la tranquilidad de los familiares y responsables del cuidado, respetando la autonomía y privacidad del usuario monitorizado.
+La motivación principal de este Trabajo Fin de Grado (TFG) es desarrollar un sistema que aproveche los datos de dispositivos Fitbit\textsuperscript{\textregistered} para facilitar la monitorización remota de personas mayores, permitiendo detectar cambios significativos en su estado de salud de forma temprana y mejorando la tranquilidad de cuidadores y familiares.
 
 \section{Definición del Problema}
 \label{sec:intro_problema}
 
-A pesar de la disponibilidad de datos generados por dispositivos como Fitbit\textsuperscript{\textregistered}, a menudo existe una brecha entre la simple recolección de datos y su utilización efectiva para el seguimiento de la salud, especialmente en el contexto de personas mayores y sus cuidadores. Los problemas específicos que este trabajo busca abordar son:
+A pesar de la disponibilidad de datos generados por dispositivos como Fitbit\textsuperscript{\textregistered}, existen dos desafíos principales que este trabajo busca abordar:
 
 \begin{itemize}
+    \item La necesidad de un sistema integrado que recopile automáticamente datos de Fitbit\textsuperscript{\textregistered} y los presente de forma clara y contextualizada para cuidadores, permitiendo un seguimiento longitudinal efectivo de indicadores clave de salud.
+    \item La importancia de implementar una solución técnica robusta que gestione de forma segura la autenticación, respete la privacidad de los datos de salud según el RGPD, y permita una futura expansión del sistema.
     \item La falta de sistemas integrados que recopilen automáticamente datos relevantes de Fitbit\textsuperscript{\textregistered} y los presenten de forma clara, contextualizada y comprensible para cuidadores no necesariamente expertos en tecnología.
-    \item La dificultad para realizar un seguimiento longitudinal de los indicadores clave de salud obtenidos a través de estos dispositivos, identificando tendencias o desviaciones significativas de los patrones habituales del usuario.
-    \item La necesidad de implementar soluciones técnicas robustas que gestionen de forma segura la autenticación con servicios de terceros (Fitbit API) y que respeten escrupulosamente la privacidad y la normativa de protección de datos (como el RGPD) al manejar información personal y sensible de salud.
-    \item La ausencia frecuente de arquitecturas flexibles y escalables en prototipos de este tipo, que permitan una futura expansión para incluir más usuarios, más tipos de datos o integración con otros sistemas.
 \end{itemize}
 
 Este TFG se enfoca en el diseño e implementación de un prototipo que dé respuesta a estos desafíos, proporcionando una solución técnica robusta, funcional y bien documentada.
@@ -39,43 +39,34 @@ Diseñar e implementar un prototipo de sistema software para la monitorización 
 \label{subsec:obj_especificos}
 
 \begin{enumerate}
-    \item Investigar en profundidad la API web de Fitbit\textsuperscript{\textregistered}, su modelo de datos, las políticas de acceso, la granularidad de los datos disponibles y el proceso de autorización seguro mediante OAuth 2.0.
-    \item Diseñar una arquitectura software para el backend del sistema, basada en microservicios ligeros implementados en Python (Flask), que sea modular y escalable.
-    \item Implementar un microservicio responsable de gestionar la autenticación de los usuarios del sistema (cuidadores, administradores) y la obtención segura de tokens de acceso para la API de Fitbit\textsuperscript{\textregistered} mediante el flujo OAuth 2.0.
-    \item Desarrollar un microservicio encargado de la adquisición periódica y automatizada de los datos de interés de los usuarios desde la API de Fitbit\textsuperscript{\textregistered} (frecuencia cardíaca diaria/intradía, resumen del sueño, pasos y niveles de actividad).
-    \item Seleccionar, configurar e implementar una base de datos relacional PostgreSQL con extensión TimescaleDB, adecuada para el almacenamiento eficiente y la consulta de los datos biométricos y de actividad a lo largo del tiempo.
-    \item Implementar la lógica necesaria para el procesamiento básico de los datos adquiridos, incluyendo la validación, limpieza y transformación de los datos para su almacenamiento y posterior visualización (cálculo de promedios, identificación de periodos de inactividad/actividad).
-    \item Desarrollar un panel de visualización web (dashboard) sencillo e intuitivo utilizando Flask y plantillas HTML, que permita a los cuidadores consultar el histórico de datos mediante gráficos interactivos y visualizar indicadores clave.
-    \item Definir e implementar un conjunto inicial de criterios basados en evidencia para la detección temprana de posibles anomalías en los datos de actividad, sueño y frecuencia cardíaca, generando alertas contextualizadas para el personal autorizado.
-    \item Analizar y aplicar las medidas técnicas y organizativas necesarias para garantizar la seguridad (autenticación, autorización, protección contra ataques comunes) y privacidad de los datos (minimización, seudonimización si aplica, gestión de consentimientos), en cumplimiento con los principios del Reglamento General de Protección de Datos (RGPD).
-    \item Validar el correcto funcionamiento del prototipo desarrollado mediante un conjunto definido de pruebas funcionales (cobertura de requisitos), de integración (comunicación entre microservicios y con API externa) y del sistema (flujos de usuario principales).
+    \item Desarrollar una arquitectura software modular basada en microservicios Python (Flask) que integre de forma segura la API de Fitbit\textsuperscript{\textregistered} mediante OAuth 2.0.
+    \item Implementar la adquisición automática y el almacenamiento eficiente de datos biométricos y de actividad en una base de datos PostgreSQL con extensión TimescaleDB.
+    \item Desarrollar un panel web intuitivo que permita visualizar el histórico de datos mediante gráficos interactivos y gestionar usuarios monitorizados.
+    \item Implementar un sistema de alertas basado en evidencia para la detección temprana de cambios significativos en patrones de actividad, sueño y frecuencia cardíaca.
+    \item Asegurar el cumplimiento del RGPD mediante medidas técnicas y organizativas apropiadas para la protección de datos personales de salud.
+    \item Validar el funcionamiento del prototipo mediante pruebas funcionales, de integración y del sistema.
 \end{enumerate}
 
 \section{Alcance y Limitaciones}
 \label{sec:intro_alcance}
 
-El sistema desarrollado en este TFG es un prototipo funcional que demuestra la viabilidad técnica de la solución propuesta. El alcance del trabajo cubre:
+El sistema desarrollado es un prototipo funcional que incluye:
 
 \begin{itemize}
-    \item Integración con la API de Fitbit\textsuperscript{\textregistered} para obtener datos de frecuencia cardíaca (resumen diario y/o intradía según disponibilidad de la API), patrones de sueño (fases, duración) y actividad física (pasos, minutos activos).
-    \item Desarrollo de un backend modular basado en microservicios ligeros implementados en Python (Flask).
-    \item Almacenamiento de los datos en una base de datos relacional PostgreSQL con TimescaleDB.
-    \item Implementación completa del flujo de autenticación OAuth 2.0 con Fitbit\textsuperscript{\textregistered} para la autorización segura por parte del usuario.
-    \item Desarrollo de una interfaz web básica para cuidadores, que permite visualizar gráficos históricos de los datos y gestionar usuarios monitorizados.
-    \item Implementación de lógica para evaluar criterios de alerta predefinidos sobre los datos de actividad, sueño y frecuencia cardíaca.
-    \item Aplicación de principios de diseño orientados a la seguridad y al cumplimiento del RGPD (por ejemplo, cifrado de datos sensibles en reposo y en tránsito, gestión segura de tokens).
+    \item Integración completa con la API de Fitbit\textsuperscript{\textregistered} para datos de frecuencia cardíaca, sueño y actividad física.
+    \item Backend modular en Python con almacenamiento en PostgreSQL/TimescaleDB.
+    \item Interfaz web para visualización de datos y gestión de usuarios.
+    \item Sistema de alertas basado en criterios predefinidos.
+    \item Implementación de medidas de seguridad y privacidad según RGPD.
 \end{itemize}
 
-Es importante destacar las siguientes limitaciones:
+Limitaciones principales:
 
 \begin{itemize}
-    \item El sistema \textbf{no es un dispositivo médico certificado} y la información proporcionada no debe utilizarse para autodiagnóstico ni para sustituir la consulta con un profesional sanitario cualificado. Su propósito es informativo y de apoyo al cuidado.
-    \item La funcionalidad está limitada a los datos y la granularidad que Fitbit\textsuperscript{\textregistered} expone a través de su API web estándar (por ejemplo, la frecuencia cardíaca intradía puede estar limitada a intervalos de 1 minuto o más, dependiendo del nivel de acceso a la API).
-    \item El sistema de alertas implementado se basa en criterios iniciales y no incluye mecanismos avanzados de inteligencia artificial para predicción o adaptación dinámica de umbrales. La validación clínica de las alertas generadas queda fuera del alcance de este prototipo.
-    \item El prototipo ha sido validado funcionalmente en un entorno de desarrollo y pruebas, pero no ha sido sometido a pruebas de carga extensivas ni a una evaluación de usabilidad formal con usuarios finales (personas mayores y cuidadores).
-    \item La interfaz de usuario, aunque funcional, representa un diseño básico y podría beneficiarse de mejoras significativas en términos de experiencia de usuario (UX) y diseño de interfaz (UI) para una adopción real.
-    \item El análisis de cumplimiento del RGPD se basa en los principios de diseño y buenas prácticas, pero no constituye una auditoría legal completa ni garantiza la conformidad total en un entorno de producción sin revisiones adicionales.
-    \item El sistema no incluye mecanismos avanzados de detección de anomalías o predicción basados en inteligencia artificial, aunque la arquitectura sentaría las bases para su futura integración.
+    \item No es un dispositivo médico certificado; su propósito es informativo y de apoyo al cuidado.
+    \item Funcionalidad limitada a los datos disponibles vía API de Fitbit\textsuperscript{\textregistered}.
+    \item Sistema de alertas basado en criterios iniciales, sin mecanismos avanzados de IA.
+    \item Prototipo validado en entorno de desarrollo, pendiente de pruebas extensivas de carga y usabilidad.
 \end{itemize}
 
 \section{Estructura del Documento}

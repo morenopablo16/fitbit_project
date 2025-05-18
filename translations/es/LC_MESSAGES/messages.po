@@ -960,9 +960,107 @@ msgstr "Peso (kg)"
 
 msgid "BMI"
 msgstr "IMC"
+msgid "Date"
+msgstr "Fecha"
 
-msgid "Fat %"
-msgstr "% Grasa"
+msgid "Chart Type"
+msgstr "Tipo de Gráfico"
+
+msgid "Line"
+msgstr "Línea"
+
+msgid "Bar"
+msgstr "Barra"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "Export to CSV"
+msgstr "Exportar a CSV"
+
+msgid "No data available for the selected date."
+msgstr "No hay datos disponibles para la fecha seleccionada."
+
+msgid "No activity at"
+msgstr "Sin actividad a las"
+
+msgid "Low activity"
+msgstr "Baja actividad"
+
+msgid "steps"
+msgstr "pasos"
+
+msgid "at"
+msgstr "a las"
+
+msgid "Time of day"
+msgstr "Hora del día"
+
+msgid "Steps per interval"
+msgstr "Pasos por intervalo"
+
+msgid "Error processing data"
+msgstr "Error al procesar datos"
+
+msgid "Error loading inactivity data"
+msgstr "Error al cargar datos de inactividad"
+
+msgid "No significant periods of inactivity detected."
+msgstr "No se detectaron períodos significativos de inactividad."
+
+msgid "1 interval"
+msgstr "1 intervalo"
+
+msgid "intervals"
+msgstr "intervalos"
+
+msgid "No activity from"
+msgstr "Sin actividad desde"
+
+msgid "to"
+msgstr "hasta"
+
+msgid "Loading..."
+msgstr "Cargando..."
+
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mié"
+
+msgid "Thu"
+msgstr "Jue"
+
+msgid "Fri"
+msgstr "Vie"
+
+msgid "Sat"
+msgstr "Sáb"
+
+msgid "Sun"
+msgstr "Dom"
+
+msgid "Clinical Relevance"
+msgstr "Relevancia Clínica"
+
+msgid "Heart Rate"
+msgstr "Frecuencia Cardíaca"
+
+msgid "Steps"
+msgstr "Pasos"
+
+msgid "Calories"
+msgstr "Calorías"
+
+msgid "Inactivity Pattern Analysis"
+msgstr "Análisis de Patrones de Inactividad"
+
+msgid "Fat"
+msgstr "Grasa"
 
 msgid "Below Average Physical Activity"
 msgstr "Actividad física por debajo del promedio"
@@ -1091,4 +1189,7 @@ msgstr "horas"
 
 msgid "days ago"
 msgstr "días"
+
+msgid "No data available for the selected date."
+msgstr "No hay datos disponibles para el día seleccionado."
 

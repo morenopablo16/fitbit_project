@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <!-- jQuery UI para el date picker -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <!-- Scripts de localización para el date picker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/i18n/jquery-ui-i18n.min.js"></script>
     <style>
         .metric-card {
             background-color: white;
@@ -383,7 +389,7 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="intradayDate" class="form-label">{{ _('Date') }}:</label>
-                            <input type="date" class="form-control" id="intradayDate" value="{{ now.strftime('%Y-%m-%d') }}">
+                            <input type="text" class="form-control" id="intradayDate" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}" readonly>
                         </div>
                         <div class="col-md-4">
                             <label for="intradayMetric" class="form-label">{{ _('Metric') }}:</label>
@@ -510,7 +516,8 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ _('Inactivity Pattern Analysis') }}</h5>
                     <div>
-                        <input type="date" class="form-select form-select-sm" id="inactivityDay" value="{{ now.strftime('%Y-%m-%d') }}">
+                        <label for="inactivityDay" class="form-label">{{ _('Date') }}:</label>
+                        <input type="text" class="form-control" id="inactivityDay" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}" readonly>
                     </div>
                 </div>
                 <div class="card-body">
@@ -582,8 +589,28 @@ let currentAlerts = [];
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    // Establecer fecha actual en el selector de fecha
-    document.getElementById('intradayDate').valueAsDate = new Date();
+    // Configurar el idioma del date picker
+    const currentLang = '{{ get_locale() }}';
+    if($.datepicker) {
+        // Configurar el formato de fecha según el idioma
+        const dateFormat = currentLang === 'es' ? 'dd/mm/yy' : 'mm/dd/yy';
+        
+        // Inicializar los date pickers con el idioma correspondiente
+        $("#intradayDate, #inactivityDay").datepicker({
+            dateFormat: dateFormat,
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '0',
+            regional: currentLang
+        });
+
+        // Establecer el idioma
+        if(currentLang === 'es') {
+            $("#intradayDate, #inactivityDay").datepicker('option', $.datepicker.regional['es']);
+        } else {
+            $("#intradayDate, #inactivityDay").datepicker('option', $.datepicker.regional['']);
+        }
+    }
     
     // Cargar datos iniciales
     loadIntradayData();
@@ -597,9 +624,26 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('inactivityDay').addEventListener('change', loadInactivityData);
 });
 
+// Función para convertir fecha del datepicker al formato ISO
+function convertDateToISO(dateStr) {
+    if (!dateStr) return '';
+    const currentLang = '{{ get_locale() }}';
+    let parts;
+    if (currentLang === 'es') {
+        // Formato español: dd/mm/yyyy
+        parts = dateStr.split('/');
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else {
+        // Formato inglés: mm/dd/yyyy
+        parts = dateStr.split('/');
+        return `${parts[2]}-${parts[0]}-${parts[1]}`;
+    }
+}
+
 // Función para cargar datos intradía
 function loadIntradayData() {
-    const date = document.getElementById('intradayDate').value;
+    const dateStr = document.getElementById('intradayDate').value;
+    const date = convertDateToISO(dateStr);
     const metric = document.getElementById('intradayMetric').value;
     const chartType = document.getElementById('chartType').value;
     
@@ -716,16 +760,16 @@ function loadWeeklyData() {
         .then(response => response.json())
         .then(data => {
             // Gráfico de pasos
-            createWeeklyChart('weekly-steps-chart', 'Pasos', data.weekly.map(d => d.steps));
+            createWeeklyChart('weekly-steps-chart', '{{ _("Steps") }}', data.weekly.map(d => d.steps));
             
             // Gráfico de frecuencia cardíaca
-            createWeeklyChart('weekly-heart-rate-chart', 'Frecuencia Cardíaca', data.weekly.map(d => d.heart_rate));
+            createWeeklyChart('weekly-heart-rate-chart', '{{ _("Heart Rate") }}', data.weekly.map(d => d.heart_rate));
             
             // Gráfico de sueño
-            createWeeklyChart('weekly-sleep-chart', 'Horas de Sueño', data.weekly.map(d => d.sleep_hours));
+            createWeeklyChart('weekly-sleep-chart', '{{ _("Sleep Hours") }}', data.weekly.map(d => d.sleep_hours));
             
             // Gráfico de actividad
-            createWeeklyChart('weekly-activity-chart', 'Minutos Activos', data.weekly.map(d => d.active_minutes));
+            createWeeklyChart('weekly-activity-chart', '{{ _("Active Minutes") }}', data.weekly.map(d => d.active_minutes));
         })
         .catch(error => console.error('Error:', error));
 }
@@ -826,7 +870,8 @@ function exportIntradayData() {
 // Función para cargar datos de inactividad
 function loadInactivityData() {
     console.log("Cargando datos de inactividad...");
-    const day = document.getElementById('inactivityDay').value;
+    const dateStr = document.getElementById('inactivityDay').value;
+    const day = convertDateToISO(dateStr);
     console.log("Fecha seleccionada:", day);
     const periodsContainer = document.getElementById('inactivityPeriods');
     periodsContainer.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
@@ -843,8 +888,13 @@ function loadInactivityData() {
             
             if (data.length === 0) {
                 console.warn("No hay datos para la fecha seleccionada");
-                periodsContainer.innerHTML = '<div class="alert alert-warning">No hay datos disponibles para el día seleccionado.</div>';
-                if (window.inactivityChart) window.inactivityChart.destroy();
+                periodsContainer.innerHTML = '<div class="alert alert-warning">{{ _("No data available for the selected date.") }}</div>';
+                // Destruir el gráfico existente si existe y es una instancia válida de Chart
+                if (window.inactivityChart instanceof Chart) {
+                    console.log("Destruyendo gráfico anterior...");
+                    window.inactivityChart.destroy();
+                    window.inactivityChart = null;
+                }
                 return;
             }
             
@@ -896,9 +946,12 @@ function loadInactivityData() {
                 // Crear gráfico
                 console.log("Creando gráfico...");
                 const ctx = document.getElementById('inactivityChart').getContext('2d');
-                if (window.inactivityChart && typeof window.inactivityChart.destroy === 'function') {
+                
+                // Destruir el gráfico existente si existe y es una instancia válida de Chart
+                if (window.inactivityChart instanceof Chart) {
                     console.log("Destruyendo gráfico anterior...");
                     window.inactivityChart.destroy();
+                    window.inactivityChart = null;
                 }
                 
                 window.inactivityChart = new Chart(ctx, {
@@ -923,9 +976,9 @@ function loadInactivityData() {
                                     label: function(context) {
                                         const steps = context.parsed.y;
                                         const time = context.label;
-                                        if (steps === 0) return `Sin actividad a las ${time}`;
-                                        if (steps <= 100) return `Baja actividad (${steps} pasos) a las ${time}`;
-                                        return `${steps} pasos a las ${time}`;
+                                        if (steps === 0) return `${_('No activity at')} ${time}`;
+                                        if (steps <= 100) return `${_('Low activity')} (${steps} ${_('steps')}) ${_('at')} ${time}`;
+                                        return `${steps} ${_('steps at')} ${time}`;
                                     }
                                 }
                             },
@@ -950,8 +1003,8 @@ function loadInactivityData() {
                             }
                         },
                         scales: {
-                            x: { title: { display: true, text: 'Hora del día' } },
-                            y: { beginAtZero: true, title: { display: true, text: 'Pasos por intervalo' } }
+                            x: { title: { display: true, text: _('Time of day') } },
+                            y: { beginAtZero: true, title: { display: true, text: _('Steps per interval') } }
                         }
                     },
                     plugins: typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : []
@@ -959,12 +1012,12 @@ function loadInactivityData() {
                 console.log("Gráfico creado exitosamente");
             } catch (error) {
                 console.error("Error al procesar datos:", error);
-                periodsContainer.innerHTML = `<div class="alert alert-danger">Error al procesar los datos: ${error.message}</div>`;
+                periodsContainer.innerHTML = `<div class="alert alert-danger">${_('Error processing data')}: ${error.message}</div>`;
             }
         })
         .catch(error => {
             console.error("Error en fetch:", error);
-            periodsContainer.innerHTML = `<div class="alert alert-danger">Error al cargar los datos de inactividad: ${error.message}</div>`;
+            periodsContainer.innerHTML = `<div class="alert alert-danger">${_('Error loading inactivity data')}: ${error.message}</div>`;
         });
 }
 
@@ -972,21 +1025,21 @@ function loadInactivityData() {
 function displayInactivityPeriods(periods) {
     const container = document.getElementById('inactivityPeriods');
     if (periods.length === 0) {
-        container.innerHTML = '<div class="alert alert-success">No se detectaron períodos significativos de inactividad.</div>';
+        container.innerHTML = `<div class="alert alert-success">${_('No significant periods of inactivity detected.')}</div>`;
         return;
     }
     // Ordenar períodos por duración (puntos) descendente
     periods.sort((a, b) => b.points - a.points);
     let html = '<div class="list-group">';
     periods.forEach(period => {
-        const durationText = period.points === 1 ? "1 intervalo" : `${period.points} intervalos`;
+        const durationText = period.points === 1 ? _('1 interval') : `${period.points} ${_('intervals')}`;
         const severityClass = period.points >= 4 ? 'list-group-item-danger' : 
                               period.points >= 3 ? 'list-group-item-warning' : 
                               'list-group-item-info';
         html += `
             <div class="list-group-item ${severityClass} d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="mb-1">Sin actividad desde <strong>${period.start}</strong> hasta <strong>${period.end}</strong> (${durationText})</p>
+                    <p class="mb-1">${_('No activity from')} <strong>${period.start}</strong> ${_('to')} <strong>${period.end}</strong> (${durationText})</p>
                 </div>
                 <span class="badge bg-secondary rounded-pill">${period.points}h</span>
             </div>

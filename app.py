@@ -271,12 +271,24 @@ def home():
     db = DatabaseManager()
     if db.connect():
         try:
-            # Get recent users with their latest activity
+            # Get recent users with their latest activity (only users with names AND valid tokens)
             recent_users = db.execute_query("""
+                WITH LastUserInstance AS (
+                    SELECT 
+                        email,
+                        MAX(created_at) as last_created
+                    FROM users
+                    GROUP BY email
+                )
                 SELECT u.id, u.name, u.email, 
                        MAX(d.date) as created_at
                 FROM users u
                 LEFT JOIN daily_summaries d ON u.id = d.user_id
+                INNER JOIN LastUserInstance lui ON u.email = lui.email 
+                    AND u.created_at = lui.last_created
+                WHERE u.name != '' 
+                    AND u.access_token IS NOT NULL 
+                    AND u.refresh_token IS NOT NULL
                 GROUP BY u.id, u.name, u.email
                 ORDER BY created_at DESC NULLS LAST
                 LIMIT 10
@@ -305,28 +317,104 @@ def home():
 @login_required
 def user_stats():
     """
-    Display statistics for all users.
+    Display statistics for all users, organized into three categories:
+    1. Active Users: Have name, tokens, and data
+    2. Unassigned Users: Latest instance without name/tokens
+    3. Historical Users: Previous instances with name and data
     """
     search = request.args.get('search', '').strip()
+    
     db = DatabaseManager()
     if db.connect():
         try:
+            # Obtener todos los usuarios con información relevante
             if search:
                 users = db.execute_query("""
-                    SELECT u.id, u.name, u.email, u.created_at,
-                        (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update
-                    FROM users u
-                    WHERE LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s)
-                    ORDER BY u.created_at DESC
+                    WITH UserInstances AS (
+                        SELECT 
+                            u.id,
+                            u.name,
+                            u.email,
+                            u.created_at,
+                            u.access_token IS NOT NULL AND u.refresh_token IS NOT NULL as has_tokens,
+                            (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update,
+                            EXISTS(SELECT 1 FROM daily_summaries d WHERE d.user_id = u.id) as has_data,
+                            ROW_NUMBER() OVER (PARTITION BY u.email ORDER BY u.created_at DESC) as rn
+                        FROM users u
+                        WHERE LOWER(u.name) LIKE LOWER(%s) OR LOWER(u.email) LIKE LOWER(%s)
+                    )
+                    SELECT *
+                    FROM UserInstances
+                    ORDER BY email, created_at DESC
                 """, (f"%{search}%", f"%{search}%"))
             else:
                 users = db.execute_query("""
-                    SELECT u.id, u.name, u.email, u.created_at,
-                        (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update
-                    FROM users u
-                    ORDER BY u.created_at DESC
+                    WITH UserInstances AS (
+                        SELECT 
+                            u.id,
+                            u.name,
+                            u.email,
+                            u.created_at,
+                            u.access_token IS NOT NULL AND u.refresh_token IS NOT NULL as has_tokens,
+                            (SELECT MAX(date) FROM daily_summaries d WHERE d.user_id = u.id) as last_update,
+                            EXISTS(SELECT 1 FROM daily_summaries d WHERE d.user_id = u.id) as has_data,
+                            ROW_NUMBER() OVER (PARTITION BY u.email ORDER BY u.created_at DESC) as rn
+                        FROM users u
+                    )
+                    SELECT *
+                    FROM UserInstances
+                    ORDER BY email, created_at DESC
                 """)
-            return render_template('user_stats.html', users=users, search=search, now=datetime.now())
+
+            # Procesar los usuarios
+            processed_users = []
+            current_email = None
+            
+            for user in users:
+                user_id, name, email, created_at, has_tokens, last_update, has_data, row_num = user
+                
+                # Es la instancia más reciente si row_num = 1
+                is_latest = (row_num == 1)
+                
+                # Si cambiamos de email o es el primer usuario
+                if email != current_email:
+                    current_email = email
+                
+                # Determinar el estado del usuario
+                if is_latest:
+                    if not name:
+                        # Si no tiene nombre, está sin asignar
+                        status = 'unassigned'
+                    elif not has_tokens:
+                        # Si tiene nombre pero no tokens, está desvinculado
+                        status = 'unlinked'
+                    elif has_tokens and name:
+                        # Si tiene nombre y tokens, está activo
+                        status = 'active'
+                else:
+                    # Las instancias anteriores son históricas si tienen nombre y datos
+                    status = 'historical'
+
+                # Añadir el usuario si:
+                # 1. Es la instancia más reciente, O
+                # 2. Es una instancia histórica que tenía nombre y datos
+                if is_latest or (name and has_data):
+                    processed_users.append({
+                        'id': user_id,
+                        'name': name,
+                        'email': email,
+                        'created_at': created_at,
+                        'last_update': last_update,
+                        'has_tokens': has_tokens,
+                        'has_data': has_data,
+                        'is_latest': is_latest,
+                        'status': status
+                    })
+
+            return render_template('user_stats.html', 
+                                users=processed_users,
+                                search=search,
+                                now=datetime.now())
         except Exception as e:
             app.logger.error(f"Error fetching user statistics: {e}")
             return "Error: No se pudieron obtener las estadísticas de usuarios.", 500
@@ -1542,16 +1630,60 @@ def export_user_intraday(user_id):
 @app.route('/livelyageing/unlink_user', methods=['POST'])
 @login_required
 def unlink_user():
+    """
+    Handles unlinking a user from their Fitbit device.
+    When unlinking:
+    1. The original instance is preserved with its name and data (becomes historical)
+    2. A new instance is created with the same email but no name/tokens (becomes unassigned)
+    """
     user_id = request.form.get('user_id')
     if not user_id:
         flash('ID de usuario no proporcionado', 'danger')
         return redirect(url_for('user_stats'))
+
     db = DatabaseManager()
     if db.connect():
         try:
-            # Solo borrar los tokens, no eliminar el usuario
-            db.execute_query("UPDATE users SET access_token = NULL, refresh_token = NULL WHERE id = %s", (user_id,))
-            flash('Dispositivo desvinculado correctamente. El usuario y sus datos históricos se mantienen.', 'success')
+            # First, get the email of the user being unlinked
+            user_email = db.execute_query("""
+                SELECT email FROM users WHERE id = %s
+            """, (user_id,))
+            
+            if not user_email:
+                flash('Usuario no encontrado', 'danger')
+                return redirect(url_for('user_stats'))
+                
+            email = user_email[0][0]
+            
+            # Start a transaction
+            db.execute_query("BEGIN")
+            
+            try:
+                # 1. Create a new unassigned instance with the same email
+                db.execute_query("""
+                    INSERT INTO users (name, email, access_token, refresh_token)
+                    VALUES ('', %s, NULL, NULL)
+                """, (email,))
+                
+                # 2. Remove tokens from the original instance (but keep name and data)
+                db.execute_query("""
+                    UPDATE users 
+                    SET access_token = NULL, 
+                        refresh_token = NULL
+                    WHERE id = %s
+                """, (user_id,))
+                
+                # Commit the transaction
+                db.execute_query("COMMIT")
+                
+                flash('Dispositivo desvinculado correctamente. El usuario y sus datos históricos se mantienen.', 'success')
+            except Exception as e:
+                # If anything fails, rollback the transaction
+                db.execute_query("ROLLBACK")
+                app.logger.error(f"Error en la transacción de desvincular: {e}")
+                flash('Error al desvincular usuario', 'danger')
+                raise
+                
         except Exception as e:
             app.logger.error(f"Error desvinculando usuario: {e}")
             flash('Error al desvincular usuario', 'danger')
@@ -1559,6 +1691,7 @@ def unlink_user():
             db.close()
     else:
         flash('Error de conexión a la base de datos', 'danger')
+    
     return redirect(url_for('user_stats'))
 
 @app.route('/livelyageing/debug_static')

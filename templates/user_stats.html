@@ -7,71 +7,174 @@
     <div class="row">
         <div class="col-md-12 text-center mb-4">
             <h1 class="display-4">{{ _('User Statistics') }}</h1>
-            <p class="lead">{{ _('View statistics for all users in the system.') }}</p>
+            <p class="lead">{{ _('View and manage all users in the system.') }}</p>
         </div>
     </div>
     
     <div class="row mb-3">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-md-6">
             <form method="get" class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Buscar por nombre o email" value="{{ search|default('') }}">
                 <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar</button>
             </form>
         </div>
     </div>
-    
-    <div class="row">
+
+    <!-- Usuarios Activos -->
+    <div class="row mb-4">
         <div class="col-md-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h4>{{ _('Users') }}</h4>
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-check"></i> Usuarios Activos</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ _('Name') }}</th>
-                                    <th>{{ _('Email') }}</th>
-                                    <th>{{ _('Created At') }}</th>
-                                    <th>Estado</th>
-                                    <th>{{ _('Actions') }}</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Última Sincronización</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for user in users %}
+                                    {% if user.status == 'active' %}
+                                        <tr>
+                                            <td>{{ user.name }}</td>
+                                            <td>{{ user.email }}</td>
+                                            <td>
+                                                {% if user.last_update %}
+                                                    {{ user.last_update.strftime('%d/%m/%Y %H:%M') }}
+                                                {% else %}
+                                                    Sin datos
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('user_detail', user_id=user.id) }}" class="btn btn-primary btn-sm">
+                                                        <i class="bi bi-eye"></i> Ver Detalles
+                                                    </a>
+                                                    <button class="btn btn-danger btn-sm" onclick="showUnlinkModal('{{ user.id }}', '{{ user.name }}')" title="Desvincular usuario">
+                                                        <i class="bi bi-x-circle"></i> Desvincular
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usuarios Sin Asignar -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-person-plus"></i> Usuarios Sin Asignar</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
                                 <tr>
-                                    <td>{{ user[1] }}</td>
-                                    <td>{{ user[2] }}</td>
-                                    <td>{{ user[3] }}</td>
-                                    <td>
-                                        {% set last_update = user[4] %}
-                                        {% if last_update %}
-                                            {% set days_diff = ((now.date() - last_update).days) %}
-                                            {% if days_diff <= 7 %}
-                                                <span class="badge bg-success">Activo</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Inactivo</span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="badge bg-secondary">Inactivo</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-primary btn-sm" title="{{ _('View Details') }}">
-                                                <i class="bi bi-eye"></i> {{ _('View Details') }}
-                                            </a>
-                                            <button class="btn btn-danger btn-sm" onclick="showUnlinkModal({{ user[0] }}, '{{ user[1] }}')" title="Desvincular usuario">
-                                                <i class="bi bi-x-circle"></i> Desvincular
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <th>Email</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de Registro</th>
+                                    <th>Acciones</th>
                                 </tr>
-                                {% else %}
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    {% if user.is_latest and user.status == 'unassigned' %}
+                                        <tr>
+                                            <td>{{ user.email }}</td>
+                                            <td><span class="badge bg-warning">Sin asignar</span></td>
+                                            <td>{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td>
+                                                <a href="{{ url_for('link_device') }}" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-person-plus"></i> Asignar usuario
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de Usuarios -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0"><i class="bi bi-clock-history"></i> Historial de Usuarios</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
                                 <tr>
-                                    <td colspan="5" class="text-center">{{ _('No users found.') }}</td>
+                                    <th>Nombre (Antiguo)</th>
+                                    <th>Email</th>
+                                    <th>Última Sincronización</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    {% if user.status == 'historical' or (user.is_latest and user.status == 'unlinked') %}
+                                        <tr>
+                                            <td>
+                                                {{ user.name }}
+                                                {% if user.is_latest and user.status == 'unlinked' %}
+                                                    <span class="badge bg-warning">Desvinculado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ user.email }}</td>
+                                            <td>
+                                                {% if user.last_update %}
+                                                    {{ user.last_update.strftime('%d/%m/%Y %H:%M') }}
+                                                {% else %}
+                                                    Sin datos
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if user.is_latest and user.status == 'unlinked' %}
+                                                    <span class="badge bg-warning">Desvinculado</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Histórico</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if user.is_latest and user.status == 'unlinked' %}
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ url_for('user_detail', user_id=user.id) }}" class="btn btn-primary btn-sm">
+                                                            <i class="bi bi-eye"></i> Ver Detalles
+                                                        </a>
+                                                        <a href="{{ url_for('link_device') }}" class="btn btn-success btn-sm">
+                                                            <i class="bi bi-person-plus"></i> Asignar usuario
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <a href="{{ url_for('user_detail', user_id=user.id) }}" class="btn btn-primary btn-sm">
+                                                        <i class="bi bi-eye"></i> Ver Historial
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>

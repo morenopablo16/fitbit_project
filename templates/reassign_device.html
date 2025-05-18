@@ -6,7 +6,7 @@
 <div class="dashboard-container">
     <h1>{{ _('Reassign Fitbit Device') }}</h1>
     <p>
-        {{ _('The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>.', email=email, current_user_name=user_name) | safe }}
+        {{ _('The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>.', email=email, current_user_name=current_user_name) | safe }}
     </p>
     <p>{{ _('Do you want to reassign the watch to a new person?') }}</p>
     

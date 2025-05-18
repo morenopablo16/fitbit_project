@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Confirmation - Fitbit Dashboard{% endblock %}
+{% block title %}{{ _('Device Linking Confirmation') }} - {{ _('Fitbit Dashboard') }}{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h4 class="mb-0">
-                        <i class="fas fa-check-circle me-2"></i>Device Linking Successful!
+                        <i class="fas fa-check-circle me-2"></i>{{ _('Device Linking Successful!') }}
                     </h4>
                 </div>
                 <div class="card-body">
@@ -22,13 +22,13 @@
                         </div>
                     </div>
                     <div class="user-info mb-4">
-                        <h5>Device linked to:</h5>
-                        <p class="mb-1"><strong>User:</strong> {{ user_name }}</p>
-                        <p class="mb-0"><strong>Email:</strong> {{ email }}</p>
+                        <h5>{{ _('Device linked to:') }}</h5>
+                        <p class="mb-1"><strong>{{ _('User:') }}</strong> {{ user_name }}</p>
+                        <p class="mb-0"><strong>{{ _('Email:') }}</strong> {{ email }}</p>
                     </div>
                     <div class="text-center">
                         <a href="{{ url_for('index') }}" class="btn btn-primary w-100 position-relative" id="home-button" onclick="return false;">
-                            <span class="countdown-text">Return to Home (5)</span>
+                            <span class="countdown-text">{{ _('Return to Home (5)') }}</span>
                         </a>
                     </div>
                 </div>
@@ -180,11 +180,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const countdown = setInterval(() => {
         seconds--;
-        countdownText.textContent = `Return to Home (${seconds})`;
+        if (seconds > 0) {
+            countdownText.textContent = "{{ _('Return to Home') }}" + " (" + seconds + ")";
+        } else {
+            countdownText.textContent = "{{ _('Return to Home') }}";
+        }
 
         if (seconds <= 0) {
             clearInterval(countdown);
-            countdownText.textContent = 'Return to Home';
             // Habilitar el botón
             homeButton.classList.add('ready');
             homeButton.style.pointerEvents = 'auto';

@@ -733,3 +733,96 @@ msgstr ""
  msgid "alerts.sedentary_increase.significant"
  msgstr "Significant increase in sedentary time: +{percent}% (from {avg} to {current} minutes)"
 
+ msgid "Select Fitbit email"
+ msgstr "Select Fitbit email"
+
+ msgid "Select email..."
+ msgstr "Select email..."
+
+ msgid "Each email is linked to a Fitbit device. When authorized, data will be assigned to the selected user."
+ msgstr "Each email is linked to a Fitbit device. When authorized, data will be assigned to the selected user."
+
+ msgid "Missing email? Add new"
+ msgstr "Missing email? Add new"
+
+ msgid "Assign New User"
+ msgstr "Assign New User"
+
+ msgid "Name of new user:"
+ msgstr "Name of new user:"
+
+ msgid "Assign"
+ msgstr "Assign"
+
+ msgid "Reassign Device - Fitbit Dashboard"
+ msgstr "Reassign Device - Fitbit Dashboard"
+
+ msgid "Reassign Fitbit Device"
+ msgstr "Reassign Fitbit Device"
+
+ msgid "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
+ msgstr "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
+
+ msgid "Do you want to reassign the watch to a new person?"
+ msgstr "Do you want to reassign the watch to a new person?"
+
+ msgid "Reassign"
+ msgstr "Reassign"
+
+ msgid "Authorize Fitbit - Fitbit Dashboard"
+ msgstr "Authorize Fitbit - Fitbit Dashboard"
+
+ msgid "Please click the following link to authorize your Fitbit account:"
+ msgstr "Please click the following link to authorize your Fitbit account:"
+
+ msgid "You will be redirected to the Fitbit authorization page"
+ msgstr "You will be redirected to the Fitbit authorization page"
+
+ msgid "Authorizing..."
+ msgstr "Authorizing..."
+
+ msgid "Device Linking Successful!"
+ msgstr "Device Linking Successful!"
+
+ msgid "Device linked to:"
+ msgstr "Device linked to:"
+
+ msgid "User:"
+ msgstr "User:"
+
+ msgid "Email:"
+ msgstr "Email:"
+
+ msgid "Return to Home"
+ msgstr "Return to Home"
+
+ msgid "Return to Home (%d)"
+ msgstr "Return to Home (%d)"
+
+ msgid "Toggle navigation"
+ msgstr "Toggle navigation"
+
+ msgid "Close"
+ msgstr "Close"
+
+ msgid "Device Linking Confirmation"
+ msgstr "Device Linking Confirmation"
+
+ msgid "Fitbit Dashboard"
+ msgstr "Fitbit Dashboard"
+
+ msgid "Lively Ageing - Add New Email"
+ msgstr "Lively Ageing - Add New Email"
+
+ msgid "Add New Email"
+ msgstr "Add New Email"
+
+ msgid "Email Address"
+ msgstr "Email Address"
+
+ msgid "Please enter the email address to add to the system."
+ msgstr "Please enter the email address to add to the system."
+
+ msgid "Add Email"
+ msgstr "Add Email"
+

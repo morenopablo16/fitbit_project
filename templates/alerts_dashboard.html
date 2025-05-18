@@ -470,6 +470,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+// Añadir al principio del script las traducciones como variables globales
+const translations = {
+    notEnoughData: '{{ _("Not enough intraday data to show activity pattern (<6 points).") }}',
+    deviceNotWorn: '{{ _("This may be due to insufficient data recorded by the device or the device not being worn during the day.") }}',
+    noAdditionalInfo: '{{ _("No additional information available") }}'
+};
+
 // Variable global para almacenar los datos de las alertas
 let alertsData = [];
 
@@ -525,13 +532,10 @@ function showAlertDetails(alertId) {
     document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
     document.getElementById('modal-threshold').textContent = alert.threshold_value || 'N/A';
     document.getElementById('modal-status').textContent = alert.acknowledged ? '{{ _("Acknowledged") }}' : '{{ _("Pending") }}';
-    document.getElementById('modal-details').textContent = alert.details || '{{ _("No additional information available") }}';
-
-    // Configurar el botón de reconocimiento
-    const acknowledgeBtn = document.getElementById('modal-acknowledge-btn');
+  // Configurar el botón de reconocimiento
+  const acknowledgeBtn = document.getElementById('modal-acknowledge-btn');
     acknowledgeBtn.setAttribute('data-alert-id', alert.id);
     acknowledgeBtn.style.display = alert.acknowledged ? 'none' : 'block';
-
     // Mostrar el gráfico solo si hay datos intradía y el tipo es compatible
     const chartContainer = document.getElementById('intraday-chart-container');
     const chartCanvas = document.getElementById('intraday-chart');
@@ -726,7 +730,12 @@ function showAlertDetails(alertId) {
             // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
             let warningDiv = document.getElementById('modal-intraday-warning');
             if (warningDiv) {
-                warningDiv.innerHTML = '<div class="alert alert-warning mt-2"><i class="fas fa-exclamation-triangle me-2"></i>No hay suficientes datos intradía para mostrar el patrón de actividad (&lt;6 puntos).<br><small>Esto puede deberse a que el dispositivo no registró datos suficientes o no se llevó puesto durante el día.</small></div>';
+                warningDiv.innerHTML = `
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${translations.notEnoughData}<br>
+                        <small>${translations.deviceNotWorn}</small>
+                    </div>`;
             }
             // Si existe un gráfico previo, destruirlo
             if (window.intradayChart) {
@@ -785,12 +794,25 @@ function showAlertDetails(alertId) {
         // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
         let warningDiv = document.getElementById('modal-intraday-warning');
         if (warningDiv) {
-            warningDiv.innerHTML = '<div class="alert alert-warning mt-2"><i class="fas fa-exclamation-triangle me-2"></i>No hay suficientes datos intradía para mostrar el patrón de actividad (&lt;6 puntos).<br><small>Esto puede deberse a que el dispositivo no registró datos suficientes o no se llevó puesto durante el día.</small></div>';
+            warningDiv.innerHTML = `
+                <div class="alert alert-warning mt-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${translations.notEnoughData}<br>
+                    <small>${translations.deviceNotWorn}</small>
+                </div>`;
         }
         // Si existe un gráfico previo, destruirlo
         if (window.intradayChart) {
             window.intradayChart.destroy();
         }
+    }
+
+    // Configurar el contenido de información adicional
+    const modalDetails = document.getElementById('modal-details');
+    if (alert.details) {
+        modalDetails.textContent = alert.details;
+    } else {
+        modalDetails.textContent = translations.noAdditionalInfo;
     }
 
     // Mostrar el modal

@@ -423,6 +423,27 @@
                             </button>
                         </div>
                     </div>
+                    if (data.length < 6) {
+                        chartContainer.classList.add('d-none');
+                        // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
+                        let warningDiv = document.getElementById('modal-intraday-warning');
+                        if (warningDiv) {
+                            const warningMessage = `
+                                <div class="alert alert-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {{ _('Not enough intraday data to show activity pattern (<6 points).') }}
+                                    <br>
+                                    <small>
+                                        {{ _('This may be due to insufficient data recorded by the device or the device not being worn during the day.') }}
+                                    </small>
+                                </div>`;
+                            warningDiv.innerHTML = warningMessage;
+                        }
+                        // Si existe un gráfico previo, destruirlo
+                        if (window.intradayChart) {
+                            window.intradayChart.destroy();
+                        }
+                    }
                 </div>
             </div>
         </div>

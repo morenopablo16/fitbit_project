@@ -1193,3 +1193,231 @@ msgstr "días"
 msgid "No data available for the selected date."
 msgstr "No hay datos disponibles para el día seleccionado."
 
+msgid "Medical Alerts Dashboard"
+msgstr "Panel de Alertas Médicas"
+
+msgid "High Priority Alerts"
+msgstr "Alertas de Alta Prioridad"
+
+msgid "Medium Priority Alerts"
+msgstr "Alertas de Media Prioridad"
+
+msgid "Low Priority Alerts"
+msgstr "Alertas de Baja Prioridad"
+
+msgid "Unacknowledged Alerts"
+msgstr "Alertas No Reconocidas"
+
+msgid "Priority Legend"
+msgstr "Leyenda de Prioridades"
+
+msgid "High"
+msgstr "Alta"
+
+msgid "Medium"
+msgstr "Media"
+
+msgid "Low"
+msgstr "Baja"
+
+msgid "Requires immediate attention (e.g., cardiac anomalies)"
+msgstr "Requiere atención inmediata (ej: anomalías cardíacas)"
+
+msgid "Attention needed in the next hours (e.g., activity changes)"
+msgstr "Atención necesaria en las próximas horas (ej: cambios en actividad)"
+
+msgid "Routine monitoring (e.g., sleep patterns)"
+msgstr "Seguimiento rutinario (ej: patrones de sueño)"
+
+msgid "Date From"
+msgstr "Fecha Desde"
+
+msgid "Date To"
+msgstr "Fecha Hasta"
+
+msgid "Name or email"
+msgstr "Nombre o email"
+
+msgid "Alert Type"
+msgstr "Tipo de Alerta"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Cardiac"
+msgstr "Cardíacas"
+
+msgid "Activity"
+msgstr "Actividad"
+
+msgid "Sleep"
+msgstr "Sueño"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Unacknowledged"
+msgstr "No Reconocidas"
+
+msgid "Acknowledged"
+msgstr "Reconocidas"
+
+msgid "Show only urgent alerts (unacknowledged for more than 24h)"
+msgstr "Mostrar solo alertas urgentes (sin reconocer por más de 24h)"
+
+msgid "Filter"
+msgstr "Filtrar"
+
+msgid "Clear Filters"
+msgstr "Limpiar Filtros"
+
+msgid "Date/Time"
+msgstr "Fecha/Hora"
+
+msgid "Time Since Alert"
+msgstr "Tiempo desde Alerta"
+
+msgid "hours"
+msgstr "horas"
+
+msgid "days"
+msgstr "días"
+
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Urgent"
+msgstr "Urgente"
+
+msgid "Mark as acknowledged"
+msgstr "Marcar como reconocida"
+
+msgid "Page navigation"
+msgstr "Navegación de páginas"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Alert Details"
+msgstr "Detalles de la Alerta"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "General Information"
+msgstr "Información General"
+
+msgid "Technical Details"
+msgstr "Detalles Técnicos"
+
+msgid "Detected Value"
+msgstr "Valor Detectado"
+
+msgid "Threshold"
+msgstr "Umbral"
+
+msgid "Intraday Data (Last 24h)"
+msgstr "Datos Intradía (Últimas 24h)"
+
+msgid "Additional Information"
+msgstr "Información Adicional"
+
+msgid "Acknowledge Alert"
+msgstr "Reconocer Alerta"
+
+msgid "Doctor Note"
+msgstr "Nota del médico"
+
+msgid "Add a note about the action taken..."
+msgstr "Añade una nota sobre la acción tomada..."
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Acknowledge"
+msgstr "Reconocer"
+
+msgid "Important data with zero values: possible device or synchronization issue"
+msgstr "Datos importantes con valor cero: posible problema con el dispositivo o la sincronización"
+
+msgid "Not enough intraday data to show activity pattern (<6 points)."
+msgstr "No hay suficientes datos intradía para mostrar el patrón de actividad (<6 puntos)."
+
+msgid "This may be due to insufficient data recorded by the device or the device not being worn during the day."
+msgstr "Esto puede deberse a que el dispositivo no registró datos suficientes o no se llevó puesto durante el día."
+
+msgid "Inactivity period detected"
+msgstr "Período de inactividad detectado"
+
+msgid "Prolonged periods of inactivity (≥2 hours) in elderly are associated with:"
+msgstr "Los períodos prolongados de inactividad (≥2 horas) en ancianos están asociados con:"
+
+msgid "Increased risk of cardiovascular events"
+msgstr "Mayor riesgo de eventos cardiovasculares"
+
+msgid "Accelerated loss of muscle mass and strength (sarcopenia)"
+msgstr "Pérdida acelerada de masa muscular y fuerza (sarcopenia)"
+
+msgid "Deterioration of functional capacity and increased risk of falls"
+msgstr "Deterioro de la capacidad funcional y mayor riesgo de caídas"
+
+msgid "Recommendation"
+msgstr "Recomendación"
+
+msgid "Verify if the user was sleeping during this interval or if it represents abnormal inactivity that requires follow-up."
+msgstr "Verificar si el usuario estaba durmiendo durante este intervalo o si representa una inactividad anormal que requiere seguimiento."
+
+msgid "Priority"
+msgstr "Prioridad"
+
+msgid "Alert Details"
+msgstr "Detalles de la Alerta"
+
+msgid "Value out of range"
+msgstr "Valor fuera de rango"
+
+msgid "Alert Type"
+msgstr "Tipo de Alerta"
+
+msgid "Technical Details"
+msgstr "Detalles Técnicos"
+
+msgid "General Information"
+msgstr "Información General"
+
+msgid "Detected Value"
+msgstr "Valor Detectado"
+
+msgid "Threshold"
+msgstr "Umbral"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Additional Information"
+msgstr "Información Adicional"
+
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Acknowledged"
+msgstr "Reconocida"
+
+msgid "Urgent"
+msgstr "Urgente"
+
+msgid "intraday_activity_drop"
+msgstr "Caída de actividad intradía"
+
+msgid "heart_rate_anomaly"
+msgstr "Anomalía en frecuencia cardíaca"
+
+msgid "sleep_duration_change"
+msgstr "Cambio en duración del sueño"
+
+msgid "activity_drop"
+msgstr "Caída de actividad"
+

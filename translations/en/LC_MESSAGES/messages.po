@@ -1,14 +1,12 @@
-# English translations for PROJECT.
-# Copyright (C) 2025 ORGANIZATION
+# EN translations for Lively Ageing.
+# Copyright (C) 2025 Lively Ageing
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-04-29 23:33+0200\n"
-"PO-Revision-Date: 2025-04-29 23:29+0200\n"
+"POT-Creation-Date: 2025-05-18 19:08+0200\n"
+"PO-Revision-Date: 2025-05-18 19:04+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -18,605 +16,705 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: templates/base.html:29
-msgid "Welcome"
-msgstr "Welcome"
-
-#: templates/base.html:34 templates/home.html:34
-msgid "Dashboard"
-msgstr "Dashboard"
-
-#: templates/base.html:39 templates/home.html:20 templates/home.html:23
-msgid "Link Device"
-msgstr "Link Device"
-
-#: templates/base.html:44
-msgid "Logout"
-msgstr "Logout"
-
-#: templates/base.html:52
-msgid "Language"
-msgstr "Language"
-
-#: templates/base.html:89
-msgid "All rights reserved"
-msgstr "All rights reserved"
-
-#: templates/home.html:3
-msgid "Home"
-msgstr "Home"
-
-#: templates/home.html:9
-msgid "Welcome to Lively Ageing"
-msgstr "Welcome to Lively Ageing"
-
-#: templates/home.html:10
-msgid "Monitor and manage Fitbit users physical activity data"
-msgstr "Monitor and manage Fitbit users physical activity data"
-
-#: templates/home.html:21
-msgid "Connect a new Fitbit device or reassign an existing one to a user"
-msgstr "Connect a new Fitbit device or reassign an existing one to a user"
-
-#: templates/home.html:35
-msgid "View a general summary of the most recent data from all users"
-msgstr "View a general summary of the most recent data from all users"
-
-#: templates/home.html:37
-msgid "View Dashboard"
-msgstr "View Dashboard"
-
-#: templates/home.html:48 templates/user_stats.html:18
-msgid "Users"
-msgstr "Users"
-
-#: templates/home.html:49
-msgid "Access detailed statistics for each individual user"
-msgstr "Access detailed statistics for each individual user"
-
-#: templates/home.html:51
-msgid "View Users"
-msgstr "View Users"
-
-#: templates/home.html:63
-msgid "Recent Activity"
-msgstr "Recent Activity"
-
-#: templates/home.html:70
-msgid "User"
-msgstr "User"
-
-#: templates/home.html:71 templates/user_detail.html:24
-#: templates/user_stats.html:26
-msgid "Email"
-msgstr "Email"
-
-#: templates/home.html:72
-msgid "Last Update"
-msgstr "Last Update"
-
-#: templates/home.html:73 templates/user_stats.html:28
-msgid "Actions"
-msgstr "Actions"
-
-#: templates/home.html:81
-msgid "No data"
-msgstr "No data"
-
-#: templates/home.html:84 templates/user_stats.html:38
-msgid "View Details"
-msgstr "View Details"
-
-#: templates/link_device.html:3 templates/link_device.html:11
-msgid "Link Fitbit Device"
-msgstr "Link Fitbit Device"
-
-#: templates/link_device.html:14
-msgid "Select an email"
-msgstr "Select an email"
-
-#: templates/link_device.html:23
-msgid "Authorize Fitbit"
-msgstr "Authorize Fitbit"
-
-#: templates/login.html:3
-msgid "Login"
-msgstr "Login"
+ msgid "common.welcome"
+ msgstr "Welcome"
 
-#: templates/login.html:7
-msgid "Login to your account"
-msgstr "Login to your account"
+ msgid "common.login"
+ msgstr "Login"
 
-#: templates/login.html:12
-msgid "Username"
-msgstr "Username"
+ msgid "common.logout"
+ msgstr "Logout"
 
-#: templates/login.html:16
-msgid "Password"
-msgstr "Password"
+ msgid "common.register"
+ msgstr "Register"
 
-#: templates/login.html:19
-msgid "Sign In"
-msgstr "Sign In"
+ msgid "common.profile"
+ msgstr "Profile"
 
-#: templates/user_detail.html:3
-msgid "Lively Ageing - User Details"
-msgstr "Lively Ageing - User Details"
+ msgid "common.dashboard"
+ msgstr "Dashboard"
 
-#: templates/user_detail.html:9
-msgid "User Details"
-msgstr "User Details"
+ msgid "common.settings"
+ msgstr "Settings"
 
-#: templates/user_detail.html:10
-msgid "Detailed information for"
-msgstr "Detailed information for"
+ msgid "common.save"
+ msgstr "Save"
 
-#: templates/user_detail.html:18
-msgid "User Information"
-msgstr "User Information"
+ msgid "common.cancel"
+ msgstr "Cancel"
 
-#: templates/user_detail.html:23 templates/user_stats.html:25
-msgid "Name"
-msgstr "Name"
+ msgid "common.delete"
+ msgstr "Delete"
 
-#: templates/user_detail.html:27 templates/user_stats.html:27
-msgid "Created At"
-msgstr "Created At"
+ msgid "common.edit"
+ msgstr "Edit"
 
-#: templates/user_detail.html:39
-msgid "Daily Summaries"
-msgstr "Daily Summaries"
-
-#: templates/user_detail.html:46 templates/user_detail.html:96
-msgid "Date"
-msgstr "Date"
-
-#: templates/user_detail.html:47 templates/user_detail.html:98
-msgid "Steps"
-msgstr "Steps"
-
-#: templates/user_detail.html:48 templates/user_detail.html:99
-msgid "Heart Rate"
-msgstr "Heart Rate"
-
-#: templates/user_detail.html:49
-msgid "Sleep (min)"
-msgstr "Sleep (min)"
-
-#: templates/user_detail.html:50
-msgid "Calories"
-msgstr "Calories"
-
-#: templates/user_detail.html:51
-msgid "Distance (km)"
-msgstr "Distance (km)"
-
-#: templates/user_detail.html:52
-msgid "Floors"
-msgstr "Floors"
-
-#: templates/user_detail.html:53
-msgid "Elevation (m)"
-msgstr "Elevation (m)"
-
-#: templates/user_detail.html:54
-msgid "Active Minutes"
-msgstr "Active Minutes"
-
-#: templates/user_detail.html:55
-msgid "Sedentary Minutes"
-msgstr "Sedentary Minutes"
-
-#: templates/user_detail.html:74
-msgid "No daily summaries found."
-msgstr "No daily summaries found."
-
-#: templates/user_detail.html:89
-msgid "Intraday Metrics"
-msgstr "Intraday Metrics"
-
-#: templates/user_detail.html:97
-msgid "Time"
-msgstr "Time"
-
-#: templates/user_detail.html:100
-msgid "Type"
-msgstr "Type"
-
-#: templates/user_detail.html:101
-msgid "Value"
-msgstr "Value"
-
-#: templates/user_detail.html:116
-msgid "No intraday metrics found."
-msgstr "No intraday metrics found."
-
-#: templates/user_stats.html:3
-msgid "Lively Ageing - User Statistics"
-msgstr "Lively Ageing - User Statistics"
-
-#: templates/user_stats.html:9
-msgid "User Statistics"
-msgstr "User Statistics"
-
-#: templates/user_stats.html:10
-msgid "View statistics for all users in the system."
-msgstr "View statistics for all users in the system."
-
-#: templates/user_stats.html:43
-msgid "No users found."
-msgstr "No users found."
-
-#: venv/Lib/site-packages/click/_termui_impl.py:556
-#, python-brace-format
-msgid "{editor}: Editing failed"
-msgstr "{editor}: Editing failed"
-
-#: venv/Lib/site-packages/click/_termui_impl.py:560
-#, python-brace-format
-msgid "{editor}: Editing failed: {e}"
-msgstr "{editor}: Editing failed: {e}"
-
-#: venv/Lib/site-packages/click/core.py:1124
-msgid "Aborted!"
-msgstr "Aborted!"
-
-#: venv/Lib/site-packages/click/core.py:1349
-#: venv/Lib/site-packages/click/core.py:1379
-#, python-brace-format
-msgid "(Deprecated) {text}"
-msgstr "(Deprecated) {text}"
-
-#: venv/Lib/site-packages/click/core.py:1396
-msgid "Options"
-msgstr "Options"
-
-#: venv/Lib/site-packages/click/core.py:1422
-#, python-brace-format
-msgid "Got unexpected extra argument ({args})"
-msgid_plural "Got unexpected extra arguments ({args})"
-msgstr[0] "Got unexpected extra argument ({args})"
-msgstr[1] "Got unexpected extra arguments ({args})"
-
-#: venv/Lib/site-packages/click/core.py:1438
-#, python-brace-format
-msgid "DeprecationWarning: The command {name!r} is deprecated."
-msgstr "DeprecationWarning: The command {name!r} is deprecated."
-
-#: venv/Lib/site-packages/click/core.py:1645
-msgid "Commands"
-msgstr "Commands"
-
-#: venv/Lib/site-packages/click/core.py:1677
-msgid "Missing command."
-msgstr "Missing command."
-
-#: venv/Lib/site-packages/click/core.py:1755
-#, python-brace-format
-msgid "No such command {name!r}."
-msgstr "No such command {name!r}."
-
-#: venv/Lib/site-packages/click/core.py:2313
-msgid "Value must be an iterable."
-msgstr "Value must be an iterable."
-
-#: venv/Lib/site-packages/click/core.py:2334
-#, python-brace-format
-msgid "Takes {nargs} values but 1 was given."
-msgid_plural "Takes {nargs} values but {len} were given."
-msgstr[0] "Takes {nargs} values but 1 was given."
-msgstr[1] "Takes {nargs} values but {len} were given."
-
-#: venv/Lib/site-packages/click/core.py:2783
-#, python-brace-format
-msgid "env var: {var}"
-msgstr "Env was: {was}"
-
-#: venv/Lib/site-packages/click/core.py:2813
-msgid "(dynamic)"
-msgstr "(dynamic)"
-
-#: venv/Lib/site-packages/click/core.py:2828
-#, python-brace-format
-msgid "default: {default}"
-msgstr "default: {default}"
-
-#: venv/Lib/site-packages/click/core.py:2841
-msgid "required"
-msgstr "required"
-
-#: venv/Lib/site-packages/click/decorators.py:457
-#, python-format
-msgid "%(prog)s, version %(version)s"
-msgstr "%(prog)s, version %(version)s"
-
-#: venv/Lib/site-packages/click/decorators.py:520
-msgid "Show the version and exit."
-msgstr "Show the version and exit."
-
-#: venv/Lib/site-packages/click/decorators.py:541
-msgid "Show this message and exit."
-msgstr "Show this message and exit."
-
-#: venv/Lib/site-packages/click/exceptions.py:49
-#: venv/Lib/site-packages/click/exceptions.py:88
-#, python-brace-format
-msgid "Error: {message}"
-msgstr "Error: {message}"
-
-#: venv/Lib/site-packages/click/exceptions.py:80
-#, python-brace-format
-msgid "Try '{command} {option}' for help."
-msgstr "Try '{command} {option}' for help."
-
-#: venv/Lib/site-packages/click/exceptions.py:129
-#, python-brace-format
-msgid "Invalid value: {message}"
-msgstr "Invalid value: {message}"
-
-#: venv/Lib/site-packages/click/exceptions.py:131
-#, python-brace-format
-msgid "Invalid value for {param_hint}: {message}"
-msgstr "Invalid value for {param_hint}: {message}"
-
-#: venv/Lib/site-packages/click/exceptions.py:187
-msgid "Missing argument"
-msgstr "Missing argument"
-
-#: venv/Lib/site-packages/click/exceptions.py:189
-msgid "Missing option"
-msgstr "Missing option"
-
-#: venv/Lib/site-packages/click/exceptions.py:191
-msgid "Missing parameter"
-msgstr "Missing parameter"
-
-#: venv/Lib/site-packages/click/exceptions.py:193
-#, python-brace-format
-msgid "Missing {param_type}"
-msgstr "Missing {param_type}"
-
-#: venv/Lib/site-packages/click/exceptions.py:200
-#, python-brace-format
-msgid "Missing parameter: {param_name}"
-msgstr "Missing parameter: {param_name}"
-
-#: venv/Lib/site-packages/click/exceptions.py:220
-#, python-brace-format
-msgid "No such option: {name}"
-msgstr "No such option: {name}"
-
-#: venv/Lib/site-packages/click/exceptions.py:232
-#, python-brace-format
-msgid "Did you mean {possibility}?"
-msgid_plural "(Possible options: {possibilities})"
-msgstr[0] "Did you mean {possibility}?"
-msgstr[1] "(Possible options: {possibilities})"
-
-#: venv/Lib/site-packages/click/exceptions.py:270
-msgid "unknown error"
-msgstr "unknown error"
-
-#: venv/Lib/site-packages/click/exceptions.py:277
-#, python-brace-format
-msgid "Could not open file {filename!r}: {message}"
-msgstr "Could not open file {filename!r}: {message}"
-
-#: venv/Lib/site-packages/click/formatting.py:156
-msgid "Usage:"
-msgstr "Usage:"
-
-#: venv/Lib/site-packages/click/parser.py:233
-#, python-brace-format
-msgid "Argument {name!r} takes {nargs} values."
-msgstr "Argument {name!r} takes {nargs} values."
-
-#: venv/Lib/site-packages/click/parser.py:415
-#, python-brace-format
-msgid "Option {name!r} does not take a value."
-msgstr "Option {name!r} does not take a value."
-
-#: venv/Lib/site-packages/click/parser.py:476
-#, python-brace-format
-msgid "Option {name!r} requires an argument."
-msgid_plural "Option {name!r} requires {nargs} arguments."
-msgstr[0] "Option {name!r} requires an argument."
-msgstr[1] "Option {name!r} requires {nargs} arguments."
-
-#: venv/Lib/site-packages/click/shell_completion.py:326
-msgid "Shell completion is not supported for Bash versions older than 4.4."
-msgstr "Shell completion is not supported for Bash versions older than 4.4."
-
-#: venv/Lib/site-packages/click/shell_completion.py:333
-msgid "Couldn't detect Bash version, shell completion is not supported."
-msgstr "Couldn't detect Bash version, shell completion is not supported."
-
-#: venv/Lib/site-packages/click/termui.py:158
-msgid "Repeat for confirmation"
-msgstr "Repeat for confirmation"
-
-#: venv/Lib/site-packages/click/termui.py:174
-msgid "Error: The value you entered was invalid."
-msgstr "Error: The value you entered was invalid."
-
-#: venv/Lib/site-packages/click/termui.py:176
-#, python-brace-format
-msgid "Error: {e.message}"
-msgstr "Error: {e.message}"
-
-#: venv/Lib/site-packages/click/termui.py:187
-msgid "Error: The two entered values do not match."
-msgstr "Error: The two entered values do not match."
-
-#: venv/Lib/site-packages/click/termui.py:243
-msgid "Error: invalid input"
-msgstr "Error: invalid input"
-
-#: venv/Lib/site-packages/click/termui.py:773
-msgid "Press any key to continue..."
-msgstr "Press any key to continue..."
-
-#: venv/Lib/site-packages/click/types.py:267
-#, python-brace-format
-msgid "Choose from:\n\t{choices}"
-msgstr "Choose from:\n\t{choices}"
-
-#: venv/Lib/site-packages/click/types.py:299
-#, python-brace-format
-msgid "{value!r} is not {choice}."
-msgid_plural "{value!r} is not one of {choices}."
-msgstr[0] "{value!r} is not {choice}."
-msgstr[1] "{value!r} is not one of {choices}."
-
-#: venv/Lib/site-packages/click/types.py:393
-#, python-brace-format
-msgid "{value!r} does not match the format {format}."
-msgid_plural "{value!r} does not match the formats {formats}."
-msgstr[0] "{value!r} does not match the format {format}."
-msgstr[1] "{value!r} does not match the formats {formats}."
-
-#: venv/Lib/site-packages/click/types.py:415
-#, python-brace-format
-msgid "{value!r} is not a valid {number_type}."
-msgstr "{value!r} is not a valid {number_type}."
-
-#: venv/Lib/site-packages/click/types.py:471
-#, python-brace-format
-msgid "{value} is not in the range {range}."
-msgstr "{value} is not in the range {range}."
-
-#: venv/Lib/site-packages/click/types.py:612
-#, python-brace-format
-msgid "{value!r} is not a valid boolean."
-msgstr "{value!r} is not a valid boolean."
-
-#: venv/Lib/site-packages/click/types.py:636
-#, python-brace-format
-msgid "{value!r} is not a valid UUID."
-msgstr "{value!r} is not a valid UUID."
-
-#: venv/Lib/site-packages/click/types.py:826
-msgid "file"
-msgstr "file"
-
-#: venv/Lib/site-packages/click/types.py:828
-msgid "directory"
-msgstr "directory"
-
-#: venv/Lib/site-packages/click/types.py:830
-msgid "path"
-msgstr "path"
-
-#: venv/Lib/site-packages/click/types.py:881
-#, python-brace-format
-msgid "{name} {filename!r} does not exist."
-msgstr "{name} {filename!r} does not exist."
-
-#: venv/Lib/site-packages/click/types.py:890
-#, python-brace-format
-msgid "{name} {filename!r} is a file."
-msgstr "{name} {filename!r} is a file."
-
-#: venv/Lib/site-packages/click/types.py:898
-#, python-brace-format
-msgid "{name} {filename!r} is a directory."
-msgstr "{name} {filename!r} is a directory."
-
-#: venv/Lib/site-packages/click/types.py:907
-#, python-brace-format
-msgid "{name} {filename!r} is not readable."
-msgstr "{name} {filename!r} is not readable."
-
-#: venv/Lib/site-packages/click/types.py:916
-#, python-brace-format
-msgid "{name} {filename!r} is not writable."
-msgstr "{name} {filename!r} is not writable."
-
-#: venv/Lib/site-packages/click/types.py:925
-#, python-brace-format
-msgid "{name} {filename!r} is not executable."
-msgstr "{name} {filename!r} is not executable."
-
-#: venv/Lib/site-packages/click/types.py:992
-#, python-brace-format
-msgid "{len_type} values are required, but {len_value} was given."
-msgid_plural "{len_type} values are required, but {len_value} were given."
-msgstr[0] "{len_type} values are required, but {len_value} was given."
-msgstr[1] "{len_type} values are required, but {len_value} were given."
-
-#: venv/Lib/site-packages/httplib2/__init__.py:408
-#, python-format
-msgid "Content purported to be compressed with %s but failed to decompress."
-msgstr "Content purported to be compressed with %s but failed to decompress."
-
-#: venv/Lib/site-packages/httplib2/__init__.py:572
-#, python-format
-msgid "Unsupported value for qop: %s."
-msgstr "Unsupported value for qop: %s."
-
-#: venv/Lib/site-packages/httplib2/__init__.py:576
-#: venv/Lib/site-packages/httplib2/__init__.py:654
-#, python-format
-msgid "Unsupported value for algorithm: %s.algorithm"
-msgstr "Unsupported value for algorithm: %s.algorithm"
-
-#: venv/Lib/site-packages/httplib2/__init__.py:649
-msgid "The challenge doesn't contain a server nonce, or this one is empty."
-msgstr "The challenge doesn't contain a server nonce, or this one is empty."
-
-#: venv/Lib/site-packages/httplib2/__init__.py:659
-#, python-format
-msgid "Unsupported value for pw-algorithm: %s.pw-algorithm"
-msgstr "Unsupported value for pw-algorithm: %s.pw-algorithm"
-
-#: venv/Lib/site-packages/httplib2/__init__.py:1468
-msgid "Redirected but the response is missing a Location: header."
-msgstr "Redirected but the response is missing a Location: header."
-
-#: templates/assign_user.html:3
-msgid "Assign User - Fitbit Dashboard"
-msgstr "Assign User - Fitbit Dashboard"
-
-#: templates/assign_user.html:7
-msgid "Assign New User"
-msgstr "Assign New User"
-
-#: templates/assign_user.html:15
-msgid "Name of new user:"
-msgstr "Name of new user:"
-
-#: templates/assign_user.html:18
-msgid "Assign"
-msgstr "Assign"
-
-#: templates/assign_user.html:19
-msgid "Cancel"
-msgstr "Cancel"
-
-#: templates/reassign_confirmation.html:3
-msgid "Reassign Device - Fitbit Dashboard"
-msgstr "Reassign Device - Fitbit Dashboard"
-
-#: templates/reassign_confirmation.html:7
-msgid "Reassign Fitbit Device"
-msgstr "Reassign Fitbit Device"
-
-#: templates/reassign_confirmation.html:9
-msgid "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
-msgstr "The email <strong>%(email)s</strong> is already being used by <strong>%(current_user_name)s</strong>."
-
-#: templates/reassign_confirmation.html:11
-msgid "Do you want to reassign the watch to a new person?"
-msgstr "Do you want to reassign the watch to a new person?"
-
-#: templates/reassign_confirmation.html:15
-msgid "Name of new user:"
-msgstr "Name of new user:"
-
-#: templates/reassign_confirmation.html:18
-msgid "Reassign"
-msgstr "Reassign"
-
-#: templates/reassign_confirmation.html:19
-msgid "Cancel"
-msgstr "Cancel"
+ msgid "common.loading"
+ msgstr "Loading..."
+
+ msgid "common.error"
+ msgstr "Error"
+
+ msgid "common.success"
+ msgstr "Success"
+
+ msgid "common.confirm"
+ msgstr "Confirm"
+
+ msgid "common.language"
+ msgstr "Language"
+
+ msgid "common.spanish"
+ msgstr "Spanish"
+
+ msgid "common.english"
+ msgstr "English"
+
+ msgid "common.user"
+ msgstr "User"
+
+ msgid "common.date"
+ msgstr "Date"
+
+ msgid "common.time"
+ msgstr "Time"
+
+ msgid "common.type"
+ msgstr "Type"
+
+ msgid "common.value"
+ msgstr "Value"
+
+ msgid "common.actions"
+ msgstr "Actions"
+
+ msgid "common.name"
+ msgstr "Name"
+
+ msgid "common.email"
+ msgstr "Email"
+
+ msgid "common.created_at"
+ msgstr "Created at"
+
+ msgid "common.all_rights_reserved"
+ msgstr "All rights reserved"
+
+ msgid "common.back"
+ msgstr "Back"
+
+ msgid "common.refresh"
+ msgstr "Refresh"
+
+ msgid "common.export"
+ msgstr "Export"
+
+ msgid "common.filter"
+ msgstr "Filter"
+
+ msgid "common.search"
+ msgstr "Search"
+
+ msgid "common.details"
+ msgstr "Details"
+
+ msgid "common.status"
+ msgstr "Status"
+
+ msgid "common.priority"
+ msgstr "Priority"
+
+ msgid "common.threshold"
+ msgstr "Threshold"
+
+ msgid "common.notes"
+ msgstr "Notes"
+
+ msgid "common.acknowledge"
+ msgstr "Acknowledge"
+
+ msgid "common.acknowledged"
+ msgstr "Acknowledged"
+
+ msgid "common.pending"
+ msgstr "Pending"
+
+ msgid "common.urgent"
+ msgstr "Urgent"
+
+ msgid "common.high"
+ msgstr "High"
+
+ msgid "common.medium"
+ msgstr "Medium"
+
+ msgid "common.low"
+ msgstr "Low"
+
+ msgid "common.sync_status.ok"
+ msgstr "Data up to date"
+
+ msgid "common.sync_status.warning"
+ msgstr "Data outdated"
+
+ msgid "common.sync_status.critical"
+ msgstr "No recent data"
+
+ msgid "common.sync_status.never"
+ msgstr "Never synced"
+
+ msgid "auth.email"
+ msgstr "Email"
+
+ msgid "auth.password"
+ msgstr "Password"
+
+ msgid "auth.remember_me"
+ msgstr "Remember me"
+
+ msgid "auth.forgot_password"
+ msgstr "Forgot password?"
+
+ msgid "auth.login_success"
+ msgstr "Successfully logged in"
+
+ msgid "auth.login_error"
+ msgstr "Login failed"
+
+ msgid "auth.logout_success"
+ msgstr "Successfully logged out"
+
+ msgid "auth.login_to_account"
+ msgstr "Login to your account"
+
+ msgid "auth.sign_in"
+ msgstr "Sign In"
+
+ msgid "dashboard.daily_summary"
+ msgstr "Daily Summary"
+
+ msgid "dashboard.steps"
+ msgstr "Steps"
+
+ msgid "dashboard.distance"
+ msgstr "Distance"
+
+ msgid "dashboard.calories"
+ msgstr "Calories"
+
+ msgid "dashboard.active_minutes"
+ msgstr "Active Minutes"
+
+ msgid "dashboard.sedentary_minutes"
+ msgstr "Sedentary Minutes"
+
+ msgid "dashboard.heart_rate"
+ msgstr "Heart Rate"
+
+ msgid "dashboard.sleep"
+ msgstr "Sleep"
+
+ msgid "dashboard.sleep_efficiency"
+ msgstr "Sleep Efficiency"
+
+ msgid "dashboard.refresh_data"
+ msgstr "Refresh Data"
+
+ msgid "dashboard.last_sync"
+ msgstr "Last Sync"
+
+ msgid "dashboard.no_data"
+ msgstr "No data available"
+
+ msgid "dashboard.intraday_metrics"
+ msgstr "Intraday Metrics"
+
+ msgid "dashboard.floors"
+ msgstr "Floors"
+
+ msgid "dashboard.sleep_start"
+ msgstr "Start Time"
+
+ msgid "dashboard.sleep_end"
+ msgstr "End Time"
+
+ msgid "dashboard.sleep_duration"
+ msgstr "Duration"
+
+ msgid "dashboard.deep_sleep"
+ msgstr "Deep Sleep"
+
+ msgid "dashboard.light_sleep"
+ msgstr "Light Sleep"
+
+ msgid "dashboard.rem_sleep"
+ msgstr "REM Sleep"
+
+ msgid "dashboard.awake"
+ msgstr "Awake"
+
+ msgid "dashboard.elevation"
+ msgstr "Elevation"
+
+ msgid "fitbit.link_device"
+ msgstr "Link Fitbit Device"
+
+ msgid "fitbit.unlink_device"
+ msgstr "Unlink Device"
+
+ msgid "fitbit.sync_data"
+ msgstr "Sync Data"
+
+ msgid "fitbit.sync_success"
+ msgstr "Data synced successfully"
+
+ msgid "fitbit.sync_error"
+ msgstr "Error syncing data"
+
+ msgid "fitbit.device_linked"
+ msgstr "Device linked successfully"
+
+ msgid "fitbit.device_unlinked"
+ msgstr "Device unlinked successfully"
+
+ msgid "fitbit.select_email"
+ msgstr "Select an email"
+
+ msgid "fitbit.authorize_fitbit"
+ msgstr "Authorize Fitbit"
+
+ msgid "fitbit.authorizing"
+ msgstr "Authorizing..."
+
+ msgid "fitbit.device_linking_confirmation"
+ msgstr "Device Linking Confirmation"
+
+ msgid "fitbit.linking_successful"
+ msgstr "Linking Successful!"
+
+ msgid "fitbit.device_linked_success"
+ msgstr "The Fitbit device has been successfully linked."
+
+ msgid "fitbit.return_home"
+ msgstr "Return to Home"
+
+ msgid "fitbit.reassign_device"
+ msgstr "Reassign Fitbit Device"
+
+ msgid "fitbit.reassign_device_message"
+ msgstr "The email is already being used by"
+
+ msgid "fitbit.reassign_question"
+ msgstr "Do you want to reassign the watch to a new person?"
+
+ msgid "fitbit.new_user_name"
+ msgstr "New user name"
+
+ msgid "user.user_statistics"
+ msgstr "User Statistics"
+
+ msgid "user.view_statistics"
+ msgstr "View statistics for all users in the system."
+
+ msgid "user.user_details"
+ msgstr "User Details"
+
+ msgid "user.detailed_info"
+ msgstr "Detailed information for"
+
+ msgid "user.user_information"
+ msgstr "User Information"
+
+ msgid "user.no_users_found"
+ msgstr "No users found."
+
+ msgid "user.no_daily_summaries"
+ msgstr "No daily summaries found."
+
+ msgid "user.no_intraday_metrics"
+ msgstr "No intraday metrics found."
+
+ msgid "user.view_details"
+ msgstr "View Details"
+
+ msgid "user.search_placeholder"
+ msgstr "Search by name or email"
+
+ msgid "user.search_button"
+ msgstr "Search"
+
+ msgid "user.active_users"
+ msgstr "Active Users"
+
+ msgid "user.unassigned_users"
+ msgstr "Unassigned Users"
+
+ msgid "user.user_history"
+ msgstr "User History"
+
+ msgid "user.last_sync"
+ msgstr "Last Sync"
+
+ msgid "user.no_data"
+ msgstr "No data"
+
+ msgid "user.unlink_user"
+ msgstr "Unlink User"
+
+ msgid "user.assign_user"
+ msgstr "Assign User"
+
+ msgid "user.view_history"
+ msgstr "View History"
+
+ msgid "user.unlinked"
+ msgstr "Unlinked"
+
+ msgid "user.historical"
+ msgstr "Historical"
+
+ msgid "user.unlink_confirmation"
+ msgstr "Are you sure you want to unlink {name}?"
+
+ msgid "user.cancel"
+ msgstr "Cancel"
+
+ msgid "user.unlink"
+ msgstr "Unlink"
+
+ msgid "user.registration_date"
+ msgstr "Registration Date"
+
+ msgid "user.old_name"
+ msgstr "Old Name"
+
+ msgid "user.unassigned"
+ msgstr "Unassigned"
+
+ msgid "home.welcome_message"
+ msgstr "Welcome to Lively Ageing"
+
+ msgid "home.app_description"
+ msgstr "Monitor and manage Fitbit users physical activity data"
+
+ msgid "home.link_device"
+ msgstr "Link Device"
+
+ msgid "home.link_device_desc"
+ msgstr "Connect a new Fitbit device or reassign an existing one to a user"
+
+ msgid "home.alert_dashboard"
+ msgstr "Alert Dashboard"
+
+ msgid "home.alert_dashboard_desc"
+ msgstr "View a general summary of the most recent data from all users"
+
+ msgid "home.users"
+ msgstr "Users"
+
+ msgid "home.users_desc"
+ msgstr "Access detailed statistics for each individual user"
+
+ msgid "home.recent_activity"
+ msgstr "Recent Activity"
+
+ msgid "home.user"
+ msgstr "User"
+
+ msgid "home.email"
+ msgstr "Email"
+
+ msgid "home.last_update"
+ msgstr "Last Update"
+
+ msgid "home.state"
+ msgstr "State"
+
+ msgid "home.actions"
+ msgstr "Actions"
+
+ msgid "home.view_details"
+ msgstr "View Details"
+
+ msgid "home.sync_status.ok"
+ msgstr "OK"
+
+ msgid "home.sync_status.ok_desc"
+ msgstr "Data updated in the last 24h"
+
+ msgid "home.sync_status.warning"
+ msgstr "Warning"
+
+ msgid "home.sync_status.warning_desc"
+ msgstr "No data in the last 24-72h"
+
+ msgid "home.sync_status.critical"
+ msgstr "Critical"
+
+ msgid "home.sync_status.critical_desc"
+ msgstr "No data for more than 72h"
+
+ msgid "home.sync_status.no_data"
+ msgstr "No Data"
+
+ msgid "home.sync_status.no_data_desc"
+ msgstr "Never synchronized"
+
+ msgid "home.add_new_user"
+ msgstr "Add New User"
+
+ msgid "home.refresh_data"
+ msgstr "Refresh Data"
+
+ msgid "home.loading"
+ msgstr "Loading..."
+
+ msgid "home.error_loading"
+ msgstr "Error loading data"
+
+ msgid "home.no_recent_activity"
+ msgstr "No recent activity"
+
+ msgid "home.dashboard_preload.success"
+ msgstr "Dashboard data preloaded successfully"
+
+ msgid "home.dashboard_preload.error"
+ msgstr "Error preloading dashboard data"
+
+ msgid "home.dashboard_preload.checking"
+ msgstr "Checking for updates..."
+
+ msgid "home.dashboard_preload.new_updates"
+ msgstr "New updates available"
+
+ msgid "home.dashboard_preload.refreshing"
+ msgstr "Refreshing data..."
+
+ msgid "errors.invalid_credentials"
+ msgstr "Invalid username or password"
+
+ msgid "errors.fetch_home_data"
+ msgstr "Could not fetch data for home page"
+
+ msgid "errors.db_connection"
+ msgstr "Could not connect to database"
+
+ msgid "errors.fetch_stats"
+ msgstr "Could not fetch user statistics"
+
+ msgid "errors.user_not_found"
+ msgstr "User not found"
+
+ msgid "errors.fetch_user_details"
+ msgstr "Could not fetch user details"
+
+ msgid "errors.email_required"
+ msgstr "Please provide an email"
+
+ msgid "errors.db_connection_error"
+ msgstr "Database connection error"
+
+ msgid "errors.verify_username"
+ msgstr "Could not verify username"
+
+ msgid "errors.invalid_state"
+ msgstr "Invalid state parameter. Possible CSRF attack"
+
+ msgid "errors.email_missing"
+ msgstr "No email provided. Please try again"
+
+ msgid "errors.username_missing"
+ msgstr "No username provided. Please try again"
+
+ msgid "errors.auth_problem"
+ msgstr "Authorization problem. Please try again"
+
+ msgid "errors.auth_code_missing"
+ msgstr "No authorization code provided. Please try again"
+
+ msgid "errors.auth_required"
+ msgstr "Authorization required to reassign device"
+
+ msgid "errors.username_required"
+ msgstr "Username required to reassign device"
+
+ msgid "errors.auth_required_new"
+ msgstr "Authorization required to link new email"
+
+ msgid "errors.username_required_new"
+ msgstr "Username required to link new email"
+
+ msgid "errors.token_exchange"
+ msgstr "Error during token exchange: {error}"
+
+ msgid "errors.email_not_in_use"
+ msgstr "Email is not in use"
+
+ msgid "errors.generic_error"
+ msgstr "Error: {error}"
+
+ msgid "errors.invalid_value"
+ msgstr "The value you entered was invalid"
+
+ msgid "errors.values_not_match"
+ msgstr "The two entered values do not match"
+
+ msgid "errors.invalid_input"
+ msgstr "Invalid input"
+
+ msgid "errors.preload_error"
+ msgstr "Error al precargar datos del panel"
+
+ msgid "errors.update_check_error"
+ msgstr "Error al comprobar actualizaciones"
+
+ msgid "errors.refresh_error"
+ msgstr "Error al actualizar los datos"
+
+ msgid "alerts.dashboard.title"
+ msgstr "Medical Alerts Dashboard"
+
+ msgid "alerts.dashboard.summary"
+ msgstr "Alerts Summary"
+
+ msgid "alerts.dashboard.high_priority"
+ msgstr "High Priority Alerts"
+
+ msgid "alerts.dashboard.medium_priority"
+ msgstr "Medium Priority Alerts"
+
+ msgid "alerts.dashboard.low_priority"
+ msgstr "Low Priority Alerts"
+
+ msgid "alerts.dashboard.unacknowledged"
+ msgstr "Unacknowledged Alerts"
+
+ msgid "alerts.dashboard.filters.date_from"
+ msgstr "Date From"
+
+ msgid "alerts.dashboard.filters.date_to"
+ msgstr "Date To"
+
+ msgid "alerts.dashboard.filters.user"
+ msgstr "User"
+
+ msgid "alerts.dashboard.filters.priority"
+ msgstr "Priority"
+
+ msgid "alerts.dashboard.filters.status"
+ msgstr "Status"
+
+ msgid "alerts.dashboard.filters.all"
+ msgstr "All"
+
+ msgid "alerts.dashboard.filters.unacknowledged"
+ msgstr "Unacknowledged"
+
+ msgid "alerts.dashboard.filters.acknowledged"
+ msgstr "Acknowledged"
+
+ msgid "alerts.dashboard.table.datetime"
+ msgstr "Date/Time"
+
+ msgid "alerts.dashboard.table.user"
+ msgstr "User"
+
+ msgid "alerts.dashboard.table.type"
+ msgstr "Alert Type"
+
+ msgid "alerts.dashboard.table.priority"
+ msgstr "Priority"
+
+ msgid "alerts.dashboard.table.status"
+ msgstr "Status"
+
+ msgid "alerts.dashboard.table.actions"
+ msgstr "Actions"
+
+ msgid "alerts.dashboard.modal.title"
+ msgstr "Alert Details"
+
+ msgid "alerts.dashboard.modal.triggering_value"
+ msgstr "Triggering Value"
+
+ msgid "alerts.dashboard.modal.threshold_value"
+ msgstr "Threshold"
+
+ msgid "alerts.dashboard.modal.time_since"
+ msgstr "Time since alert"
+
+ msgid "alerts.dashboard.modal.hours"
+ msgstr "hours"
+
+ msgid "alerts.dashboard.modal.doctor_note"
+ msgstr "Doctor's note"
+
+ msgid "alerts.dashboard.modal.add_note"
+ msgstr "Add a note about the action taken..."
+
+ msgid "alerts.dashboard.modal.intraday_data"
+ msgstr "Intraday Data (Last 24h)"
+
+ msgid "alerts.dashboard.export.title"
+ msgstr "Export to CSV"
+
+ msgid "alerts.dashboard.export.filename"
+ msgstr "alerts_{date}.csv"
+
+ msgid "alerts.types.activity_drop"
+ msgstr "Activity Drop"
+
+ msgid "alerts.types.sedentary_increase"
+ msgstr "Sedentary Time Increase"
+
+ msgid "alerts.types.sleep_duration_change"
+ msgstr "Sleep Duration Change"
+
+ msgid "alerts.types.heart_rate_anomaly"
+ msgstr "Heart Rate Anomaly"
+
+ msgid "alerts.types.data_quality"
+ msgstr "Data Quality"
+
+ msgid "alerts.types.intraday_anomaly"
+ msgstr "Intraday Data Anomaly"
+
+ msgid "alerts.messages.acknowledge_success"
+ msgstr "Alert acknowledged successfully"
+
+ msgid "alerts.messages.acknowledge_error"
+ msgstr "Error acknowledging alert"
+
+ msgid "alerts.messages.load_error"
+ msgstr "Error loading alert details"
+
+ msgid "alerts.messages.export_error"
+ msgstr "Error exporting alerts"
+
+ msgid "alerts.messages.no_alerts"
+ msgstr "No alerts match the filters"
+
+ msgid "sync.status.ok"
+ msgstr "Data updated in last 24h"
+
+ msgid "sync.status.warning"
+ msgstr "No data in 24-72h"
+
+ msgid "sync.status.critical"
+ msgstr "No data in more than 72h"
+
+ msgid "sync.status.never"
+ msgstr "Never synced"
+
+ msgid "sync.actions.sync_now"
+ msgstr "Sync now"
+
+ msgid "sync.actions.last_sync"
+ msgstr "Last sync"
+
+ msgid "sync.actions.sync_error"
+ msgstr "Sync error"
+
+ msgid "sync.actions.sync_success"
+ msgstr "Sync completed"
+

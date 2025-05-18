@@ -104,7 +104,7 @@
                                     </td>
                                     <td>
                                         <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-user"></i> Ver detalles
+                                            <i class="fas fa-user"></i> {{ _('View Details') }}
                                         </a>
                                     </td>
                                 </tr>
@@ -122,32 +122,34 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Preload dashboard data when hovering over the link
-    const dashboardLink = document.querySelector('a[href="/livelyageing/dashboard"]');
+    const dashboardLink = document.querySelector('a[href*="/livelyageing/alerts_dashboard"]');
     let preloadTimeout;
     let lastPreloadTimestamp = null;
     let updateCheckInterval = null;
 
-    dashboardLink.addEventListener('mouseenter', function() {
-        preloadTimeout = setTimeout(function() {
-            fetch('/livelyageing/preload_dashboard')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Dashboard data preloaded successfully');
-                        lastPreloadTimestamp = data.timestamp;
-                        
-                        // Start checking for updates
-                        if (!updateCheckInterval) {
-                            updateCheckInterval = setInterval(checkForUpdates, 30000); // Check every 30 seconds
+    if (dashboardLink) {
+        dashboardLink.addEventListener('mouseenter', function() {
+            preloadTimeout = setTimeout(function() {
+                fetch('/livelyageing/preload_dashboard')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Dashboard data preloaded successfully');
+                            lastPreloadTimestamp = data.timestamp;
+                            
+                            // Start checking for updates
+                            if (!updateCheckInterval) {
+                                updateCheckInterval = setInterval(checkForUpdates, 30000); // Check every 30 seconds
+                            }
                         }
-                    }
-                })
-        }, 500);
-    });
+                    })
+            }, 500);
+        });
 
-    dashboardLink.addEventListener('mouseleave', function() {
-        clearTimeout(preloadTimeout);
-    });
+        dashboardLink.addEventListener('mouseleave', function() {
+            clearTimeout(preloadTimeout);
+        });
+    }
 
     // Function to check for updates
     function checkForUpdates() {

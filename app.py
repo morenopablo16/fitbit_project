@@ -43,14 +43,18 @@ DEFAULT_LANGUAGE = 'es'
 # Initialize Babel
 babel = Babel(app)
 
-def select_locale():
+def get_locale():
     """Get the best language for the user."""
     # First try to get language from the session
     if 'language' in session:
         return session['language']
+    # Then try to get it from the user's browser settings
     return request.accept_languages.best_match(LANGUAGES.keys(), DEFAULT_LANGUAGE)
 
-babel.init_app(app, locale_selector=select_locale)
+# Configure Babel
+app.config['BABEL_DEFAULT_LOCALE'] = DEFAULT_LANGUAGE
+app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
+babel.init_app(app, locale_selector=get_locale)
 
 @app.context_processor
 def inject_globals():
@@ -58,8 +62,7 @@ def inject_globals():
     return {
         'LANGUAGES': LANGUAGES,
         'get_locale': lambda: str(get_locale()),
-        'current_language': lambda: session.get('language', DEFAULT_LANGUAGE),
-        '_': _
+        'current_language': lambda: session.get('language', DEFAULT_LANGUAGE)
     }
 
 # Configurar Flask-Login
@@ -719,7 +722,25 @@ def change_language():
     lang = request.args.get('lang', DEFAULT_LANGUAGE)
     if lang in LANGUAGES:
         session['language'] = lang
-    return redirect(request.referrer or url_for('home'))
+        
+    # Get the referrer URL
+    referrer = request.referrer
+    if not referrer:
+        return redirect(url_for('home'))
+        
+    # Parse the referrer URL to preserve existing query parameters
+    from urllib.parse import urlparse, parse_qs, urlencode
+    parsed = urlparse(referrer)
+    params = parse_qs(parsed.query)
+    
+    # Update the lang parameter
+    params['lang'] = [lang]
+    
+    # Reconstruct the URL with updated parameters
+    new_query = urlencode(params, doseq=True)
+    path = parsed.path
+    
+    return redirect(f"{path}?{new_query}")
 
 @app.route('/livelyageing/refresh_data', methods=['POST'])
 @login_required

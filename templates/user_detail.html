@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
-    <title>Ficha de Usuario - {{ user.name }}</title>
+    <title>{{ _('User Details') }} - {{ user.name }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <!-- FontAwesome CDN -->
@@ -80,33 +80,33 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
           <a class="nav-link" href="/livelyageing/home">
-            <i class="fas fa-home me-1"></i>Bienvenido
+            <i class="fas fa-home me-1"></i>{{ _('Welcome') }}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/livelyageing/dashboard/alerts">
-            <i class="fas fa-chart-line me-1"></i>Alert Dashboard
+            <i class="fas fa-chart-line me-1"></i>{{ _('Alert Dashboard') }}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/livelyageing/link">
-            <i class="fas fa-plus-circle me-1"></i>Enlazar Dispositivo
+            <i class="fas fa-plus-circle me-1"></i>{{ _('Link Device') }}
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/livelyageing/logout">
-            <i class="fas fa-sign-out-alt me-1"></i>Cierre de sesión
+            <i class="fas fa-sign-out-alt me-1"></i>{{ _('Logout') }}
           </a>
         </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-globe"></i> Idioma
+            <i class="bi bi-globe"></i> {{ _('Language') }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-            <li><a class="dropdown-item" href="?lang=es">Español</a></li>
-            <li><a class="dropdown-item" href="?lang=en">English</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('change_language', lang='es') }}">{{ _('Spanish') }}</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('change_language', lang='en') }}">{{ _('English') }}</a></li>
           </ul>
         </li>
       </ul>
@@ -115,7 +115,7 @@
 </nav>
 <!-- Botón de volver -->
 <a href="javascript:history.back()" class="btn btn-outline-secondary mb-3" style="position:relative;z-index:2;">
-  <i class="bi bi-arrow-left"></i> Volver
+  <i class="bi bi-arrow-left"></i> {{ _('Back') }}
 </a>
 <div class="container my-5">
     <!-- Información del Usuario -->
@@ -125,31 +125,31 @@
                 <h2>{{ user.name }}</h2>
                 <p class="text-muted mb-0">
                     <i class="bi bi-envelope"></i> {{ user.email }}<br>
-                    <i class="bi bi-calendar"></i> Registrado el {{ user.created_at.strftime('%d/%m/%Y') }}
+                    <i class="bi bi-calendar"></i> {{ _('Registered on') }} {{ user.created_at.strftime('%d/%m/%Y') }}
                     {% if user.age %}
-                    <br><i class="bi bi-person"></i> {{ user.age }} años
+                    <br><i class="bi bi-person"></i> {{ user.age }} {{ _('years old') }}
                     {% endif %}
                 </p>
                 {% if last_update_datetime %}
                     {% set diff_seconds = (now - last_update_datetime).total_seconds() %}
                     <p class="mt-2">
                         <i class="bi bi-clock-history"></i>
-                        Última actualización:
+                        {{ _('Last update') }}:
                         {% if diff_seconds < 60 %}
-                            hace menos de 1 minuto
+                            {{ _('less than a minute ago') }}
                         {% elif diff_seconds < 3600 %}
-                            hace {{ (diff_seconds // 60)|int }} minutos
+                            {{ (diff_seconds // 60)|int }} {{ _('minutes ago') }}
                         {% elif diff_seconds < 86400 %}
-                            hace {{ (diff_seconds // 3600)|int }} horas
+                            {{ (diff_seconds // 3600)|int }} {{ _('hours ago') }}
                         {% else %}
-                            hace {{ (diff_seconds // 86400)|int }} días
+                            {{ (diff_seconds // 86400)|int }} {{ _('days ago') }}
                         {% endif %}
                     </p>
                 {% endif %}
             </div>
             <div class="col-md-4 text-end">
                 <button class="btn btn-outline-primary" onclick="refreshData()">
-                    <i class="bi bi-arrow-clockwise"></i> Actualizar Datos
+                    <i class="bi bi-arrow-clockwise"></i> {{ _('Refresh Data') }}
                 </button>
             </div>
         </div>
@@ -163,13 +163,13 @@
                     {% if latest_summary and latest_summary.steps %}
                     {{ "{:,}".format(latest_summary.steps) }}
                     {% if alerts.activity_drop %}
-                    <i class="fas fa-exclamation-triangle text-danger" title="Actividad física por debajo del promedio"></i>
+                    <i class="fas fa-exclamation-triangle text-danger" title="{{ _('Physical activity below average') }}"></i>
                     {% endif %}
                     {% else %}
                     -
                     {% endif %}
                 </div>
-                <div class="metric-label">Pasos</div>
+                <div class="metric-label">{{ _('Steps') }}</div>
             </div>
         </div>
         <div class="col-md-3">
@@ -178,13 +178,13 @@
                     {% if latest_summary and latest_summary.heart_rate %}
                     {{ latest_summary.heart_rate }}
                     {% if alerts.heart_rate_anomaly %}
-                    <i class="fas fa-exclamation-circle text-danger" title="Frecuencia cardíaca anormal"></i>
+                    <i class="fas fa-exclamation-circle text-danger" title="{{ _('Abnormal Heart Rate') }}"></i>
                     {% endif %}
                     {% else %}
                     -
                     {% endif %}
                 </div>
-                <div class="metric-label">Frecuencia Cardíaca (bpm)</div>
+                <div class="metric-label">{{ _('Heart Rate (bpm)') }}</div>
             </div>
         </div>
         <div class="col-md-3">
@@ -193,13 +193,13 @@
                     {% if latest_summary and latest_summary.sleep_minutes %}
                     {{ (latest_summary.sleep_minutes / 60)|round(1) }}
                     {% if alerts.sleep_duration_change %}
-                    <i class="fas fa-bed text-warning" title="Cambio significativo en el patrón de sueño"></i>
+                    <i class="fas fa-bed text-warning" title="{{ _('Significant change in sleep pattern') }}"></i>
                     {% endif %}
                     {% else %}
                     -
                     {% endif %}
                 </div>
-                <div class="metric-label">Horas de Sueño</div>
+                <div class="metric-label">{{ _('Sleep Hours') }}</div>
             </div>
         </div>
         <div class="col-md-3">
@@ -211,7 +211,7 @@
                     -
                     {% endif %}
                 </div>
-                <div class="metric-label">Calorías</div>
+                <div class="metric-label">{{ _('Calories') }}</div>
             </div>
         </div>
     </div>
@@ -220,27 +220,27 @@
     <ul class="nav nav-tabs mb-4" id="userTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="daily-tab" data-bs-toggle="tab" href="#daily" role="tab">
-                Resumen Diario
+                {{ _('Daily Summary') }}
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="intraday-tab" data-bs-toggle="tab" href="#intraday" role="tab">
-                Datos Intradía
+                {{ _('Intraday Data') }}
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="weekly-tab" data-bs-toggle="tab" href="#weekly" role="tab">
-                Resumen Semanal
+                {{ _('Weekly Summary') }}
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="alerts-tab" data-bs-toggle="tab" href="#alerts" role="tab">
-                Alertas Recientes
+                {{ _('Recent Alerts') }}
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="inactivity-tab" data-bs-toggle="tab" href="#inactivity" role="tab">
-                Patrones de Inactividad
+                {{ _('Inactivity Patterns') }}
             </a>
         </li>
     </ul>
@@ -252,7 +252,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="metric-card">
-                        <h5>Actividad Física</h5>
+                        <h5>{{ _('Physical Activity') }}</h5>
                         <div class="row">
                             <div class="col-6">
                                 <div class="metric-value" id="distance-value">
@@ -262,7 +262,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Distancia (km)</div>
+                                <div class="metric-label">{{ _('Distance (km)') }}</div>
                             </div>
                             <div class="col-6">
                                 <div class="metric-value" id="floors-value">
@@ -272,14 +272,14 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Pisos</div>
+                                <div class="metric-label">{{ _('Floors') }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="metric-card">
-                        <h5>Actividad vs Sedentarismo</h5>
+                        <h5>{{ _('Activity vs Sedentary') }}</h5>
                         <div class="row">
                             <div class="col-6">
                                 <div class="metric-value" id="active-minutes-value">
@@ -289,7 +289,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Minutos Activos</div>
+                                <div class="metric-label">{{ _('Active Minutes') }}</div>
                             </div>
                             <div class="col-6">
                                 <div class="metric-value" id="sedentary-hours-value">
@@ -299,7 +299,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Horas Sedentarias</div>
+                                <div class="metric-label">{{ _('Sedentary Hours') }}</div>
                             </div>
                         </div>
                     </div>
@@ -308,7 +308,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="metric-card">
-                        <h5>Nutrición</h5>
+                        <h5>{{ _('Nutrition') }}</h5>
                         <div class="row">
                             <div class="col-6">
                                 <div class="metric-value" id="nutrition-calories-value">
@@ -318,7 +318,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Calorías Consumidas</div>
+                                <div class="metric-label">{{ _('Calories Consumed') }}</div>
                             </div>
                             <div class="col-6">
                                 <div class="metric-value" id="water-value">
@@ -328,14 +328,14 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Agua (L)</div>
+                                <div class="metric-label">{{ _('Water (L)') }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="metric-card">
-                        <h5>Composición Corporal</h5>
+                        <h5>{{ _('Body Composition') }}</h5>
                         <div class="row">
                             <div class="col-4">
                                 <div class="metric-value" id="weight-value">
@@ -345,7 +345,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">Peso (kg)</div>
+                                <div class="metric-label">{{ _('Weight (kg)') }}</div>
                             </div>
                             <div class="col-4">
                                 <div class="metric-value" id="bmi-value">
@@ -355,7 +355,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">IMC</div>
+                                <div class="metric-label">{{ _('BMI') }}</div>
                             </div>
                             <div class="col-4">
                                 <div class="metric-value" id="fat-value">
@@ -365,7 +365,7 @@
                                     -
                                     {% endif %}
                                 </div>
-                                <div class="metric-label">% Grasa</div>
+                                <div class="metric-label">{{ _('Fat') }}</div>
                             </div>
                         </div>
                     </div>
@@ -377,12 +377,12 @@
         <div class="tab-pane fade" id="intraday" role="tabpanel">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Datos Intradía</h5>
+                    <h5 class="mb-0">{{ _('Intraday Data') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label for="intradayDate" class="form-label">Fecha:</label>
+                            <label for="intradayDate" class="form-label">{{ _('Date') }}:</label>
                             <input type="date" class="form-control" id="intradayDate" value="{{ now.strftime('%Y-%m-%d') }}">
                         </div>
                         <div class="col-md-4">

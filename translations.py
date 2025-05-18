@@ -111,7 +111,16 @@ TRANSLATIONS = {
             'reassign_device': 'Reasignar dispositivo Fitbit',
             'reassign_device_message': 'El correo ya está siendo usado por',
             'reassign_question': '¿Deseas reasignar el reloj a una nueva persona?',
-            'new_user_name': 'Nombre del nuevo usuario'
+            'new_user_name': 'Nombre del nuevo usuario',
+            'select_fitbit_email': 'Seleccionar correo de Fitbit',
+            'select_email_placeholder': 'Seleccionar correo...',
+            'email_device_info': 'Cada correo está vinculado a un dispositivo Fitbit. Cuando se autorice, los datos se asignarán al usuario seleccionado.',
+            'missing_email': '¿Falta un correo? Añadir nuevo',
+            'add_new_email': 'Añadir nuevo correo',
+            'email_address': 'Dirección de correo',
+            'email_add_instruction': 'Por favor, ingrese el correo electrónico para añadir al sistema.',
+            'add_email': 'Añadir correo',
+            'cancel': 'Cancelar'
         },
         'user': {
             'user_statistics': 'Estadísticas de usuario',
@@ -122,15 +131,64 @@ TRANSLATIONS = {
             'no_users_found': 'No se encontraron usuarios.',
             'no_daily_summaries': 'No se encontraron resúmenes diarios.',
             'no_intraday_metrics': 'No se encontraron métricas intradiarias.',
-            'view_details': 'Ver detalles'
+            'view_details': 'Ver detalles',
+            'search_placeholder': 'Buscar por nombre o email',
+            'search_button': 'Buscar',
+            'active_users': 'Usuarios Activos',
+            'unassigned_users': 'Usuarios Sin Asignar',
+            'user_history': 'Historial de Usuarios',
+            'last_sync': 'Última Sincronización',
+            'no_data': 'Sin datos',
+            'unlink_user': 'Desvincular usuario',
+            'assign_user': 'Asignar usuario',
+            'view_history': 'Ver Historial',
+            'unlinked': 'Desvinculado',
+            'historical': 'Histórico',
+            'unlink_confirmation': '¿Estás seguro de que quieres desvincular a {name}?',
+            'cancel': 'Cancelar',
+            'unlink': 'Desvincular',
+            'registration_date': 'Fecha de Registro',
+            'old_name': 'Nombre (Antiguo)',
+            'unassigned': 'Sin asignar'
         },
         'home': {
             'welcome_message': 'Bienvenido a Lively Ageing',
             'app_description': 'Monitorea y gestiona datos de actividad física de usuarios Fitbit',
-            'connect_device': 'Conecta un nuevo dispositivo Fitbit o reasigna uno existente a un usuario',
-            'view_summary': 'Ver un resumen general de los datos más recientes de todos los usuarios',
-            'access_statistics': 'Accede a estadísticas detalladas para cada usuario individual',
-            'recent_activity': 'Actividad reciente'
+            'link_device': 'Vincular Dispositivo',
+            'link_device_desc': 'Conecta un nuevo dispositivo Fitbit o reasigna uno existente a un usuario',
+            'alert_dashboard': 'Panel de Alertas',
+            'alert_dashboard_desc': 'Ver un resumen general de los datos más recientes de todos los usuarios',
+            'users': 'Usuarios',
+            'users_desc': 'Accede a estadísticas detalladas para cada usuario individual',
+            'recent_activity': 'Actividad Reciente',
+            'user': 'Usuario',
+            'email': 'Correo electrónico',
+            'last_update': 'Última actualización',
+            'state': 'Estado',
+            'actions': 'Acciones',
+            'view_details': 'Ver detalles',
+            'sync_status': {
+                'ok': 'OK',
+                'ok_desc': 'Datos actualizados en las últimas 24h',
+                'warning': 'Atención',
+                'warning_desc': 'Sin datos en las últimas 24-72h',
+                'critical': 'Crítico',
+                'critical_desc': 'Sin datos en más de 72h',
+                'no_data': 'Sin datos',
+                'no_data_desc': 'Nunca sincronizado'
+            },
+            'add_new_user': 'Añadir nuevo usuario',
+            'refresh_data': 'Actualizar datos',
+            'loading': 'Cargando...',
+            'error_loading': 'Error al cargar los datos',
+            'no_recent_activity': 'No hay actividad reciente',
+            'dashboard_preload': {
+                'success': 'Datos del panel precargados correctamente',
+                'error': 'Error al precargar datos del panel',
+                'checking': 'Comprobando actualizaciones...',
+                'new_updates': 'Hay nuevas actualizaciones disponibles',
+                'refreshing': 'Actualizando datos...'
+            }
         },
         'errors': {
             'invalid_credentials': 'Usuario o contraseña incorrectos',
@@ -156,7 +214,10 @@ TRANSLATIONS = {
             'generic_error': 'Error: {error}',
             'invalid_value': 'El valor ingresado no es válido',
             'values_not_match': 'Los valores ingresados no coinciden',
-            'invalid_input': 'Entrada inválida'
+            'invalid_input': 'Entrada inválida',
+            'preload_error': 'Error al precargar datos del panel',
+            'update_check_error': 'Error al comprobar actualizaciones',
+            'refresh_error': 'Error al actualizar los datos'
         },
         'alerts': {
             'dashboard': {
@@ -348,15 +409,64 @@ TRANSLATIONS = {
             'no_users_found': 'No users found.',
             'no_daily_summaries': 'No daily summaries found.',
             'no_intraday_metrics': 'No intraday metrics found.',
-            'view_details': 'View Details'
+            'view_details': 'View Details',
+            'search_placeholder': 'Search by name or email',
+            'search_button': 'Search',
+            'active_users': 'Active Users',
+            'unassigned_users': 'Unassigned Users',
+            'user_history': 'User History',
+            'last_sync': 'Last Sync',
+            'no_data': 'No data',
+            'unlink_user': 'Unlink User',
+            'assign_user': 'Assign User',
+            'view_history': 'View History',
+            'unlinked': 'Unlinked',
+            'historical': 'Historical',
+            'unlink_confirmation': 'Are you sure you want to unlink {name}?',
+            'cancel': 'Cancel',
+            'unlink': 'Unlink',
+            'registration_date': 'Registration Date',
+            'old_name': 'Old Name',
+            'unassigned': 'Unassigned'
         },
         'home': {
             'welcome_message': 'Welcome to Lively Ageing',
             'app_description': 'Monitor and manage Fitbit users physical activity data',
-            'connect_device': 'Connect a new Fitbit device or reassign an existing one to a user',
-            'view_summary': 'View a general summary of the most recent data from all users',
-            'access_statistics': 'Access detailed statistics for each individual user',
-            'recent_activity': 'Recent Activity'
+            'link_device': 'Link Device',
+            'link_device_desc': 'Connect a new Fitbit device or reassign an existing one to a user',
+            'alert_dashboard': 'Alert Dashboard',
+            'alert_dashboard_desc': 'View a general summary of the most recent data from all users',
+            'users': 'Users',
+            'users_desc': 'Access detailed statistics for each individual user',
+            'recent_activity': 'Recent Activity',
+            'user': 'User',
+            'email': 'Email',
+            'last_update': 'Last Update',
+            'state': 'State',
+            'actions': 'Actions',
+            'view_details': 'View Details',
+            'sync_status': {
+                'ok': 'OK',
+                'ok_desc': 'Data updated in the last 24h',
+                'warning': 'Warning',
+                'warning_desc': 'No data in the last 24-72h',
+                'critical': 'Critical',
+                'critical_desc': 'No data for more than 72h',
+                'no_data': 'No Data',
+                'no_data_desc': 'Never synchronized'
+            },
+            'add_new_user': 'Add New User',
+            'refresh_data': 'Refresh Data',
+            'loading': 'Loading...',
+            'error_loading': 'Error loading data',
+            'no_recent_activity': 'No recent activity',
+            'dashboard_preload': {
+                'success': 'Dashboard data preloaded successfully',
+                'error': 'Error preloading dashboard data',
+                'checking': 'Checking for updates...',
+                'new_updates': 'New updates available',
+                'refreshing': 'Refreshing data...'
+            }
         },
         'errors': {
             'invalid_credentials': 'Invalid username or password',
@@ -382,7 +492,10 @@ TRANSLATIONS = {
             'generic_error': 'Error: {error}',
             'invalid_value': 'The value you entered was invalid',
             'values_not_match': 'The two entered values do not match',
-            'invalid_input': 'Invalid input'
+            'invalid_input': 'Invalid input',
+            'preload_error': 'Error al precargar datos del panel',
+            'update_check_error': 'Error al comprobar actualizaciones',
+            'refresh_error': 'Error al actualizar los datos'
         },
         'alerts': {
             'dashboard': {

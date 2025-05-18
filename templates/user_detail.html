@@ -515,12 +515,38 @@
                         <p class="mb-0 mt-2">
                         {% if alert.alert_type == 'intraday_activity_drop' %}
                             <div class="bg-light p-2 border-start border-danger border-3 rounded">
-                                {{ alert.details }}
+                                {% if '|' in alert.details %}
+                                    {% set key = alert.details.split('|')[0] %}
+                                    {% set params = alert.details.split('|')[1:] %}
+                                    {% set translated = _(key) %}
+                                    {% for param in params %}
+                                        {% set name = param.split('=')[0] %}
+                                        {% set value = param.split('=')[1] %}
+                                        {% set translated = translated.replace('{' + name + '}', value) %}
+                                    {% endfor %}
+                                    {{ translated }}
+                                {% else %}
+                                    {{ alert.details }}
+                                {% endif %}
                                 <br>
                                 <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> {{ _('Prolonged periods without activity are associated with increased cardiovascular risk and functional decline.') }}</small>
                             </div>
                         {% else %}
-                            {{ alert.details }}
+                            <div class="bg-light p-2 border-start border-3 rounded">
+                                {% if '|' in alert.details %}
+                                    {% set key = alert.details.split('|')[0] %}
+                                    {% set params = alert.details.split('|')[1:] %}
+                                    {% set translated = _(key) %}
+                                    {% for param in params %}
+                                        {% set name = param.split('=')[0] %}
+                                        {% set value = param.split('=')[1] %}
+                                        {% set translated = translated.replace('{' + name + '}', value) %}
+                                    {% endfor %}
+                                    {{ translated }}
+                                {% else %}
+                                    {{ alert.details }}
+                                {% endif %}
+                            </div>
                         {% endif %}
                         </p>
                     </div>

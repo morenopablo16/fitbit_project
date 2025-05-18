@@ -474,7 +474,16 @@
 const translations = {
     notEnoughData: '{{ _("Not enough intraday data to show activity pattern (<6 points).") }}',
     deviceNotWorn: '{{ _("This may be due to insufficient data recorded by the device or the device not being worn during the day.") }}',
-    noAdditionalInfo: '{{ _("No additional information available") }}'
+    noAdditionalInfo: '{{ _("No additional information available") }}',
+    noStepsBetween: '{{ _("No steps recorded between") }}',
+    and: '{{ _("and") }}',
+    prolongedInactivity: '{{ _("Prolonged period without activity detected") }}',
+    heartRateAbove: '{{ _("Heart rate above normal threshold") }}',
+    significantDecrease: '{{ _("Significant decrease in daily steps") }}',
+    unusualSleep: '{{ _("Unusual sleep duration detected") }}',
+    currentValue: '{{ _("Current value") }}',
+    comparedToAverage: '{{ _("compared to average") }}',
+    hours: '{{ _("hours") }}'
 };
 
 // Variable global para almacenar los datos de las alertas
@@ -810,7 +819,32 @@ function showAlertDetails(alertId) {
     // Configurar el contenido de información adicional
     const modalDetails = document.getElementById('modal-details');
     if (alert.details) {
-        modalDetails.textContent = alert.details;
+        // Traducir los detalles según el tipo de alerta
+        let translatedDetails = alert.details;
+        
+        if (alert.alert_type === 'intraday_activity_drop') {
+            const matches = alert.details.match(/sin pasos entre (\d{2}:\d{2}) y (\d{2}:\d{2})/);
+            if (matches) {
+                translatedDetails = `${translations.noStepsBetween} ${matches[1]} ${translations.and} ${matches[2]}`;
+            }
+        } else if (alert.alert_type === 'heart_rate_anomaly') {
+            translatedDetails = translations.heartRateAbove;
+            if (alert.triggering_value && alert.threshold_value) {
+                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value}, ${translations.comparedToAverage}: ${alert.threshold_value})`;
+            }
+        } else if (alert.alert_type === 'activity_drop') {
+            translatedDetails = translations.significantDecrease;
+            if (alert.triggering_value && alert.threshold_value) {
+                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value}, ${translations.comparedToAverage}: ${alert.threshold_value})`;
+            }
+        } else if (alert.alert_type === 'sleep_duration_change') {
+            translatedDetails = translations.unusualSleep;
+            if (alert.triggering_value && alert.threshold_value) {
+                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value} ${translations.hours}, ${translations.comparedToAverage}: ${alert.threshold_value} ${translations.hours})`;
+            }
+        }
+        
+        modalDetails.textContent = translatedDetails;
     } else {
         modalDetails.textContent = translations.noAdditionalInfo;
     }

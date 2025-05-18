@@ -718,3 +718,18 @@ msgstr ""
  msgid "sync.actions.sync_success"
  msgstr "Sync completed"
 
+ msgid "alerts.data_quality.zero_values"
+ msgstr "Important data with zero values: possible device or synchronization issue"
+
+ msgid "alerts.data_quality.out_of_range"
+ msgstr "Value out of range: {value}"
+
+ msgid "alerts.data_quality.missing_data"
+ msgstr "Missing data: {metric}"
+
+ msgid "alerts.sedentary_increase.moderate"
+ msgstr "Moderate increase in sedentary time: +{percent}% (from {avg} to {current} minutes)"
+
+ msgid "alerts.sedentary_increase.significant"
+ msgstr "Significant increase in sedentary time: +{percent}% (from {avg} to {current} minutes)"
+

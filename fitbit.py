@@ -171,16 +171,18 @@ def get_fitbit_data(access_token, email):
         # Verificar calidad de datos
         if any(v == 0 for v in [data['steps'], data['active_minutes'], data['heart_rate']]):
             if db.connect():
-                db.insert_alert(
-                    user_id=user_id,
-                    alert_type='data_quality',
-                    priority='high',
-                    triggering_value=0,
-                    threshold='30',  # Valor mínimo esperado para considerar datos válidos
-                    timestamp=current_date,
-                    details="Datos importantes con valor cero: posible problema con el dispositivo o la sincronización"
-                )
-                db.close()
+                try:
+                    db.insert_alert(
+                        user_id=user_id,
+                        alert_type='data_quality',
+                        priority='high',
+                        triggering_value=0,
+                        threshold='30',  # Valor mínimo esperado para considerar datos válidos
+                        timestamp=current_date,
+                        details="alerts.data_quality.zero_values"
+                    )
+                finally:
+                    db.close()
 
         # Log de datos recopilados
         print(f"\nDatos recopilados para {email} en {today}:")

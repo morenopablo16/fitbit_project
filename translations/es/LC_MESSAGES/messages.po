@@ -1421,3 +1421,81 @@ msgstr "Cambio en duración del sueño"
 msgid "activity_drop"
 msgstr "Caída de actividad"
 
+msgid "No steps recorded between"
+msgstr "Sin pasos registrados entre"
+
+msgid "and"
+msgstr "y"
+
+msgid "Prolonged period without activity detected"
+msgstr "Detectado período prolongado sin actividad"
+
+msgid "Heart rate above normal threshold"
+msgstr "Frecuencia cardíaca por encima del umbral normal"
+
+msgid "Significant decrease in daily steps"
+msgstr "Disminución significativa en los pasos diarios"
+
+msgid "Unusual sleep duration detected"
+msgstr "Detectada duración del sueño inusual"
+
+msgid "Current value"
+msgstr "Valor actual"
+
+msgid "compared to average"
+msgstr "comparado con el promedio"
+
+msgid "No steps between"
+msgstr "Sin pasos entre"
+
+msgid "hours"
+msgstr "horas"
+
+msgid "Missing data"
+msgstr "Dato faltante"
+
+msgid "Moderate increase in sedentary time"
+msgstr "Aumento moderado en tiempo sedentario"
+
+msgid "from"
+msgstr "de"
+
+msgid "to"
+msgstr "a"
+
+msgid "minutes"
+msgstr "minutos"
+
+msgid "sleep_minutes"
+msgstr "minutos de sueño"
+
+msgid "steps"
+msgstr "pasos"
+
+msgid "heart_rate"
+msgstr "frecuencia cardíaca"
+
+msgid "calories"
+msgstr "calorías"
+
+msgid "sedentary_minutes"
+msgstr "minutos sedentarios"
+
+msgid "active_minutes"
+msgstr "minutos activos"
+
+msgid "alerts.data_quality.zero_values"
+msgstr "Datos importantes con valor cero: posible problema con el dispositivo o la sincronización"
+
+msgid "alerts.data_quality.out_of_range"
+msgstr "Valor fuera de rango: {value}"
+
+msgid "alerts.data_quality.missing_data"
+msgstr "Dato faltante: {metric}"
+
+msgid "alerts.sedentary_increase.moderate"
+msgstr "Aumento moderado en tiempo sedentario: +{percent}% (de {avg} a {current} minutos)"
+
+msgid "alerts.sedentary_increase.significant"
+msgstr "Aumento significativo en tiempo sedentario: +{percent}% (de {avg} a {current} minutos)"
+

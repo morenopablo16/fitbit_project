@@ -1573,6 +1573,44 @@ def debug_static():
         'styles_url': styles_url
     }
 
+@app.route('/livelyageing/add_email', methods=['GET', 'POST'])
+@login_required
+def add_email():
+    """
+    Handle adding a new email to the system.
+    """
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if not email:
+            flash(_('Please provide an email address.'), 'danger')
+            return redirect(url_for('add_email'))
+
+        db = DatabaseManager()
+        if not db.connect():
+            flash(_('Database connection error.'), 'danger')
+            return redirect(url_for('add_email'))
+
+        try:
+            # Check if email already exists
+            existing_user = db.get_user_by_email(email)
+            if existing_user:
+                flash(_('This email is already registered in the system.'), 'warning')
+                return redirect(url_for('add_email'))
+
+            # Add the email to the database without tokens (they'll be added during linking)
+            db.add_user(name="", email=email)
+            flash(_('Email added successfully. You can now link a device to it.'), 'success')
+            return redirect(url_for('link_device'))
+
+        except Exception as e:
+            app.logger.error(f"Error adding email: {e}")
+            flash(_('An error occurred while adding the email.'), 'danger')
+            return redirect(url_for('add_email'))
+        finally:
+            db.close()
+
+    return render_template('add_email.html')
+
 # Run the Flask app
 if __name__ == '__main__':
     # app.run(host=HOST, port=PORT, debug=DEBUG)

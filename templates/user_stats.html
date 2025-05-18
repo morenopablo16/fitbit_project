@@ -58,11 +58,14 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-eye"></i> {{ _('View Details') }}
-                                        </a>
-                                        <a href="#" class="btn btn-warning btn-sm disabled" title="Editar usuario (próximamente)"><i class="bi bi-pencil"></i></a>
-                                        <button class="btn btn-danger btn-sm" onclick="showUnlinkModal({{ user[0] }}, '{{ user[1] }}')" title="Desvincular usuario"><i class="bi bi-x-circle"></i></button>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('user_detail', user_id=user[0]) }}" class="btn btn-primary btn-sm" title="{{ _('View Details') }}">
+                                                <i class="bi bi-eye"></i> {{ _('View Details') }}
+                                            </a>
+                                            <button class="btn btn-danger btn-sm" onclick="showUnlinkModal({{ user[0] }}, '{{ user[1] }}')" title="Desvincular usuario">
+                                                <i class="bi bi-x-circle"></i> Desvincular
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% else %}

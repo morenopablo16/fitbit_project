@@ -386,20 +386,20 @@
                             <input type="date" class="form-control" id="intradayDate" value="{{ now.strftime('%Y-%m-%d') }}">
                         </div>
                         <div class="col-md-4">
-                            <label for="intradayMetric" class="form-label">Métrica:</label>
+                            <label for="intradayMetric" class="form-label">{{ _('Metric') }}:</label>
                             <select class="form-select" id="intradayMetric">
-                                <option value="steps">Pasos</option>
-                                <option value="heart_rate">Frecuencia Cardíaca</option>
-                                <option value="calories">Calorías</option>
-                                <option value="active_zone_minutes">Minutos Activos</option>
+                                <option value="steps">{{ _('Steps') }}</option>
+                                <option value="heart_rate">{{ _('Heart Rate') }}</option>
+                                <option value="calories">{{ _('Calories') }}</option>
+                                <option value="active_zone_minutes">{{ _('Active Minutes') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="chartType" class="form-label">Tipo de Gráfico:</label>
+                            <label for="chartType" class="form-label">{{ _('Chart Type') }}:</label>
                             <select class="form-select" id="chartType">
-                                <option value="line">Línea</option>
-                                <option value="bar">Barras</option>
-                                <option value="area">Área</option>
+                                <option value="line">{{ _('Line') }}</option>
+                                <option value="bar">{{ _('Bar') }}</option>
+                                <option value="area">{{ _('Area') }}</option>
                             </select>
                         </div>
                     </div>
@@ -413,7 +413,7 @@
                     <div class="row mt-3">
                         <div class="col-12">
                             <button class="btn btn-outline-primary" onclick="exportIntradayData()">
-                                <i class="fas fa-file-csv"></i> Exportar a CSV
+                                <i class="fas fa-file-csv"></i> {{ _('Export to CSV') }}
                             </button>
                         </div>
                     </div>
@@ -452,10 +452,10 @@
         <!-- Alertas Recientes -->
         <div class="tab-pane fade" id="alerts" role="tabpanel">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">Alertas recientes</h5>
+                <h5 class="mb-0">{{ _('Recent Alerts') }}</h5>
                 {% if recent_alerts and recent_alerts|length > 0 %}
-                <a href="{{ url_for('export_user_alerts', user_id=user.id) }}" class="btn btn-outline-success btn-sm" title="Exportar alertas a CSV">
-                    <i class="fas fa-file-csv"></i> Exportar a CSV
+                <a href="{{ url_for('export_user_alerts', user_id=user.id) }}" class="btn btn-outline-success btn-sm" title="{{ _('Export alerts to CSV') }}">
+                    <i class="fas fa-file-csv"></i> {{ _('Export to CSV') }}
                 </a>
                 {% endif %}
             </div>
@@ -467,7 +467,7 @@
                             <div>
                                 <h5 class="mb-1">
                                 {% if alert.alert_type == 'intraday_activity_drop' %}
-                                    <i class="fas fa-hourglass-end text-danger me-2" title="Período prolongado sin actividad"></i>
+                                    <i class="fas fa-hourglass-end text-danger me-2" title="{{ _('Prolonged period without activity') }}"></i>
                                 {% endif %}
                                 {{ alert.alert_type }}
                                 </h5>
@@ -478,10 +478,10 @@
                             <div>
                                 {% if not alert.acknowledged %}
                                 <button class="btn btn-sm btn-outline-success acknowledge-btn" type="button" data-alert-id="{{ alert.id }}">
-                                    <i class="bi bi-check-circle"></i> Reconocer
+                                    <i class="bi bi-check-circle"></i> {{ _('Acknowledge') }}
                                 </button>
                                 {% else %}
-                                <span class="badge bg-success">Reconocida</span>
+                                <span class="badge bg-success">{{ _('Acknowledged') }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -490,7 +490,7 @@
                             <div class="bg-light p-2 border-start border-danger border-3 rounded">
                                 {{ alert.details }}
                                 <br>
-                                <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Los periodos prolongados sin actividad están asociados con mayor riesgo cardiovascular y deterioro funcional.</small>
+                                <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> {{ _('Prolonged periods without activity are associated with increased cardiovascular risk and functional decline.') }}</small>
                             </div>
                         {% else %}
                             {{ alert.details }}
@@ -499,7 +499,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-info text-center mt-3">No hay alertas recientes para este usuario.</div>
+                    <div class="alert alert-info text-center mt-3">{{ _('No recent alerts for this user.') }}</div>
                 {% endif %}
             </div>
         </div>
@@ -508,20 +508,20 @@
         <div class="tab-pane fade" id="inactivity" role="tabpanel">
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Análisis de Periodos de Inactividad</h5>
+                    <h5 class="mb-0">{{ _('Inactivity Pattern Analysis') }}</h5>
                     <div>
                         <input type="date" class="form-select form-select-sm" id="inactivityDay" value="{{ now.strftime('%Y-%m-%d') }}">
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle"></i> Relevancia Clínica</h6>
-                        <p>Los periodos de inactividad prolongada (≥2 horas) pueden indicar:</p>
+                        <h6><i class="fas fa-info-circle"></i> {{ _('Clinical Relevance') }}</h6>
+                        <p>{{ _('Prolonged periods of inactivity (≥2 hours) may indicate:') }}</p>
                         <ul>
-                            <li>Patrones de sedentarismo excesivo</li>
-                            <li>Posibles problemas de movilidad</li>
-                            <li>Caídas o situaciones de emergencia no detectadas</li>
-                            <li>Cambios en los hábitos diarios que requieren atención</li>
+                            <li>{{ _('Excessive sedentary behavior') }}</li>
+                            <li>{{ _('Possible mobility issues') }}</li>
+                            <li>{{ _('Undetected falls or emergency situations') }}</li>
+                            <li>{{ _('Changes in daily routines that require attention') }}</li>
                         </ul>
                     </div>
                     <div class="row">
@@ -530,19 +530,19 @@
                                 <canvas id="inactivityChart"></canvas>
                             </div>
                             <div id="inactivityLegend" class="mt-3 text-center">
-                                <span class="badge rounded-pill bg-danger me-2">■</span> Períodos sin actividad
-                                <span class="badge rounded-pill bg-warning me-2">■</span> Baja actividad (≤100 pasos/hora)
-                                <span class="badge rounded-pill bg-success me-2">■</span> Actividad normal
+                                <span class="badge rounded-pill bg-danger me-2">■</span> {{ _('Periods without activity') }}
+                                <span class="badge rounded-pill bg-warning me-2">■</span> {{ _('Low activity (≤100 steps/hour)') }}
+                                <span class="badge rounded-pill bg-success me-2">■</span> {{ _('Normal activity') }}
                             </div>
                         </div>
                     </div>
                     <div class="row mt-4">
                         <div class="col-12">
-                            <h6>Períodos de inactividad detectados:</h6>
+                            <h6>{{ _('Detected inactivity periods:') }}</h6>
                             <div id="inactivityPeriods" class="mt-2">
                                 <div class="d-flex justify-content-center">
                                     <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Cargando...</span>
+                                        <span class="visually-hidden">{{ _('Loading...') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -754,7 +754,7 @@ function createWeeklyChart(canvasId, label, data) {
     weeklyCharts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            labels: ['{{ _('Mon') }}', '{{ _('Tue') }}', '{{ _('Wed') }}', '{{ _('Thu') }}', '{{ _('Fri') }}', '{{ _('Sat') }}', '{{ _('Sun') }}'],
             datasets: [{
                 label: label,
                 data: data,

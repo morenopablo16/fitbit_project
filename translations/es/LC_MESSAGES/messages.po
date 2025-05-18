@@ -1009,8 +1009,76 @@ msgstr "Períodos de inactividad detectados:"
 msgid "Last update"
 msgstr "Última actualización"
 
+msgid "Metric"
+msgstr "Metricas"
+
 msgid "Registered on"
 msgstr "Registrado el"
+
+msgid "Chart Type"
+msgstr "Tipo de gráfico"
+
+msgid "Line"
+msgstr "Línea"
+
+msgid "Bar" 
+msgstr "Barra"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "Export to CSV"
+msgstr "Exportar a CSV"
+
+msgid "Recent Alerts"
+msgstr "Alertas Recientes"
+
+msgid "Prolonged period without activity"
+msgstr "Período prolongado sin actividad"
+
+msgid "Acknowledge"
+msgstr "Reconocer"
+
+msgid "Acknowledged"
+msgstr "Reconocida"
+
+msgid "No recent alerts for this user."
+msgstr "No hay alertas recientes para este usuario."
+msgid "Inactivity Pattern Analysis"
+msgstr "Análisis de Patrones de Inactividad"
+
+msgid "Clinical Relevance"
+msgstr "Relevancia Clínica"
+
+msgid "Prolonged periods of inactivity (≥2 hours) may indicate:"
+msgstr "Los períodos prolongados de inactividad (≥2 horas) pueden indicar:"
+
+msgid "Excessive sedentary behavior"
+msgstr "Comportamiento sedentario excesivo"
+
+msgid "Possible mobility issues"
+msgstr "Posibles problemas de movilidad"
+
+msgid "Undetected falls or emergency situations"
+msgstr "Caídas no detectadas o situaciones de emergencia"
+
+msgid "Changes in daily routines that require attention"
+msgstr "Cambios en las rutinas diarias que requieren atención"
+
+msgid "Periods without activity"
+msgstr "Períodos sin actividad"
+
+msgid "Low activity (≤100 steps/hour)"
+msgstr "Baja actividad (≤100 pasos/hora)"
+
+msgid "Normal activity"
+msgstr "Actividad normal"
+
+msgid "Detected inactivity periods:"
+msgstr "Períodos de inactividad detectados:"
+
+msgid "Loading..."
+msgstr "Cargando..."
 
 msgid "less than a minute ago"
 msgstr "hace menos de 1 minuto"

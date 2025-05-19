@@ -55,7 +55,7 @@ Estos scripts operan de forma independiente, ejecutados por \texttt{cron}:
     \item \textbf{Persistencia de Datos:} Una vez obtenidos y procesados los datos, los scripts llaman a las funciones de inserción del módulo \texttt{db.py} (ej. \texttt{insert\_intraday\_metric}, \texttt{insert\_daily\_summary}, \texttt{insert\_sleep\_log}) para almacenarlos en las hipertablas TimescaleDB correspondientes. La lógica de persistencia está desacoplada de la lógica de adquisición, facilitando el mantenimiento y la extensión futura.
     \item \textbf{Evaluación de Alertas:} Tras almacenar los datos, los scripts invocan la lógica de evaluación de alertas (módulo \texttt{alert\_rules.py}), que analiza los datos recientes y genera alertas clínicas si se cumplen los criterios definidos. Esta lógica está desacoplada y es fácilmente extensible.
 \end{itemize}
-La ejecución mediante \texttt{cron} asegura la recogida periódica y automatizada de datos sin intervención manual. La robustez frente a errores y la modularidad de los scripts son aspectos clave de la implementación.
+La ejecución mediante \texttt{cron} asegura la recogida periódica y automatizada de datos sin intervención manual. La robustez frente a errores y la modularidad de los scripts son aspectos clave de la implementación. La implementación detallada de las llamadas a la API de Fitbit, incluyendo la obtención de datos de actividad y frecuencia cardíaca, se puede encontrar en la Sección~\ref{sec:anexo_fitbit} del Anexo.
 
 
 \subsection{Criterios y Técnicas para la Generación de Alertas}
@@ -94,7 +94,7 @@ El sistema implementa un robusto mecanismo de internacionalización (i18n) utili
     \item \textbf{Arquitectura Extensible:} El sistema está diseñado para facilitar la adición de nuevos idiomas y la actualización de traducciones existentes sin modificar el código base.
 \end{itemize}
 
-La implementación sigue las mejores prácticas de i18n, separando completamente el contenido de la lógica y permitiendo una experiencia de usuario consistente en múltiples idiomas.
+La implementación sigue las mejores prácticas de i18n, separando completamente el contenido de la lógica y permitiendo una experiencia de usuario consistente en múltiples idiomas. La configuración y uso de Flask-Babel para la internacionalización del sistema se detalla en la Sección~\ref{sec:anexo_i18n} del Anexo.
 
 \section{Implementación de la Persistencia (Base de Datos)}
 \label{sec:impl_persistencia}
@@ -133,7 +133,7 @@ La implementación utiliza TimescaleDB como extensión de PostgreSQL para gestio
     \item \textbf{Gestión de Conexiones:} Se implementa un gestor de base de datos (\texttt{DatabaseManager}) que maneja eficientemente las conexiones y transacciones, asegurando un uso óptimo de los recursos.
 \end{itemize}
 
-Los detalles de implementación, incluyendo las consultas SQL y la estructura de las tablas, se encuentran en el Anexo~\ref{annex:code:db_implementation}. 
+Los detalles de implementación, incluyendo las consultas SQL y la estructura de las tablas, se encuentran en el Anexo~\ref{app:db_schema}. 
 
 \subsection{Robustez y Manejo de Errores}
 \label{subsec:robustez_errores}

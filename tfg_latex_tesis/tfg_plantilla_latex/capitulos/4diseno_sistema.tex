@@ -47,7 +47,7 @@ El pipeline de datos del sistema está diseñado para garantizar la adquisición
     \label{fig:flujo_datos}
 \end{figure}
 
-Este diseño modular desacopla la adquisición del análisis y la visualización, facilitando la escalabilidad y la integración futura de nuevas fuentes de datos o reglas de alerta. La evaluación de alertas se realiza de forma automática tras cada ingesta, comparando los datos recientes con líneas base individuales y umbrales predefinidos, almacenando los resultados en la tabla \texttt{alerts} para su posterior revisión clínica.
+Este diseño modular desacopla la adquisición del análisis y la visualización, facilitando la escalabilidad y la integración futura de nuevas fuentes de datos o reglas de alerta. La evaluación de alertas se realiza de forma automática tras cada ingesta, comparando los datos recientes con líneas base individuales y umbrales predefinidos, almacenando los resultados en la tabla \texttt{alerts} para su posterior revisión clínica.(ver implementación en la Sección~\ref{subsec:anexo_actividad_drop}).
 
 \subsection{Evaluación Dinámica de Reglas de Alerta}
 La detección de anomalías y generación de alertas se realiza de forma automática tras cada ingesta de datos, mediante funciones desacopladas del frontend y definidas en un módulo específico. Las reglas pueden consultar ventanas temporales (por ejemplo, 7 días de pasos o sueño) y comparar los valores actuales con medias, umbrales o desviaciones estándar. El resultado se almacena en la tabla \texttt{alerts}, permitiendo su posterior revisión clínica.
@@ -67,7 +67,7 @@ El backend se estructura en dos componentes principales:
             \item Gestionar el flujo OAuth 2.0: generar parámetros (`state`, `code\_challenge`), construir la URL de autorización, manejar la redirección del usuario a Fitbit\textsuperscript{\textregistered} y procesar el `callback`.
             \item Interactuar con \texttt{auth.py} para obtener los tokens a partir del código de autorización.
             \item Interactuar con \texttt{db.py} y \texttt{encryption.py} para guardar/actualizar la información del usuario y los tokens cifrados en la tabla \texttt{users}.
-            \item Servir el dashboard y exponer endpoints API para la precarga y actualización eficiente de datos, optimizando la latencia y la escalabilidad.
+            \item Servir el dashboard y exponer endpoints API para la precarga y actualización eficiente de datos, optimizando la latencia y la escalabilidad. La implementación de las rutas principales se detalla en la Sección~\ref{subsec:anexo_rutas} del Anexo.
             \item Gestionar logs y errores de forma centralizada para garantizar la robustez del sistema.
         \end{itemize}
     \item \textbf{Scripts de Adquisición:} 
@@ -120,7 +120,7 @@ La interfaz de usuario (UI) del sistema está diseñada para ser intuitiva, acce
             \item Implementado como un conjunto de vistas Flask con plantillas Jinja2 y componentes interactivos (JavaScript, Chart.js).
             \item Permite visualizar resúmenes diarios, métricas intradía, patrones de sueño y alertas recientes para cada usuario.
             \item Incluye filtros avanzados (por usuario, fecha, tipo de alerta, prioridad, etc.) y opciones de exportación a CSV.
-            \item La precarga de datos y la optimización de consultas mejoran la velocidad de carga y la experiencia de usuario, especialmente en el dashboard de alertas.
+            \item La precarga de datos y la optimización de consultas mejoran la velocidad de carga y la experiencia de usuario, especialmente en el dashboard de alertas. La implementación de las llamadas AJAX para la actualización dinámica se muestra en la Sección~\ref{subsec:anexo_formularios} del Anexo.
         \end{itemize}
 \end{itemize}
 

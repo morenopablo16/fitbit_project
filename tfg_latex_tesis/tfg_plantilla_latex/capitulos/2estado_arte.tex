@@ -14,7 +14,7 @@ Las aproximaciones a la RPM varían desde sensores ambientales hasta dispositivo
 \subsection{Bases científicas y enfoque práctico para la detección de alertas}
 \label{subsec:bases_alertas}
 
-El sistema implementa reglas y umbrales basados en evidencia científica, adaptados a las limitaciones de los datos disponibles por Fitbit. Los principales parámetros monitorizados incluyen actividad física (caídas del 30-50\% respecto a la media semanal) \cite{rebelo_physical_inactivity_consequences_2020, who_guidelines_2020}, sedentarismo \cite{bellettiere_pa_sedentary_aging_women_2017}, patrones de sueño \cite{nsf_older_adult_sleep_2022} y frecuencia cardíaca \cite{kang_hrv_thresholds_mortality_2021}. Los umbrales detallados y su justificación se documentan en el Anexo~\ref{anexo:umbrales_alertas}.
+El sistema implementa reglas y umbrales basados en evidencia científica, adaptados a las limitaciones de los datos disponibles por Fitbit. Los principales parámetros monitorizados incluyen actividad física (caídas del 30-50\% respecto a la media semanal) \cite{rebelo_physical_inactivity_consequences_2020, who_guidelines_2020}, sedentarismo \cite{bellettiere_pa_sedentary_aging_women_2017}, patrones de sueño \cite{nsf_older_adult_sleep_2022} y frecuencia cardíaca \cite{kang_hrv_thresholds_mortality_2021}. Los umbrales detallados y su justificación se documentan en el Anexo~\ref{anexo:validacion_alertas}.
 
 \subsection{Sistemas de alerta en salud digital}
 \label{subsec:sistemas_alerta_comparativa}
@@ -42,7 +42,7 @@ Su API proporciona datos diarios e intradía de actividad física, sueño y frec
 \label{subsec:ea_fitbit_api_oauth}
 El acceso a los datos de los usuarios de Fitbit\textsuperscript{\textregistered} se realiza exclusivamente a través de su API web oficial. Se trata de una API RESTful que utiliza el formato JSON para el intercambio de datos \cite{fitbit_api_reference}. Proporciona diversos \textit{endpoints} para obtener información del perfil del usuario, resúmenes de actividad diaria, datos de series temporales (como frecuencia cardíaca o pasos a lo largo del día con cierta granularidad), información sobre el sueño, etc. Para poder acceder a los datos de un usuario, es imprescindible obtener su consentimiento explícito a través del protocolo de autorización estándar \textbf{OAuth 2.0} \cite{oauth_spec_rfc6749}.
 
-En este proyecto, se implementa el flujo \textit{Authorization Code Grant} de OAuth 2.0, considerado el más seguro para aplicaciones web con backend. Los detalles técnicos completos del proceso de autenticación y autorización, incluyendo diagramas de secuencia, ejemplos de respuestas de la API, y la gestión de tokens, se encuentran documentados en el Anexo~\ref{anexo:oatuh_fitbit}.
+En este proyecto, se implementa el flujo \textit{Authorization Code Grant} de OAuth 2.0, considerado el más seguro para aplicaciones web con backend. Los detalles técnicos completos del proceso de autenticación y autorización, incluyendo diagramas de secuencia, ejemplos de respuestas de la API, y la gestión de tokens, se encuentran documentados en el Anexo~\ref{anexo:oauth_fitbit}.
 La correcta y segura gestión de estos tokens (almacenamiento cifrado o seguro, uso exclusivo en el backend, uso de HTTPS en todas las comunicaciones) es fundamental para la seguridad y privacidad del sistema \cite{oauth_security_bcp_rfc8252}.
 
 \subsection{Arquitecturas de Microservicios}

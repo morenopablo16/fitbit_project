@@ -26,3 +26,9 @@ deep-translator==1.11.4
 
 # Paquete para salida de consola enriquecida
 rich==13.5.2
+
+# Paquete para cobertura de código
+coverage==7.6.7
+
+# Paquete para pruebas unitarias
+unittest==1.16.0

@@ -248,10 +248,10 @@ def check_sleep_duration_change(user_id, current_date):
         try:
             # Umbral del 30%: La literatura médica (Irwin, 2015) establece que variaciones >30%
             # representan aproximadamente 2-2.5 horas para una persona que normalmente duerme 7-8 horas,
-            # lo cual es clínicamente relevante y puede indicar trastornos neurológicos o psiquiátricos
+            # lo cual es clínicamente significativo
             if abs(sleep_change) > 30:
-                priority = "high"
-                threshold = 30.0  
+                priority = "high" if abs(sleep_change) > 50 else "medium"
+                threshold = 30.0
                 details = f"Cambio significativo en duración del sueño: {sleep_change:+.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
@@ -267,7 +267,7 @@ def check_sleep_duration_change(user_id, current_date):
             db.close()
             
     except Exception as e:
-        print(f"Error al verificar cambios en el sueño: {e}")
+        print(f"Error al verificar cambios en sueño: {e}")
     return False
 
 def check_heart_rate_anomaly(user_id, current_date):
@@ -303,17 +303,17 @@ def check_heart_rate_anomaly(user_id, current_date):
                 else:
                     return False
                 details = (f"Anomalía en frecuencia cardíaca: {anomaly_percentage:.1f}% de lecturas anómalas. "
-                           f"Valor máximo: {max_anomaly_value:.0f} bpm a las {max_anomaly_time.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
-                    db.insert_alert(
-                        user_id=user_id,
-                        alert_type="heart_rate_anomaly",
-                        priority=priority,
+                         f"Valor máximo: {max_anomaly_value:.0f} bpm a las {max_anomaly_time.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="heart_rate_anomaly",
+                    priority=priority,
                     triggering_value=max_anomaly_value,
-                        threshold=threshold,
+                    threshold=threshold,
                     timestamp=max_anomaly_time,
                     details=details
-                    )
-                    return True
+                )
+                return True
             finally:
                 db.close()
     except Exception as e:
@@ -503,7 +503,10 @@ def check_intraday_activity_drop(user_id, current_date):
             zero_streak = []
     if len(zero_streak) >= 2 and len(zero_streak) > len(max_streak):
         max_streak = zero_streak.copy()
-    if len(max_streak) >= 2:
+    if len(max_streak) >= 2:  # Al menos 2 horas sin actividad
+        start_time = max_streak[0][0]
+        end_time = max_streak[-1][0]
+        duration = (end_time - start_time).total_seconds() / 3600  # Duración en horas
         db = DatabaseManager()
         if not db.connect():
             return False
@@ -551,21 +554,21 @@ def evaluate_all_alerts(user_id, current_date):
             alerts_triggered = True
         # Verificar anomalías en frecuencia cardíaca - No se ejecuta si no hay datos intradía
         try:
-        if check_heart_rate_anomaly(user_id, current_date):
-            alerts_triggered = True
+            if check_heart_rate_anomaly(user_id, current_date):
+                alerts_triggered = True
         except Exception as e:
             print(f"Se omitió la verificación de anomalías en frecuencia cardíaca debido a un error: {e}")
             print("Esto es normal si no tienes acceso a datos intradía de Fitbit.")
         # Verificar cambios en el sueño
         try:
-        if check_sleep_duration_change(user_id, current_date):
-            alerts_triggered = True
+            if check_sleep_duration_change(user_id, current_date):
+                alerts_triggered = True
         except Exception as e:
             print(f"Error al verificar cambios en el sueño: {e}")
         # Verificar aumento en tiempo sedentario
         try:
-        if check_sedentary_increase(user_id, current_date):
-            alerts_triggered = True
+            if check_sedentary_increase(user_id, current_date):
+                alerts_triggered = True
         except Exception as e:
             print(f"Error al verificar aumento en tiempo sedentario: {e}")
         # Verificar calidad de datos

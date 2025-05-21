@@ -1,324 +1,331 @@
-import unittest
-from datetime import datetime, timedelta
-from db import DatabaseManager
-import logging
 import os
-import random
+import sys
+import logging
+from datetime import datetime, timedelta
+import numpy as np
+
+# Add the project root to the Python path so that we can import from db and alert_rules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from db import DatabaseManager, insert_daily_summary, insert_intraday_metric, insert_sleep_log, reset_database, get_daily_summaries, get_intraday_metrics, init_db
 
 # Configure logging
-log_dir = "test_results"
-os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-logger = logging.getLogger('test_data_insertions')
-logger.setLevel(logging.INFO)
-
-# Create file handler
-log_file = os.path.join(log_dir, 'data_insertion.log')
-file_handler = logging.FileHandler(log_file, mode='w')
-file_handler.setLevel(logging.INFO)
-
-# Create console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Create formatter
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-# Add handlers to logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
-class TestDataInsertion(unittest.TestCase):
-    def setUp(self):
-        """Initialize database connection and test users."""
-        self.db = DatabaseManager()
-        self.db.connect()
-        self.test_users = [
-            {'id': 204, 'name': 'Test User 1', 'email': 'test1@example.com'},
-            {'id': 205, 'name': 'Test User 2', 'email': 'test2@example.com'},
-            {'id': 206, 'name': 'Test User 3', 'email': 'test3@example.com'}
-        ]
-        
-        # Clean up any existing test data
-        self.cleanup_test_data()
-        
-    def tearDown(self):
-        """Close database connection."""
-        self.db.close()
-
-    def cleanup_test_data(self):
-        """Safely remove existing test data."""
-        try:
-            # Delete data for test users
-            for user in self.test_users:
-                self.db.execute_query(
-                    "DELETE FROM daily_summaries WHERE user_id = %s",
-                    (user['id'],)
-                )
-                self.db.execute_query(
-                    "DELETE FROM intraday_metrics WHERE user_id = %s",
-                    (user['id'],)
-                )
-                self.db.execute_query(
-                    "DELETE FROM sleep_logs WHERE user_id = %s",
-                    (user['id'],)
-                )
-                self.db.execute_query(
-                    "DELETE FROM alerts WHERE user_id = %s",
-                    (user['id'],)
-                )
-            self.db.commit()
-            logger.info("Cleaned up existing test data")
-        except Exception as e:
-            logger.error(f"Error cleaning up test data: {str(e)}")
-            self.db.rollback()
-            raise
-
-    def generate_intraday_data(self, user_id, date, pattern='normal'):
-        """Generate intraday data for a specific date and pattern."""
-        base_values = {
-            'normal': {
-                'steps': (500, 1000),
-                'heart_rate': (65, 85),
-                'calories': (50, 150),
-                'active_minutes': (2, 5)
-            },
-            'high_activity': {
-                'steps': (800, 1500),
-                'heart_rate': (75, 95),
-                'calories': (80, 200),
-                'active_minutes': (4, 8)
-            },
-            'low_activity': {
-                'steps': (200, 600),
-                'heart_rate': (55, 75),
-                'calories': (30, 100),
-                'active_minutes': (1, 3)
-            },
-            'high_heart_rate': {
-                'steps': (500, 1000),
-                'heart_rate': (100, 120),  # Anomalous high heart rate
-                'calories': (50, 150),
-                'active_minutes': (2, 5)
-            },
-            'low_steps': {
-                'steps': (100, 400),  # Anomalous low steps
-                'heart_rate': (65, 85),
-                'calories': (30, 100),
-                'active_minutes': (1, 3)
-            },
-            'low_sleep': {
-                'steps': (500, 1000),
-                'heart_rate': (65, 85),
-                'calories': (50, 150),
-                'active_minutes': (2, 5)
-            }
-        }
-
-        values = base_values[pattern]
-        data = []
-        
-        # Generate data for each hour
-        for hour in range(24):
-            time = datetime.combine(date, datetime.min.time()) + timedelta(hours=hour)
+def insert_test_data():
+    """Insert test data for alert rule validation.
+    
+    The test data is structured to trigger each alert type at least once for each user:
+    
+    1. Activity Drop Alert (May 14):
+       - Steps: 10,000 → 2,000 (80% drop)
+       - Active minutes: 60 → 15 (75% drop)
+       - Both exceed 50% threshold for high priority
+    
+    2. Sedentary Increase Alert (May 14):
+       - Sedentary minutes: 480 → 900 (87.5% increase)
+       - Exceeds 50% threshold for high priority
+    
+    3. Sleep Duration Change Alert (May 15):
+       - Sleep minutes: 420 → 240 (43% reduction)
+       - Exceeds 30% threshold for high priority
+    
+    4. Heart Rate Anomaly Alert (May 15):
+       - Normal HR (75 ± 1) for first 8 hours
+       - Anomalous HR (130+) for last 4 hours
+       - Exceeds 2 standard deviations threshold
+    
+    5. Data Quality Alert (May 16):
+       - Heart rate: NULL (missing data)
+       - Oxygen saturation: 120% (out of range)
+       - Both trigger data quality alerts
+    
+    6. Intraday Activity Drop Alert (May 16):
+       - First 4 hours: normal activity (500 + variation)
+       - Last 8 hours: zero steps
+       - Exceeds 2-hour threshold
+    """
+    # Reset and initialize database
+    reset_database()
+    init_db()
+    
+    # Create test users
+    users = [
+        ("User A", "user_a@test.com"),
+        ("User B", "user_b@test.com"),
+        ("User C", "user_c@test.com")
+    ]
+    
+    db = DatabaseManager()
+    if not db.connect():
+        logger.error("Failed to connect to database")
+        return
+    
+    user_ids = []
+    for name, email in users:
+        user_id = db.add_user(name, email)
+        user_ids.append(user_id)
+        logger.info(f"Created {name} with ID {user_id}")
+    
+    db.close()
+    
+    # Base date for test data - 20 days before the test date
+    base_date = datetime(2025, 4, 26)
+    
+    # Insert 20 days of normal data to establish baseline
+    logger.info("Inserting 20 days of normal data to establish baseline...")
+    for i in range(20):
+        date = base_date + timedelta(days=i)
+        for user_id in user_ids:
+            # Insert daily summary with normal values
+            insert_daily_summary(
+                user_id=user_id,
+                date=date,
+                steps=11000,  # Increased from 10000 to make drop more significant
+                heart_rate=75,  # Normal heart rate
+                sleep_minutes=420,  # 7 hours of sleep
+                calories=2000,
+                distance=8.5,
+                floors=10,
+                elevation=100.5,
+                active_minutes=90,  # Increased from 60 to make drop more significant
+                sedentary_minutes=400,  # Reduced from 480 to make increase more significant
+                nutrition_calories=1800,
+                water=2.5,
+                weight=70.5,
+                bmi=22.5,
+                fat=18.5,
+                oxygen_saturation=98.0,  # Normal oxygen saturation
+                respiratory_rate=16.5,
+                temperature=36.5
+            )
             
-            # Generate data for each metric type
-            for metric_type, (min_val, max_val) in values.items():
-                value = random.randint(min_val, max_val)
-                data.append((user_id, time, metric_type, value))
-        
-        return data
-
-    def insert_daily_summary(self, user_id, date, pattern='normal'):
-        """Insert daily summary data for a specific date and pattern."""
-        base_values = {
-            'normal': {
-                'steps': 10000,
-                'heart_rate': 75,
-                'sleep_minutes': 420,
-                'calories': 2000,
-                'distance': 7.5,
-                'floors': 10,
-                'elevation': 100,
-                'active_minutes': 45,
-                'sedentary_minutes': 600,
-                'nutrition_calories': 2200,
-                'water': 2.0,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 20.0,
-                'oxygen_saturation': 98.0,
-                'respiratory_rate': 16.0,
-                'temperature': 36.5
-            },
-            'high_activity': {
-                'steps': 15000,
-                'heart_rate': 85,
-                'sleep_minutes': 360,
-                'calories': 2500,
-                'distance': 10.0,
-                'floors': 15,
-                'elevation': 150,
-                'active_minutes': 60,
-                'sedentary_minutes': 480,
-                'nutrition_calories': 2500,
-                'water': 2.5,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 19.0,
-                'oxygen_saturation': 98.0,
-                'respiratory_rate': 18.0,
-                'temperature': 36.7
-            },
-            'low_activity': {
-                'steps': 5000,
-                'heart_rate': 65,
-                'sleep_minutes': 480,
-                'calories': 1800,
-                'distance': 3.5,
-                'floors': 5,
-                'elevation': 50,
-                'active_minutes': 30,
-                'sedentary_minutes': 720,
-                'nutrition_calories': 2000,
-                'water': 1.8,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 21.0,
-                'oxygen_saturation': 97.0,
-                'respiratory_rate': 14.0,
-                'temperature': 36.3
-            },
-            'high_heart_rate': {
-                'steps': 10000,
-                'heart_rate': 110,  # Anomalous high
-                'sleep_minutes': 420,
-                'calories': 2000,
-                'distance': 7.5,
-                'floors': 10,
-                'elevation': 100,
-                'active_minutes': 45,
-                'sedentary_minutes': 600,
-                'nutrition_calories': 2200,
-                'water': 2.0,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 20.0,
-                'oxygen_saturation': 98.0,
-                'respiratory_rate': 16.0,
-                'temperature': 36.5
-            },
-            'low_steps': {
-                'steps': 3000,  # Anomalous low
-                'heart_rate': 75,
-                'sleep_minutes': 420,
-                'calories': 1800,
-                'distance': 3.0,
-                'floors': 5,
-                'elevation': 50,
-                'active_minutes': 20,
-                'sedentary_minutes': 800,
-                'nutrition_calories': 1800,
-                'water': 1.8,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 21.0,
-                'oxygen_saturation': 97.0,
-                'respiratory_rate': 15.0,
-                'temperature': 36.2
-            },
-            'low_sleep': {
-                'steps': 10000,
-                'heart_rate': 75,
-                'sleep_minutes': 300,  # Anomalous low
-                'calories': 2000,
-                'distance': 7.5,
-                'floors': 10,
-                'elevation': 100,
-                'active_minutes': 45,
-                'sedentary_minutes': 600,
-                'nutrition_calories': 2200,
-                'water': 2.0,
-                'weight': 70.0,
-                'bmi': 22.0,
-                'fat': 20.0,
-                'oxygen_saturation': 98.0,
-                'respiratory_rate': 16.0,
-                'temperature': 36.5
-            }
-        }
-
-        values = base_values[pattern]
-        self.db.execute_query("""
-            INSERT INTO daily_summaries 
-            (user_id, date, steps, heart_rate, sleep_minutes, calories, distance,
-             floors, elevation, active_minutes, sedentary_minutes, nutrition_calories,
-             water, weight, bmi, fat, oxygen_saturation, respiratory_rate, temperature)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            user_id, date,
-            values['steps'], values['heart_rate'], values['sleep_minutes'],
-            values['calories'], values['distance'], values['floors'],
-            values['elevation'], values['active_minutes'], values['sedentary_minutes'],
-            values['nutrition_calories'], values['water'], values['weight'],
-            values['bmi'], values['fat'], values['oxygen_saturation'],
-            values['respiratory_rate'], values['temperature']
-        ))
-
-    def test_insert_all_data(self):
-        """Insert all required test data, including multiple normal and anomalous days for threshold and alert tests."""
-        try:
-            users = self.test_users
-            start_date = datetime(2025, 5, 8)  # 14 días desde el 8 al 21 de mayo
-            days = 14
-            anomalies = [
-                {'pattern': 'high_heart_rate', 'desc': 'HR muy alto'},
-                {'pattern': 'low_steps', 'desc': 'Pasos muy bajos'},
-                {'pattern': 'low_sleep', 'desc': 'Sueño muy bajo'}
-            ]
-            anomaly_days = [0, 1, 2]  # Días 1-3 serán anómalos
-            total_anomalies = 0
-            total_daily = 0
-            total_intraday = 0
-            for user in users:
-                for i in range(days):
-                    date = (start_date + timedelta(days=i)).date()
-                    if i in anomaly_days:
-                        pattern = anomalies[i]['pattern']
-                        desc = anomalies[i]['desc']
-                        self.insert_daily_summary(user['id'], date, pattern=pattern)
-                        intraday_data = self.generate_intraday_data(user['id'], date, pattern=pattern)
-                        logger.info(f"Inserted {desc} anomaly for user {user['id']} on {date}")
-                        total_anomalies += 1
+            # Insert normal intraday heart rate data
+            for hour in range(8, 20):  # 8 AM to 8 PM
+                timestamp = date.replace(hour=hour)
+                # Very low variance for normal heart rate (75 ± 1)
+                insert_intraday_metric(
+                    user_id=user_id,
+                    timestamp=timestamp,
+                    metric_type='heart_rate',
+                    value=75 + np.random.uniform(-1, 1)  # Normal heart rate with minimal variation
+                )
+                
+                # Insert normal intraday steps
+                insert_intraday_metric(
+                    user_id=user_id,
+                    timestamp=timestamp,
+                    metric_type='steps',
+                    value=500 + (hour % 3) * 100  # Normal step count
+                )
+            
+            # Insert normal sleep log
+            sleep_start = date.replace(hour=22, minute=0)
+            sleep_end = (date + timedelta(days=1)).replace(hour=6, minute=0)
+            insert_sleep_log(
+                user_id=user_id,
+                start_time=sleep_start,
+                end_time=sleep_end,
+                duration_ms=8 * 60 * 60 * 1000,  # 8 hours
+                efficiency=90,
+                minutes_asleep=420,
+                minutes_awake=30,
+                minutes_in_rem=90,
+                minutes_in_light=240,
+                minutes_in_deep=90
+            )
+    
+    # Insert 3 days of anomalous data (May 14-16, 2025)
+    logger.info("Inserting 3 days of anomalous data to trigger alerts...")
+    anomalous_dates = [
+        datetime(2025, 5, 14),  # Activity drop and sedentary increase
+        datetime(2025, 5, 15),  # Sleep duration change and heart rate anomaly
+        datetime(2025, 5, 16)   # Data quality and intraday activity drop
+    ]
+    
+    for i, current_date in enumerate(anomalous_dates):
+        for user_id in user_ids:  # Apply anomalies to all users
+            if i == 0:  # May 14: Activity drop and sedentary increase
+                logger.info(f"Inserting data for May 14 to trigger activity drop and sedentary increase alerts for user {user_id}...")
+                insert_daily_summary(
+                    user_id=user_id,
+                    date=current_date,
+                    steps=2000,  # 82% drop from normal (11000)
+                    heart_rate=90,
+                    sleep_minutes=300,  # 28.6% drop from normal (420)
+                    calories=1200,
+                    distance=1.5,
+                    floors=2,
+                    elevation=20.5,
+                    active_minutes=15,  # 83% drop from normal (90)
+                    sedentary_minutes=900,  # 125% increase from normal (400)
+                    nutrition_calories=1800,
+                    water=2.0,
+                    weight=70.5,
+                    bmi=22.5,
+                    fat=18.5,
+                    oxygen_saturation=98.0,
+                    respiratory_rate=16.5,
+                    temperature=36.5
+                )
+                
+                # Insert intraday data for May 14
+                logger.info(f"Inserting intraday data for May 14 to trigger intraday activity drop alert for user {user_id}...")
+                for hour in range(24):
+                    if hour < 8:  # 8 consecutive hours of zero steps
+                        steps = 0
+                        heart_rate = 60
+                        active_minutes = 0
+                        calories = 0
+                        distance = 0
+                        floors = 0
+                        elevation = 0
                     else:
-                        # Alternar entre normal y high_activity para dar variedad
-                        pattern = 'normal' if i % 2 == 0 else 'high_activity'
-                        self.insert_daily_summary(user['id'], date, pattern=pattern)
-                        intraday_data = self.generate_intraday_data(user['id'], date, pattern=pattern)
-                    # Insertar intraday data
-                    self.db.execute_many(
-                        """
-                        INSERT INTO intraday_metrics (user_id, time, type, value)
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        intraday_data
+                        steps = 500
+                        heart_rate = 75
+                        active_minutes = 30
+                        calories = 100
+                        distance = 0.4
+                        floors = 1
+                        elevation = 10
+                    
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='steps',
+                        value=steps
                     )
-                    total_daily += 1
-                    total_intraday += len(intraday_data)
-            self.db.commit()
-            logger.info("\n=== Test Data Insertion Summary ===")
-            logger.info(f"✅ Users: {len(users)}")
-            logger.info(f"✅ Days per user: {days}")
-            logger.info(f"✅ Total days: {len(users)*days}")
-            logger.info(f"✅ Anomalies inserted: {total_anomalies * len(users)}")
-            logger.info(f"✅ Total records: {total_daily * len(users)} daily summaries, {total_intraday} intraday metrics")
-            logger.info("================================\n")
-        except Exception as e:
-            logger.error(f"Error inserting test data: {str(e)}")
-            self.db.rollback()
-            raise
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='heart_rate',
+                        value=heart_rate
+                    )
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='active_minutes',
+                        value=active_minutes
+                    )
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='calories',
+                        value=calories
+                    )
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='distance',
+                        value=distance
+                    )
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='floors',
+                        value=floors
+                    )
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=current_date.replace(hour=hour),
+                        metric_type='elevation',
+                        value=elevation
+                    )
+            
+            elif i == 1:  # May 15: Sleep duration change and heart rate anomaly
+                logger.info(f"Inserting data for May 15 to trigger sleep duration change and heart rate anomaly alerts for user {user_id}...")
+                insert_daily_summary(
+                    user_id=user_id,
+                    date=current_date,
+                    steps=500,  # Changed from 0 to 500 to avoid data quality alert
+                    heart_rate=75,
+                    sleep_minutes=240,  # 43% reduction from normal (420)
+                    calories=2000,
+                    distance=8.5,
+                    floors=10,
+                    elevation=100.5,
+                    active_minutes=60,
+                    sedentary_minutes=480,
+                    nutrition_calories=1800,
+                    water=2.5,
+                    weight=70.5,
+                    bmi=22.5,
+                    fat=18.5,
+                    oxygen_saturation=98.0,
+                    respiratory_rate=16.5,
+                    temperature=36.5
+                )
+                
+                # Insert anomalous heart rate data with very low variance for normal period
+                for hour in range(8, 20):
+                    timestamp = current_date.replace(hour=hour)
+                    if hour < 16:  # Normal values for first 8 hours with minimal variance
+                        value = 75 + np.random.uniform(-1, 1)  # Very low variance
+                    else:  # Anomalous values for last 4 hours
+                        value = 130 + np.random.uniform(-2, 2)  # Elevated heart rate (>2 std dev)
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=timestamp,
+                        metric_type='heart_rate',
+                        value=value
+                    )
+                
+                # Insert anomalous sleep log
+                sleep_start = current_date.replace(hour=23, minute=0)
+                sleep_end = (current_date + timedelta(days=1)).replace(hour=3, minute=0)
+                insert_sleep_log(
+                    user_id=user_id,
+                    start_time=sleep_start,
+                    end_time=sleep_end,
+                    duration_ms=4 * 60 * 60 * 1000,  # 4 hours
+                    efficiency=85,
+                    minutes_asleep=240,
+                    minutes_awake=20,
+                    minutes_in_rem=60,
+                    minutes_in_light=120,
+                    minutes_in_deep=60
+                )
+            
+            else:  # May 16: Data quality and intraday activity drop
+                logger.info(f"Inserting data for May 16 to trigger data quality and intraday activity drop alerts for user {user_id}...")
+                insert_daily_summary(
+                    user_id=user_id,
+                    date=current_date,
+                    steps=10000,
+                    heart_rate=None,  # Missing data to trigger data quality alert
+                    sleep_minutes=240,
+                    calories=2000,
+                    distance=8.5,
+                    floors=10,
+                    elevation=100.5,
+                    active_minutes=60,
+                    sedentary_minutes=480,
+                    nutrition_calories=1800,
+                    water=2.5,
+                    weight=70.5,
+                    bmi=22.5,
+                    fat=18.5,
+                    oxygen_saturation=120,  # Out of range to trigger data quality alert
+                    respiratory_rate=16.5,
+                    temperature=36.5
+                )
+                
+                # Insert intraday steps data for activity drop detection
+                for hour in range(8, 20):
+                    timestamp = current_date.replace(hour=hour)
+                    if hour < 12:  # First 4 hours: normal activity
+                        value = 500 + (hour % 3) * 100  # Normal step count
+                    else:  # Last 8 hours: zero steps to trigger intraday activity drop alert
+                        value = 0
+                    insert_intraday_metric(
+                        user_id=user_id,
+                        timestamp=timestamp,
+                        metric_type='steps',
+                        value=value
+                    )
+    
+    logger.info("Test data insertion completed successfully")
 
-if __name__ == '__main__':
-    unittest.main() 
+if __name__ == "__main__":
+    insert_test_data() 

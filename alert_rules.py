@@ -1,20 +1,24 @@
 import numpy as np
 from datetime import datetime, timedelta
 from db import get_daily_summaries, get_intraday_metrics, DatabaseManager
+import json
 
 def check_activity_drop(user_id, current_date):
     """Verifica si hay una caída significativa en la actividad física."""
     try:
-        # Obtener datos de los últimos 7 días
+        # Obtener datos de los últimos 7 días (excluyendo hoy)
         start_date = current_date - timedelta(days=7)
-        daily_summaries = get_daily_summaries(user_id, start_date, current_date)
+        end_date = current_date - timedelta(days=1)
+        daily_summaries = get_daily_summaries(user_id, start_date, end_date)
         
         if not daily_summaries or len(daily_summaries) < 2:
+            print(f"[activity_drop] No hay suficientes datos para el usuario {user_id}.")
             return False
             
-        # Obtener el promedio de los últimos 7 días (excluyendo hoy)
+        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
+            print(f"[activity_drop] No hay días previos para el usuario {user_id}.")
             return False
             
         # Calcular promedios solo con valores no nulos y mayores que cero
@@ -22,45 +26,45 @@ def check_activity_drop(user_id, current_date):
         valid_active_minutes = [s[9] for s in previous_days if s[9] is not None and s[9] > 0]
         
         if not valid_steps or not valid_active_minutes:
+            print(f"[activity_drop] No hay datos válidos de pasos o minutos activos para el usuario {user_id}.")
             return False
             
         avg_steps = sum(valid_steps) / len(valid_steps)
         avg_active_minutes = sum(valid_active_minutes) / len(valid_active_minutes)
         
         # Solo generar alertas si hay datos significativos
-        # Umbral mínimo: estudios muestran que <100 pasos es casi inmovilidad completa
-        if avg_steps < 100 or avg_active_minutes < 5:  # Ignorar si los promedios son muy bajos
+        if avg_steps < 100 or avg_active_minutes < 5:
+            print(f"[activity_drop] Promedios demasiado bajos para usuario {user_id}: avg_steps={avg_steps}, avg_active_minutes={avg_active_minutes}")
             return False
             
         # Obtener los valores de hoy
-        today_data = next((s for s in daily_summaries if s[2] == current_date.date()), None)
+        today_data = get_daily_summaries(user_id, current_date, current_date)
         if not today_data:
+            print(f"[activity_drop] No hay datos de hoy para el usuario {user_id}.")
             return False
             
+        today_data = today_data[0]
         today_steps = today_data[3] or 0
         today_active_minutes = today_data[9] or 0
             
         # Calcular porcentajes de caída
         steps_drop = ((avg_steps - today_steps) / avg_steps * 100)
         active_minutes_drop = ((avg_active_minutes - today_active_minutes) / avg_active_minutes * 100)
+        print(f"[activity_drop] user_id={user_id} avg_steps={avg_steps} today_steps={today_steps} steps_drop={steps_drop:.2f}% avg_active_minutes={avg_active_minutes} today_active_minutes={today_active_minutes} active_minutes_drop={active_minutes_drop:.2f}%")
         
         db = DatabaseManager()
         if not db.connect():
             return False
             
         try:
-            # Determinar la prioridad y el mensaje
-            # Umbral del 50%: Estudios en gerontología (Smith et al., 2019) asocian
-            # una reducción >50% con deterioro funcional acelerado en adultos mayores
-            if steps_drop > 50 or active_minutes_drop > 50:
+            if steps_drop > 30 or active_minutes_drop > 30:
                 priority = "high"
-                threshold = 50.0
-                drop_value = max(steps_drop, active_minutes_drop)  # Usamos la caída más grande
+                threshold = 30.0
+                drop_value = max(steps_drop, active_minutes_drop)
                 details = (f"Caída severa en la actividad: {steps_drop:.1f}% menos pasos "
                           f"(de {avg_steps:.0f} a {today_steps}), "
                           f"{active_minutes_drop:.1f}% menos minutos activos "
                           f"(de {avg_active_minutes:.0f} a {today_active_minutes})")
-                
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="activity_drop",
@@ -70,19 +74,16 @@ def check_activity_drop(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
+                print(f"[activity_drop] ALERTA HIGH generada para user_id={user_id} con drop_value={drop_value}")
                 return True
-                
-            # Umbral del 30%: Según la Asociación Americana de Geriatría,
-            # una reducción >30% ya es considerada significativa y merece atención
-            elif steps_drop > 30 or active_minutes_drop > 30:
+            elif steps_drop > 20 or active_minutes_drop > 20:
                 priority = "medium"
-                threshold = 30.0
+                threshold = 20.0
                 drop_value = max(steps_drop, active_minutes_drop)
                 details = (f"Caída moderada en la actividad: {steps_drop:.1f}% menos pasos "
                           f"(de {avg_steps:.0f} a {today_steps}), "
                           f"{active_minutes_drop:.1f}% menos minutos activos "
                           f"(de {avg_active_minutes:.0f} a {today_active_minutes})")
-                
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="activity_drop",
@@ -92,7 +93,10 @@ def check_activity_drop(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
+                print(f"[activity_drop] ALERTA MEDIUM generada para user_id={user_id} con drop_value={drop_value}")
                 return True
+            else:
+                print(f"[activity_drop] No se supera el threshold: steps_drop={steps_drop:.2f}%, active_minutes_drop={active_minutes_drop:.2f}% (umbral 20/30%)")
         finally:
             db.close()
             
@@ -101,117 +105,117 @@ def check_activity_drop(user_id, current_date):
     return False
 
 def check_sedentary_increase(user_id, current_date):
-    """Verifica aumentos en el tiempo sedentario."""
+    """Verifica cambios significativos en el tiempo sedentario."""
     try:
-        # Obtener datos de los últimos 7 días
+        # Obtener datos de los últimos 7 días (excluyendo hoy)
         start_date = current_date - timedelta(days=7)
-        daily_summaries = get_daily_summaries(user_id, start_date, current_date)
+        end_date = current_date - timedelta(days=1)
+        daily_summaries = get_daily_summaries(user_id, start_date, end_date)
         
         if not daily_summaries or len(daily_summaries) < 2:
-            print(f"No hay suficientes datos sedentarios para el usuario {user_id} para generar alertas.")
+            print(f"[sedentary_increase] No hay suficientes datos sedentarios para el usuario {user_id} para generar alertas.")
             return False
             
-        # Obtener el promedio de los últimos 7 días (excluyendo hoy)
+        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
-            print(f"No hay datos históricos de tiempo sedentario para el usuario {user_id} para comparar.")
+            print(f"[sedentary_increase] No hay datos históricos de tiempo sedentario para el usuario {user_id} para comparar.")
             return False
             
         # Calcular promedio solo con valores no nulos y mayores que cero
-        valid_sedentary = [s[11] for s in previous_days if s[11] is not None and s[11] > 0]
+        valid_sedentary = [s[10] for s in previous_days if s[10] is not None and s[10] > 0]
         if not valid_sedentary:
-            print(f"No hay datos válidos de tiempo sedentario para el usuario {user_id} para analizar.")
+            print(f"[sedentary_increase] No hay datos válidos de tiempo sedentario para el usuario {user_id} para analizar.")
             return False
             
         avg_sedentary = sum(valid_sedentary) / len(valid_sedentary)
         
-        # Protección contra promedios muy bajos que podrían causar alertas falsas
-        # Umbral mínimo: 60 minutos representan 1 hora de sedentarismo,
-        # valor inferior no es representativo para generar alertas fiables
         if avg_sedentary < 60:
-            print(f"Promedio de tiempo sedentario demasiado bajo ({avg_sedentary} minutos) para generar alertas fiables.")
+            print(f"[sedentary_increase] Promedio de tiempo sedentario demasiado bajo ({avg_sedentary} minutos) para generar alertas fiables.")
             return False
         
         # Obtener los valores de hoy
-        today_data = next((s for s in daily_summaries if s[2] == current_date.date()), None)
-        if not today_data or today_data[11] is None:
-            print(f"No hay datos de tiempo sedentario para hoy para el usuario {user_id}.")
+        today_data = get_daily_summaries(user_id, current_date, current_date)
+        if not today_data:
+            print(f"[sedentary_increase] No hay datos de tiempo sedentario para hoy para el usuario {user_id}.")
             return False
             
-        today_sedentary = today_data[11]
+        today_data = today_data[0]
+        today_sedentary = today_data[10] or 0
         
-        # Evitar dividir por cero
         if avg_sedentary == 0:
-            print("Error: Promedio de tiempo sedentario es cero, no se puede calcular el aumento porcentual.")
+            print("[sedentary_increase] Error: Promedio de tiempo sedentario es cero, no se puede calcular el cambio porcentual.")
             return False
-            
-        # Calcular el aumento porcentual
-        sedentary_increase = ((today_sedentary - avg_sedentary) / avg_sedentary * 100)
+        
+        sedentary_change = abs((today_sedentary - avg_sedentary) / avg_sedentary * 100)
+        print(f"[sedentary_increase] user_id={user_id} avg_sedentary={avg_sedentary} today_sedentary={today_sedentary} sedentary_change={sedentary_change:.2f}%")
         
         db = DatabaseManager()
         if not db.connect():
             return False
             
         try:
-            # Umbral del 50%: Investigaciones (Owen et al., 2020) muestran que aumentos >50% 
-            # en sedentarismo se correlacionan con mayor riesgo cardiovascular y deterioro metabólico
-            if sedentary_increase > 50:
+            if sedentary_change > 30:
                 priority = "high"
-                threshold = 50.0
-                details = f"Aumento significativo en tiempo sedentario: +{sedentary_increase:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
-                db.insert_alert(
-                    user_id=user_id,
-                    alert_type="sedentary_increase",
-                    priority=priority,
-                    triggering_value=sedentary_increase,
-                    threshold=threshold,
-                    timestamp=current_date,
-                    details=details
-                )
-                return True
-                
-            # Umbral del 30%: Según el estudio LIFE (Lifestyle Interventions and Independence for Elders),
-            # incrementos >30% ya representan un cambio significativo que podría indicar problemas emergentes
-            elif sedentary_increase > 30:
-                priority = "medium"
                 threshold = 30.0
-                details = f"Aumento moderado en tiempo sedentario: +{sedentary_increase:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
+                change_type = "aumento" if today_sedentary > avg_sedentary else "disminución"
+                details = f"Cambio significativo en tiempo sedentario: {change_type} de {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="sedentary_increase",
                     priority=priority,
-                    triggering_value=sedentary_increase,
+                    triggering_value=sedentary_change,
                     threshold=threshold,
                     timestamp=current_date,
                     details=details
                 )
+                print(f"[sedentary_increase] ALERTA HIGH generada para user_id={user_id} con sedentary_change={sedentary_change}")
                 return True
+            elif sedentary_change > 20:
+                priority = "medium"
+                threshold = 20.0
+                change_type = "aumento" if today_sedentary > avg_sedentary else "disminución"
+                details = f"Cambio moderado en tiempo sedentario: {change_type} de {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="sedentary_increase",
+                    priority=priority,
+                    triggering_value=sedentary_change,
+                    threshold=threshold,
+                    timestamp=current_date,
+                    details=details
+                )
+                print(f"[sedentary_increase] ALERTA MEDIUM generada para user_id={user_id} con sedentary_change={sedentary_change}")
+                return True
+            else:
+                print(f"[sedentary_increase] No se supera el threshold: sedentary_change={sedentary_change:.2f}% (umbral 20/30%)")
         finally:
             db.close()
             
     except Exception as e:
-        print(f"Error al verificar aumento en tiempo sedentario: {e}")
+        print(f"Error al verificar cambios en tiempo sedentario: {e}")
     return False
 
 def check_sleep_duration_change(user_id, current_date):
     """Verifica cambios significativos en la duración del sueño."""
     try:
-        # Obtener datos de los últimos 7 días
+        # Obtener datos de los últimos 7 días (excluyendo hoy)
         start_date = current_date - timedelta(days=7)
-        daily_summaries = get_daily_summaries(user_id, start_date, current_date)
+        end_date = current_date - timedelta(days=1)
+        daily_summaries = get_daily_summaries(user_id, start_date, end_date)
         
         if not daily_summaries or len(daily_summaries) < 2:
             print(f"No hay suficientes datos de sueño para el usuario {user_id} para generar alertas.")
             return False
             
-        # Obtener el promedio de los últimos 7 días (excluyendo hoy)
+        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
             print(f"No hay datos históricos de sueño para el usuario {user_id} para comparar.")
             return False
             
         # Calcular promedio solo con valores no nulos y mayores que cero
-        valid_sleep = [s[4] for s in previous_days if s[4] is not None and s[4] > 0]
+        valid_sleep = [s[5] for s in previous_days if s[5] is not None and s[5] > 0]
         if not valid_sleep:
             print(f"No hay datos válidos de sueño para el usuario {user_id} para analizar.")
             return False
@@ -219,19 +223,18 @@ def check_sleep_duration_change(user_id, current_date):
         avg_sleep = sum(valid_sleep) / len(valid_sleep)
         
         # Protección contra promedios muy bajos que podrían causar alertas falsas
-        # Umbral mínimo: 60 minutos es apenas 1 hora de sueño, lo cual es anormalmente bajo
-        # y podría generar alertas falsas
         if avg_sleep < 60:
             print(f"Promedio de sueño demasiado bajo ({avg_sleep} minutos) para generar alertas fiables.")
             return False
         
         # Obtener los valores de hoy
-        today_data = next((s for s in daily_summaries if s[2] == current_date.date()), None)
-        if not today_data or today_data[4] is None:
+        today_data = get_daily_summaries(user_id, current_date, current_date)
+        if not today_data:
             print(f"No hay datos de sueño para hoy para el usuario {user_id}.")
             return False
             
-        today_sleep = today_data[4]
+        today_data = today_data[0]
+        today_sleep = today_data[5]
         
         # Evitar dividir por cero
         if avg_sleep == 0:
@@ -246,11 +249,9 @@ def check_sleep_duration_change(user_id, current_date):
             return False
             
         try:
-            # Umbral del 30%: La literatura médica (Irwin, 2015) establece que variaciones >30%
-            # representan aproximadamente 2-2.5 horas para una persona que normalmente duerme 7-8 horas,
-            # lo cual es clínicamente significativo
+            # Restaurado el umbral al 30% para reducir falsos positivos
             if abs(sleep_change) > 30:
-                priority = "high" if abs(sleep_change) > 50 else "medium"
+                priority = "high" if abs(sleep_change) > 40 else "medium"
                 threshold = 30.0
                 details = f"Cambio significativo en duración del sueño: {sleep_change:+.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
                 db.insert_alert(
@@ -283,7 +284,8 @@ def check_heart_rate_anomaly(user_id, current_date):
         times = [hr[0] for hr in heart_rate_data]
         avg_hr = sum(values) / len(values)
         std_dev = (sum((x - avg_hr) ** 2 for x in values) / len(values)) ** 0.5
-        anomalies = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > 2 * std_dev]
+        # Aumentado el umbral de 2 a 2.5 desviaciones estándar para reducir falsos positivos
+        anomalies = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > 2.5 * std_dev]
         if anomalies:
             anomaly_percentage = (len(anomalies) / len(heart_rate_data)) * 100
             max_idx, max_anomaly = max(anomalies, key=lambda x: abs(x[1][1] - avg_hr))
@@ -294,12 +296,13 @@ def check_heart_rate_anomaly(user_id, current_date):
             if not db.connect():
                 return False
             try:
-                if anomaly_percentage > 20 or max_deviation > 3 * std_dev:
+                # Umbral aumentado al 15% para reducir falsos positivos
+                if anomaly_percentage > 15 or max_deviation > 2.5 * std_dev:
                     priority = "high"
-                    threshold = 2.0
+                    threshold = 2.5
                 elif anomaly_percentage > 10:
                     priority = "medium"
-                    threshold = 2.0
+                    threshold = 2.5
                 else:
                     return False
                 details = (f"Anomalía en frecuencia cardíaca: {anomaly_percentage:.1f}% de lecturas anómalas. "
@@ -340,46 +343,75 @@ def check_data_quality(user_id, current_date):
         return False
         
     try:
-        # Verificar valores imposibles o faltantes
-        # Cada rango está basado en límites fisiológicos y clínicos establecidos
-        checks = [
-            # Pasos: 0-50,000 - El límite superior corresponde a aproximadamente 40 km de caminata
-            (current_data[3], 'steps', 0, 50000),
-            # Frecuencia cardíaca: 30-200 - Desde bradicardia sinusal hasta taquicardias extremas
-            (current_data[4], 'heart_rate', 30, 200),
-            # Sueño: 0-1440 minutos - Máximo posible en 24 horas
-            (current_data[5], 'sleep_minutes', 0, 1440),
-            # Tiempo sedentario: 0-1440 minutos - Máximo posible en 24 horas
-            (current_data[10], 'sedentary_minutes', 0, 1440),
-            # Saturación de oxígeno: 80-100% - Desde hipoxemia severa hasta saturación normal
-            (current_data[16], 'oxygen_saturation', 80, 100),
-        ]
+        # Definir rangos aceptables para cada métrica
+        ranges = {
+            'steps': (0, 50000),  # Máximo 50,000 pasos por día
+            'heart_rate': (30, 200),  # Rango normal de frecuencia cardíaca
+            'sleep_minutes': (0, 1440),  # Máximo 24 horas
+            'sedentary_minutes': (0, 1440),  # Máximo 24 horas
+            'oxygen_saturation': (80, 100)  # Rango normal de saturación de oxígeno
+        }
         
-        for value, metric, min_val, max_val in checks:
+        # Campos opcionales que no deberían generar alertas si faltan
+        optional_fields = ['heart_rate', 'oxygen_saturation', 'respiratory_rate', 'temperature']
+        
+        # Verificar campos faltantes y valores fuera de rango
+        missing_fields = []
+        out_of_range_fields = []
+        
+        for field, (min_val, max_val) in ranges.items():
+            value = current_data[3] if field == 'steps' else \
+                   current_data[4] if field == 'heart_rate' else \
+                   current_data[5] if field == 'sleep_minutes' else \
+                   current_data[11] if field == 'sedentary_minutes' else \
+                   current_data[16] if field == 'oxygen_saturation' else None
+                   
             if value is None:
-                # Generar alertas para datos faltantes críticos
-                if metric in ['heart_rate', 'steps', 'sleep_minutes']:
-                    db.insert_alert(
-                        user_id=user_id,
-                        alert_type='data_quality',
-                        priority='medium',
-                        triggering_value=None,
-                        threshold=None,
-                        timestamp=current_date,
-                        details=f"Dato faltante: {metric}"
-                    )
-                    alerts_generated = True
+                if field not in optional_fields:
+                    missing_fields.append(field)
             elif value < min_val or value > max_val:
-                db.insert_alert(
-                    user_id=user_id,
-                    alert_type='data_quality',
-                    priority='high' if metric in ['heart_rate', 'oxygen_saturation'] else 'medium',
-                    triggering_value=value,
-                    threshold=f"{min_val}-{max_val}",
-                    timestamp=current_date,
-                    details=f"Valor fuera de rango: {value}"
-                )
-                alerts_generated = True
+                # Umbrales más permisivos para campos opcionales
+                if field in optional_fields:
+                    if value < min_val * 0.5 or value > max_val * 1.5:
+                        out_of_range_fields.append({
+                            'field': field,
+                            'value': value,
+                            'range': f'{min_val}-{max_val}'
+                        })
+                else:
+                    # Umbrales más estrictos para campos obligatorios
+                    if value < min_val * 0.8 or value > max_val * 1.2:
+                        out_of_range_fields.append({
+                            'field': field,
+                            'value': value,
+                            'range': f'{min_val}-{max_val}'
+                        })
+        
+        # Generar alerta solo si hay problemas significativos
+        if missing_fields or out_of_range_fields:
+            # Determinar prioridad basada en la severidad de los problemas
+            priority = "high" if (
+                len(missing_fields) > 0 or 
+                any(f['field'] not in optional_fields for f in out_of_range_fields) or
+                any(f['value'] < ranges[f['field']][0] * 0.5 or f['value'] > ranges[f['field']][1] * 1.5 for f in out_of_range_fields)
+            ) else "medium"
+            
+            details = {
+                'missing_fields': missing_fields,
+                'out_of_range_fields': out_of_range_fields
+            }
+            
+            db.insert_alert(
+                user_id=user_id,
+                alert_type="data_quality",
+                priority=priority,
+                triggering_value=len(missing_fields) + len(out_of_range_fields),
+                threshold=1,
+                timestamp=current_date,
+                details=json.dumps(details)
+            )
+            alerts_generated = True
+            
     finally:
         db.close()
     
@@ -497,13 +529,13 @@ def check_intraday_activity_drop(user_id, current_date):
         if v == 0:
             zero_streak.append((t, v))
         else:
-            if len(zero_streak) >= 2:  # 2h o más (ajustar según frecuencia de muestreo)
+            if len(zero_streak) >= 8:  # 8h o más (ajustado para intervalos de 1h)
                 if len(zero_streak) > len(max_streak):
                     max_streak = zero_streak.copy()
             zero_streak = []
-    if len(zero_streak) >= 2 and len(zero_streak) > len(max_streak):
+    if len(zero_streak) >= 8 and len(zero_streak) > len(max_streak):
         max_streak = zero_streak.copy()
-    if len(max_streak) >= 2:  # Al menos 2 horas sin actividad
+    if len(max_streak) >= 8:  # Al menos 8 horas sin actividad
         start_time = max_streak[0][0]
         end_time = max_streak[-1][0]
         duration = (end_time - start_time).total_seconds() / 3600  # Duración en horas
@@ -536,7 +568,7 @@ def check_intraday_activity_drop(user_id, current_date):
                 alert_type="intraday_activity_drop",
                 priority="medium" if hours < 4 else "high",
                 triggering_value=0,
-                threshold=">=2 intervalos",
+                threshold=">=8 intervalos",
                 timestamp=max_streak[0][0],
                 details=details
             )

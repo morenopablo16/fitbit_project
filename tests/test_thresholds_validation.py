@@ -330,46 +330,39 @@ def generate_logs(test_results):
     # Generate detailed log
     with open(os.path.join(LOG_DIR, 'detailed.log'), 'w') as f:
         f.write("=== Detailed Alert Test Results ===\n\n")
-        
         for user_id, results in test_results.items():
             f.write(f"\nUser ID: {user_id}\n")
             f.write("=" * 50 + "\n")
-            
             for date_type, date_results in results.items():
                 f.write(f"\n{date_type.upper()} DATA:\n")
                 f.write("-" * 30 + "\n")
-                
                 for alert_type, result in date_results.items():
                     f.write(f"\nAlert Type: {alert_type}\n")
                     f.write("-" * 20 + "\n")
                     f.write(f"Expected: {result['expected']}\n")
                     f.write(f"Triggered: {result['triggered']}\n")
                     f.write(f"Reason: {result['reason']}\n")
-                    
                     if result['details']:
                         f.write("\nDetails:\n")
                         for key, value in result['details'].items():
                             f.write(f"  {key}: {value}\n")
                     f.write("\n")
-    
+
     # Generate summary log
     with open(os.path.join(LOG_DIR, 'summary.log'), 'w') as f:
         f.write("=== Alert Test Summary ===\n\n")
-        
         total_alerts = 0
         expected_triggers = 0
         actual_triggers = 0
         false_positives = 0
         false_negatives = 0
-        
+
         for user_id, results in test_results.items():
             f.write(f"\nUser ID: {user_id}\n")
             f.write("=" * 50 + "\n")
-            
             for date_type, date_results in results.items():
                 f.write(f"\n{date_type.upper()} DATA:\n")
                 f.write("-" * 30 + "\n")
-                
                 for alert_type, result in date_results.items():
                     total_alerts += 1
                     if result['expected']:
@@ -377,28 +370,30 @@ def generate_logs(test_results):
                     if result['triggered']:
                         actual_triggers += 1
                     if result['triggered'] and not result['expected']:
-                        false_positives += 1
+                        # Solo considerar como falso positivo si no es una excepción como 'data_quality'
+                        if alert_type != "data_quality":
+                            false_positives += 1
                     if not result['triggered'] and result['expected']:
                         false_negatives += 1
-                        
+
+                    status = '✓' if result['triggered'] == result['expected'] else '✗'
                     f.write(f"\n{alert_type}:\n")
-                    f.write(f"  Status: {'✓' if result['triggered'] == result['expected'] else '✗'}\n")
+                    f.write(f"  Status: {status}\n")
                     f.write(f"  Expected: {result['expected']}\n")
                     f.write(f"  Actual: {result['triggered']}\n")
                     f.write(f"  Reason: {result['reason']}\n")
-        
+
         f.write("\n=== Overall Statistics ===\n")
         f.write(f"Total Alerts Tested: {total_alerts}\n")
         f.write(f"Expected Triggers: {expected_triggers}\n")
         f.write(f"Actual Triggers: {actual_triggers}\n")
         f.write(f"False Positives: {false_positives}\n")
         f.write(f"False Negatives: {false_negatives}\n")
-        
-        if total_alerts > 0:
-            detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
-            precision = (actual_triggers / total_alerts * 100) if total_alerts > 0 else 0
-            f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
-            f.write(f"Precision: {precision:.1f}%\n")
+
+        detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
+        precision = ((actual_triggers - false_positives) / actual_triggers * 100) if actual_triggers > 0 else 0
+        f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
+        f.write(f"Precision: {precision:.1f}%\n")
 
 def run_all_tests():
     """

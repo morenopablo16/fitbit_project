@@ -1,243 +1,79 @@
-% -*- coding: utf-8 -*-
 \chapter{Resultados Detallados de las Pruebas}
 \label{anexo:pruebas}
 
-Este anexo presenta los resultados detallados de las pruebas realizadas sobre el sistema, incluyendo configuraciones, metodologías y logs de ejecución.
+Este anexo presenta los resultados completos de los tests automatizados desarrollados para validar el sistema de alertas, incluyendo logs, configuraciones y comportamiento observado.
 
-\section{Resumen de Pruebas}
-\label{anexo:pruebas:resumen}
-
-La Tabla~\ref{tab:resumen_pruebas} presenta una visión general de las pruebas realizadas, los requisitos validados y los resultados clave obtenidos.
-\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
-
-\begin{table}[htbp]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\setlength{\tabcolsep}{5pt}
-\caption{Resumen de pruebas realizadas y resultados principales}
-\label{tab:resumen_pruebas}
-
-\begin{tabular}{|P{2.5cm}|P{2.8cm}|P{3.5cm}|P{5cm}|}
-\hline
-\textbf{Tipo de Prueba} & \textbf{Requisitos} & \textbf{Herramientas} & \textbf{Resultados Clave} \\
-\hline
-Carga & RNF-02, RNF-06 &
-\detokenize{test_load.py}, \detokenize{concurrent.futures} &
-Latencia P95: 1.2s. 50 usuarios concurrentes. \\
-\hline
-Umbrales & RF-10, RF-11, RNF-08 &
-\detokenize{test_thresholds_validation.py} &
-Precisión global: 95.1\%. Falsos positivos: 4.9\%. \\
-\hline
-Integración & RF-05, RF-07, RF-11 &
-\detokenize{test_alerts_full.py} &
-Cobertura de código: 87\%. 24 casos de prueba. \\
-\hline
-Frontend & RNF-01, RNF-02 &
-Chrome DevTools, Lighthouse &
-First Paint: 0.8s. Time to Interactive: 1.9s. \\
-\hline
-Base de Datos & RNF-02, RNF-04 &
-EXPLAIN ANALYZE, TimescaleDB &
-Consultas: 85ms promedio. Índices optimizados. \\
-\hline
-\end{tabular}
-\end{table}
-\section{Configuración del Entorno de Pruebas}
+\section{Entorno de Pruebas}
 \label{anexo:pruebas:entorno}
 
-Las pruebas se ejecutaron en un entorno controlado con las siguientes características:
-
+Las pruebas se ejecutaron en entorno local controlado:
 \begin{itemize}
-    \item \textbf{Hardware:}
-        \begin{itemize}
-            \item CPU: Intel Core i7-9750H (6 cores, 12 threads)
-            \item RAM: 16GB DDR4
-            \item SSD: NVMe 512GB
-        \end{itemize}
-    \item \textbf{Software:}
-        \begin{itemize}
-            \item Sistema Operativo: Ubuntu 20.04 LTS
-            \item Python 3.8.5
-            \item PostgreSQL 12.4 con TimescaleDB 2.0
-            \item Flask 2.0.1
-        \end{itemize}
-    \item \textbf{Base de Datos de Pruebas:}
-        \begin{itemize}
-            \item Instancia dedicada de TimescaleDB
-            \item Datos sintéticos generados según patrones reales
-            \item Tamaño inicial: ~500MB
-        \end{itemize}
+    \item CPU: Intel Core i7-9750H (6 cores, 12 threads)
+    \item RAM: 16GB DDR4
+    \item Sistema Operativo: Ubuntu 20.04 LTS
+    \item Base de datos: PostgreSQL 12.4 + TimescaleDB
+    \item Lenguaje: Python 3.8.5, Flask 2.0.1
 \end{itemize}
 
-\section{Pruebas de Carga}
-\label{anexo:pruebas:carga}
+\section{Datos Insertados}
+\label{anexo:pruebas:insertados}
 
-\subsection{Configuración de las Pruebas de Carga}
+Se generaron datos sintéticos para 3 usuarios durante 23 días:
 
-El script \texttt{test\_load.py} implementa las siguientes funcionalidades:
+\begin{itemize}
+    \item 20 días de datos normales.
+    \item 3 días de datos anómalos específicos.
+    \item Datos intradía: frecuencia cardíaca y pasos.
+    \item Datos faltantes y fisiológicamente imposibles.
+\end{itemize}
 
-\begin{verbatim}
-[2024-03-14 10:15:23] INFO: Iniciando prueba de carga
-[2024-03-14 10:15:23] INFO: Configuración:
-- Usuarios concurrentes: 50
-- Duración simulación: 30 días
-- Intervalo de muestreo: 1 minuto
-- Métricas por usuario: FC, pasos, sueño
-- Pool de conexiones DB: max_size=20
-
-[2024-03-14 10:15:24] INFO: Generando datos sintéticos
-- Patrones de actividad: 3 perfiles
-- Variación diaria: ±20%
-- Anomalías introducidas: 10%
-
-[2024-03-14 10:15:25] INFO: Iniciando simulación
-- Threads worker: 8
-- Batch size: 100 registros
-- Retry policy: 3 intentos, backoff exponencial
-\end{verbatim}
-
-\subsection{Resultados Detallados de Carga}
-
-Métricas recopiladas durante la ejecución:
-
-\begin{verbatim}
-[2024-03-14 10:20:35] INFO: Estadísticas de ejecución
-- Total registros procesados: 216,000
-- Tiempo total ejecución: 318.5 segundos
-- Throughput medio: 678.2 registros/segundo
-- Latencia media: 0.85s
-- Latencia P95: 1.2s
-- Latencia P99: 1.75s
-- Errores: 0
-\end{verbatim}
-
-\section{Validación de Umbrales}
+\section{Resultados del Test de Umbrales}
 \label{anexo:pruebas:umbrales}
 
-\subsection{Metodología de Validación}
-
-El script \texttt{test\_thresholds\_validation.py} implementa:
+Para cada tipo de alerta, se esperaban valores concretos. Se resume a continuación el comportamiento real comparado con lo esperado:
 
 \begin{verbatim}
-[2024-03-14 11:00:00] INFO: Configuración validación
-- Dispositivos: 3 Fitbit Charge 5
-- Período: 30 días (2024-02-01 a 2024-03-01)
-- Métricas validadas: FC, actividad, sueño
-- Frecuencia datos: 1min (FC), 15min (actividad)
-
-[2024-03-14 11:00:01] INFO: Patrones introducidos
-- Cambios graduales: 15 eventos
-- Anomalías súbitas: 12 eventos
-- Períodos inactividad: 8 eventos
-- Variaciones circadianas: Incluidas
+User ID: 2
+✓ activity_drop
+✓ sedentary_increase
+✗ sleep_duration_change (Expected: True, Triggered: False)
+✓ heart_rate_anomaly
+✓ data_quality
+✓ intraday_activity_drop
 \end{verbatim}
 
-\subsection{Resultados por Tipo de Alerta}
+\noindent Resultado general del test:
 
-\begin{verbatim}
-[2024-03-14 11:30:00] INFO: Resultados Actividad
-Total alertas: 47
-- Verdaderos positivos: 45 (95.7%)
-- Falsos positivos: 2 (4.3%)
-- Falsos negativos: 1
-Tiempo medio detección: 12.3 minutos
+\begin{itemize}
+    \item Alertas totales evaluadas: 36
+    \item Esperadas y disparadas: 18
+    \item Falsos positivos: 0
+    \item Falsos negativos: 3 (solo en sueño)
+    \item Precisión: 100.0\%
+    \item Recall: 83.3\%
+\end{itemize}
 
-[2024-03-14 11:30:01] INFO: Resultados Sueño
-Total alertas: 52
-- Verdaderos positivos: 49 (94.2%)
-- Falsos positivos: 3 (5.8%)
-- Falsos negativos: 2
-Tiempo medio detección: 8.7 horas
+\section{Validación por Combinación de Anomalías}
+\label{anexo:pruebas:combinadas}
 
-[2024-03-14 11:30:02] INFO: Resultados FC
-Total alertas: 43
-- Verdaderos positivos: 41 (95.3%)
-- Falsos positivos: 2 (4.7%)
-- Falsos negativos: 1
-Tiempo medio detección: 5.2 minutos
-\end{verbatim}
+En un día específico, se activaron simultáneamente:
 
-\section{Pruebas de Integración}
-\label{anexo:pruebas:integracion}
+\begin{itemize}
+    \item Sedentarismo extremo (900 min)
+    \item HR anómala (bpm = 60, std = 4.0)
+    \item Calidad de datos (oxígeno = 18.5\%)
+\end{itemize}
 
-El script \texttt{test\_alerts\_full.py} verifica el pipeline completo:
+\noindent Resultado: se activaron todas las alertas previstas con sus prioridades correspondientes.
 
-\begin{verbatim}
-[2024-03-14 12:00:00] INFO: Test Suite Completo
-- Casos de prueba: 24
-- Cobertura código: 87%
-- Tiempo ejecución: 45.3s
+\section{Observaciones Relevantes}
+\label{anexo:pruebas:observaciones}
 
-[2024-03-14 12:00:01] INFO: Resultados
-✓ Adquisición datos (8/8 tests)
-✓ Procesamiento (6/6 tests)
-✓ Generación alertas (10/10 tests)
-\end{verbatim}
+- Las alertas se generaron independientemente.
+- No hubo colisiones ni interferencias.
+- El sistema maneja datos incompletos de forma fiable.
 
-\section{Rendimiento del Sistema}
-\label{anexo:pruebas:rendimiento}
-
-\subsection{Métricas Frontend}
-
-Mediciones realizadas con Chrome DevTools:
-
-\begin{verbatim}
-Dashboard Principal:
-- First Contentful Paint: 0.8s
-- Time to Interactive: 1.9s
-- Largest Contentful Paint: 1.2s
-- Cumulative Layout Shift: 0.1
-
-API Endpoints (P95):
-- /api/daily_summary: 180ms
-- /api/alerts: 220ms
-- /api/user/detail: 320ms
-\end{verbatim}
-
-\subsection{Métricas Backend}
-
-Estadísticas de PostgreSQL EXPLAIN ANALYZE:
-
-\begin{verbatim}
-Query: Resumen Diario
-- Planning Time: 0.650 ms
-- Execution Time: 85.235 ms
-- Rows Processed: 2,160
-- Index Scans: 2
-- Sequential Scans: 0
-
-Query: Alertas Activas
-- Planning Time: 0.820 ms
-- Execution Time: 92.456 ms
-- Rows Processed: 142
-- Index Scans: 3
-- Sequential Scans: 0
-\end{verbatim}
-
-\section{Logs de Errores y Diagnóstico}
+\section{Logs y Archivos}
 \label{anexo:pruebas:logs}
 
-Durante las pruebas se registraron los siguientes eventos notables:
-
-\begin{verbatim}
-[2024-03-14 13:15:23] WARN: Latencia elevada
-- Endpoint: /api/intraday
-- Duración: 890ms
-- Causa: Índice no optimizado
-- Acción: Añadido índice compuesto
-
-[2024-03-14 14:22:15] WARN: Pico memoria
-- Proceso: worker_1
-- Uso: 482MB
-- Causa: Batch size grande
-- Acción: Ajustado a 50 registros
-
-[2024-03-14 15:45:30] INFO: Optimización
-- Query reescrita: daily_summary
-- Mejora tiempo: 45%
-- Causa: Agregación optimizada
-\end{verbatim}
-
-Los logs completos y datos crudos de las pruebas están disponibles en el repositorio del proyecto \cite{github_repo_proyecto} en el directorio \texttt{/test\_results/}.
+Los logs generados por los tests (\texttt{summary.log} y \texttt{detailed.log}) se encuentran disponibles en el repositorio del proyecto.

@@ -68,6 +68,44 @@ La cobertura de escenarios clínicos se refiere al hecho de que todas las catego
 
 Como se observa en la Tabla \ref{tab:resumen_alertas}, el sistema mostró un comportamiento robusto, con una precisión del 100\% y una tasa de detección del 83,3\%, penalizada únicamente por 3 falsos negativos en la alerta de duración del sueño. Este resultado respalda la consistencia del motor de reglas bajo condiciones simuladas controladas
 
+\subsection{Test de Calidad de Datos}
+\label{subsec:test_data_quality}
+
+Se diseñó un conjunto específico de pruebas para validar la robustez del sistema ante diferentes escenarios de calidad de datos. Las pruebas incluyeron:
+
+\begin{itemize}
+    \item \textbf{Datos críticos faltantes:} Simulación de ausencia de valores esenciales como pasos, frecuencia cardíaca y sueño.
+    \item \textbf{Valores anómalos:} Inserción de datos fisiológicamente imposibles o extremos.
+    \item \textbf{Datos parciales:} Combinación de valores válidos y faltantes para simular situaciones reales.
+\end{itemize}
+
+Los resultados mostraron un comportamiento excepcional del sistema:
+
+\begin{itemize}
+    \item \textbf{Precisión del 100\%:} Todas las alertas esperadas fueron generadas correctamente.
+    \item \textbf{Consistencia:} El sistema mantuvo un comportamiento uniforme a través de diferentes usuarios y escenarios.
+    \item \textbf{Priorización adecuada:} Las alertas se generaron con el nivel de prioridad correcto según la severidad.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Resultados del test de calidad de datos}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\ \hline
+Alertas totales evaluadas & 27 \\
+Alertas esperadas y disparadas & 27 \\
+Falsos positivos & 0 \\
+Falsos negativos & 0 \\
+Tasa de detección (Recall) & 100\% \\
+Precisión (Precision) & 100\% \\
+Tipos de alerta evaluados & 3 \\ \hline
+\end{tabular}
+\label{tab:resumen_calidad_datos}
+\end{table}
+
+Como se observa en la Tabla \ref{tab:resumen_calidad_datos}, el sistema demostró una capacidad excepcional para manejar datos de calidad variable, manteniendo una precisión perfecta en la detección de anomalías. Este resultado es particularmente relevante para el entorno real, donde los datos pueden ser incompletos o contener valores anómalos debido a fallos en los dispositivos o en la transmisión de datos.
+
 \section{Test Avanzado: Combinación de Anomalías Clínicas}
 \label{sec:test_combinadas}
 

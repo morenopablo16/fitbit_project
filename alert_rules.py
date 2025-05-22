@@ -239,7 +239,7 @@ def check_sleep_duration_change(user_id, current_date):
         if avg_sleep == 0:
             print("Error: Promedio de sueño es cero, no se puede calcular el cambio porcentual.")
             return False
-        
+            
         sleep_change = abs((today_sleep - avg_sleep) / avg_sleep * 100)
         print(f"[sleep_duration_change] user_id={user_id} avg_sleep={avg_sleep} today_sleep={today_sleep} sleep_change={sleep_change:.2f}%")
         
@@ -636,7 +636,7 @@ def evaluate_all_alerts(user_id, current_date):
         return alerts_triggered
     except Exception as e:
         print(f"Error al evaluar alertas: {e}")
-        return False
+        return False 
 
 def get_triggered_alerts(user_id, current_date):
     """

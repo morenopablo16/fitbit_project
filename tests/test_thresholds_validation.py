@@ -347,7 +347,7 @@ def generate_logs(test_results):
                         for key, value in result['details'].items():
                             f.write(f"  {key}: {value}\n")
                     f.write("\n")
-
+    
     # Generate summary log
     with open(os.path.join(LOG_DIR, 'summary.log'), 'w') as f:
         f.write("=== Alert Test Summary ===\n\n")
@@ -356,7 +356,7 @@ def generate_logs(test_results):
         actual_triggers = 0
         false_positives = 0
         false_negatives = 0
-
+        
         for user_id, results in test_results.items():
             f.write(f"\nUser ID: {user_id}\n")
             f.write("=" * 50 + "\n")
@@ -372,28 +372,28 @@ def generate_logs(test_results):
                     if result['triggered'] and not result['expected']:
                         # Solo considerar como falso positivo si no es una excepción como 'data_quality'
                         if alert_type != "data_quality":
-                            false_positives += 1
+                        false_positives += 1
                     if not result['triggered'] and result['expected']:
                         false_negatives += 1
-
+                        
                     status = '✓' if result['triggered'] == result['expected'] else '✗'
                     f.write(f"\n{alert_type}:\n")
                     f.write(f"  Status: {status}\n")
                     f.write(f"  Expected: {result['expected']}\n")
                     f.write(f"  Actual: {result['triggered']}\n")
                     f.write(f"  Reason: {result['reason']}\n")
-
+        
         f.write("\n=== Overall Statistics ===\n")
         f.write(f"Total Alerts Tested: {total_alerts}\n")
         f.write(f"Expected Triggers: {expected_triggers}\n")
         f.write(f"Actual Triggers: {actual_triggers}\n")
         f.write(f"False Positives: {false_positives}\n")
         f.write(f"False Negatives: {false_negatives}\n")
-
-        detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
+        
+            detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
         precision = ((actual_triggers - false_positives) / actual_triggers * 100) if actual_triggers > 0 else 0
-        f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
-        f.write(f"Precision: {precision:.1f}%\n")
+            f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
+            f.write(f"Precision: {precision:.1f}%\n")
 
 def run_all_tests():
     """

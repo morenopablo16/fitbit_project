@@ -123,7 +123,7 @@ def check_sedentary_increase(user_id, current_date):
             return False
             
         # Calcular promedio solo con valores no nulos y mayores que cero
-        valid_sedentary = [s[10] for s in previous_days if s[10] is not None and s[10] > 0]
+        valid_sedentary = [s[11] for s in previous_days if s[11] is not None and s[11] > 0]
         if not valid_sedentary:
             print(f"[sedentary_increase] No hay datos válidos de tiempo sedentario para el usuario {user_id} para analizar.")
             return False
@@ -141,7 +141,7 @@ def check_sedentary_increase(user_id, current_date):
             return False
             
         today_data = today_data[0]
-        today_sedentary = today_data[10] or 0
+        today_sedentary = today_data[11] or 0
         
         if avg_sedentary == 0:
             print("[sedentary_increase] Error: Promedio de tiempo sedentario es cero, no se puede calcular el cambio porcentual.")
@@ -234,36 +234,54 @@ def check_sleep_duration_change(user_id, current_date):
             return False
             
         today_data = today_data[0]
-        today_sleep = today_data[5]
+        today_sleep = today_data[5] or 0
         
-        # Evitar dividir por cero
         if avg_sleep == 0:
             print("Error: Promedio de sueño es cero, no se puede calcular el cambio porcentual.")
             return False
-            
-        # Calcular el cambio porcentual
-        sleep_change = ((today_sleep - avg_sleep) / avg_sleep * 100)
+        
+        sleep_change = abs((today_sleep - avg_sleep) / avg_sleep * 100)
+        print(f"[sleep_duration_change] user_id={user_id} avg_sleep={avg_sleep} today_sleep={today_sleep} sleep_change={sleep_change:.2f}%")
         
         db = DatabaseManager()
         if not db.connect():
             return False
             
         try:
-            # Restaurado el umbral al 30% para reducir falsos positivos
-            if abs(sleep_change) > 30:
-                priority = "high" if abs(sleep_change) > 40 else "medium"
-                threshold = 30.0
-                details = f"Cambio significativo en duración del sueño: {sleep_change:+.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
+            if sleep_change > 40:  # Aumentado de 30% a 40%
+                priority = "high"
+                threshold = 40.0
+                change_type = "aumento" if today_sleep > avg_sleep else "disminución"
+                details = f"Cambio significativo en duración del sueño: {change_type} de {sleep_change:.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="sleep_duration_change",
                     priority=priority,
-                    triggering_value=abs(sleep_change),
+                    triggering_value=sleep_change,
                     threshold=threshold,
                     timestamp=current_date,
                     details=details
                 )
+                print(f"[sleep_duration_change] ALERTA HIGH generada para user_id={user_id} con sleep_change={sleep_change}")
                 return True
+            elif sleep_change > 30:  # Aumentado de 20% a 30%
+                priority = "medium"
+                threshold = 30.0
+                change_type = "aumento" if today_sleep > avg_sleep else "disminución"
+                details = f"Cambio moderado en duración del sueño: {change_type} de {sleep_change:.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="sleep_duration_change",
+                    priority=priority,
+                    triggering_value=sleep_change,
+                    threshold=threshold,
+                    timestamp=current_date,
+                    details=details
+                )
+                print(f"[sleep_duration_change] ALERTA MEDIUM generada para user_id={user_id} con sleep_change={sleep_change}")
+                return True
+            else:
+                print(f"[sleep_duration_change] No se supera el threshold: sleep_change={sleep_change:.2f}% (umbral 30/40%)")
         finally:
             db.close()
             
@@ -372,7 +390,7 @@ def check_data_quality(user_id, current_date):
             elif value < min_val or value > max_val:
                 # Umbrales más permisivos para campos opcionales
                 if field in optional_fields:
-                    if value < min_val * 0.5 or value > max_val * 1.5:
+                    if value < min_val * 0.8 or value > max_val * 1.2:  # Ajustado a 20% de tolerancia
                         out_of_range_fields.append({
                             'field': field,
                             'value': value,
@@ -380,7 +398,7 @@ def check_data_quality(user_id, current_date):
                         })
                 else:
                     # Umbrales más estrictos para campos obligatorios
-                    if value < min_val * 0.8 or value > max_val * 1.2:
+                    if value < min_val * 0.9 or value > max_val * 1.1:  # Ajustado a 10% de tolerancia
                         out_of_range_fields.append({
                             'field': field,
                             'value': value,
@@ -618,4 +636,53 @@ def evaluate_all_alerts(user_id, current_date):
         return alerts_triggered
     except Exception as e:
         print(f"Error al evaluar alertas: {e}")
-        return False 
+        return False
+
+def get_triggered_alerts(user_id, current_date):
+    """
+    Returns a list of triggered alerts for a user on a given date.
+    This function uses the existing alert check functions but returns a list of triggered alerts
+    instead of just a boolean.
+    """
+    triggered_alerts = []
+    
+    # Check activity drop
+    if check_activity_drop(user_id, current_date):
+        triggered_alerts.append('activity_drop')
+        
+    # Check heart rate anomalies
+    try:
+        if check_heart_rate_anomaly(user_id, current_date):
+            triggered_alerts.append('heart_rate_anomaly')
+    except Exception as e:
+        print(f"Skipped heart rate anomaly check due to error: {e}")
+        
+    # Check sleep changes
+    try:
+        if check_sleep_duration_change(user_id, current_date):
+            triggered_alerts.append('sleep_duration_change')
+    except Exception as e:
+        print(f"Error checking sleep changes: {e}")
+        
+    # Check sedentary increase
+    try:
+        if check_sedentary_increase(user_id, current_date):
+            triggered_alerts.append('sedentary_increase')
+    except Exception as e:
+        print(f"Error checking sedentary increase: {e}")
+        
+    # Check data quality
+    try:
+        if check_data_quality(user_id, current_date):
+            triggered_alerts.append('data_quality')
+    except Exception as e:
+        print(f"Error checking data quality: {e}")
+        
+    # Check intraday activity drop
+    try:
+        if check_intraday_activity_drop(user_id, current_date):
+            triggered_alerts.append('intraday_activity_drop')
+    except Exception as e:
+        print(f"Error checking intraday activity drop: {e}")
+        
+    return triggered_alerts 

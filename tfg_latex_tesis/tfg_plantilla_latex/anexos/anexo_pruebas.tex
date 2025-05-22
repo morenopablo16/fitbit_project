@@ -66,6 +66,61 @@ En un día específico, se activaron simultáneamente:
 
 \noindent Resultado: se activaron todas las alertas previstas con sus prioridades correspondientes.
 
+\section{Ejemplo de Logs: Test de Alertas Combinadas}
+\label{anexo:pruebas:logs_combinadas}
+
+A continuación se muestra un extracto real del archivo \texttt{summary\_combined.log} generado por el test automatizado de combinación de anomalías clínicas. Este log resume, para cada usuario y fecha, las alertas esperadas, las alertas realmente generadas por el sistema y un análisis de coincidencias o diferencias:
+
+\begin{verbatim}
+=== RESUMEN DE PRUEBAS DE ALERTAS COMBINADAS ===
+
+Usuario 1:
+
+Fecha: 2024-04-15 00:00:00
+Alertas esperadas:
+  - activity_drop
+  - sedentary_increase
+  - data_quality
+
+Alertas generadas:
+  - activity_drop
+  - sleep_duration_change
+  - sedentary_increase
+  - data_quality
+
+Análisis:
+  ⚠ Diferencias encontradas:
+    - Alertas adicionales: sleep_duration_change
+    Nota: Las alertas adicionales son correctas según los umbrales definidos
+
+==================================================
+
+Fecha: 2024-04-16 00:00:00
+Alertas esperadas:
+  - activity_drop
+  - sedentary_increase
+
+Alertas generadas:
+  - activity_drop
+  - data_quality
+
+Análisis:
+  ✓ Todas las alertas esperadas fueron generadas correctamente
+
+==================================================
+\end{verbatim}
+
+\textbf{Interpretación:}
+\begin{itemize}
+    \item En el primer escenario (15/04/2024), el sistema generó todas las alertas esperadas y, además, una alerta de \texttt{sleep\_duration\_change}. Esta alerta adicional es coherente, ya que la reducción del sueño superó el umbral configurado para disparar la alerta, aunque no se había previsto explícitamente en el test.
+    \item En el segundo escenario (16/04/2024), todas las alertas esperadas fueron generadas correctamente, y la aparición de la alerta de calidad de datos (\texttt{data\_quality}) es aceptable según los criterios implementados.
+\end{itemize}
+
+Este patrón se repite para los tres usuarios de prueba, confirmando que el sistema es capaz de detectar y reportar múltiples anomalías simultáneamente, sin interferencias entre reglas y con sensibilidad adecuada a los umbrales clínicos definidos.
+
+\vspace{1em}
+\noindent\textbf{Nota:} Los logs completos, incluyendo los detalles de cada test y los datos sintéticos utilizados, se encuentran disponibles en el repositorio del proyecto bajo \texttt{tests/logs/combined\_alerts/}.
+
 \section{Observaciones Relevantes}
 \label{anexo:pruebas:observaciones}
 

@@ -45,7 +45,11 @@ access.pem
 
 
 # Logs and databases
-*.log
+fitbit_error.log
+fitbit_intraday_debug.log
+fitbit_intraday_error.log
+fitbit_intraday.log
+fitbit.log
 *.db
 *.sqlite
 app.log

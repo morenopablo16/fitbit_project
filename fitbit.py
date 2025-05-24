@@ -213,37 +213,37 @@ def process_emails(emails):
     
     for email in valid_emails:
         try:
-        # Obtener el user_id más reciente asociado al correo electrónico
-        user_id = get_latest_user_id_by_email(email)
-        if not user_id:
+            # Obtener el user_id más reciente asociado al correo electrónico
+            user_id = get_latest_user_id_by_email(email)
+            if not user_id:
                 print(f"No se encontró un usuario con el correo {email}. Verifique que el usuario esté registrado.")
-            continue
+                continue
        
-        # Obtener y desencriptar los tokens
-        access_token, refresh_token = get_user_tokens(email)
-        if not access_token or not refresh_token:
+            # Obtener y desencriptar los tokens
+            access_token, refresh_token = get_user_tokens(email)
+            if not access_token or not refresh_token:
                 print(f"No se encontraron tokens válidos para el correo {email}. Es necesario vincular nuevamente el dispositivo.")
-            continue
+                continue
 
-        # Intentar obtener los datos de Fitbit
-        try:
+            # Intentar obtener los datos de Fitbit
+            try:
                 success = get_fitbit_data(access_token, email)
                 if success:
                     print(f"Datos recopilados exitosamente para {email}.")
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 401:  # Token expirado
-                print(f"Token expirado para el correo {email}. Intentando refrescar el token...")
-                new_access_token, new_refresh_token = refresh_access_token(refresh_token)
-                if new_access_token and new_refresh_token:
-                    # Actualizar los tokens en la base de datos
-                    update_users_tokens(email, new_access_token, new_refresh_token)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 401:  # Token expirado
+                    print(f"Token expirado para el correo {email}. Intentando refrescar el token...")
+                    new_access_token, new_refresh_token = refresh_access_token(refresh_token)
+                    if new_access_token and new_refresh_token:
+                        # Actualizar los tokens en la base de datos
+                        update_users_tokens(email, new_access_token, new_refresh_token)
 
-                    # Volver a intentar la solicitud con el nuevo token
-                    try:
+                        # Volver a intentar la solicitud con el nuevo token
+                        try:
                             success = get_fitbit_data(new_access_token, email)
                             if success:
                                 print(f"Datos recopilados exitosamente para {email} después de refrescar el token.")
-                    except requests.exceptions.HTTPError as e:
+                        except requests.exceptions.HTTPError as e:
                             print(f"Error HTTP al obtener datos de Fitbit para el correo {email} después de refrescar el token: {e}")
                     else:
                         print(f"No se pudo refrescar el token para el correo {email}. Es necesario vincular nuevamente el dispositivo.")
@@ -260,10 +260,10 @@ if __name__ == "__main__":
 
     # Obtener la lista de correos electrónicos desde los argumentos de la terminal
     # emails = sys.argv[1:]
-    emails = ["Wearable4LivelyAgeign@gmail.com", ""]
-    # # Obtener la lista de emails únicos
-    # unique_emails = get_unique_emails()
-    # print(f"Emails únicos: {unique_emails}") 
+    #emails = ["Wearable4LivelyAgeign@gmail.com", ""]
+    # Obtener la lista de emails únicos
+    unique_emails = get_unique_emails()
+    print(f"Emails únicos: {unique_emails}") 
 
     # Procesar cada correo electrónico
     process_emails(emails)

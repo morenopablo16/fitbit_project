@@ -1,12 +1,12 @@
 import requests
 from base64 import b64encode
 # Datos de la app
-CLIENT_ID = "23QK2Y"
-CLIENT_SECRET = "15dff85f95fb2b521461fa4e0c9abf2b"
+CLIENT_ID = "23QJN8"
+CLIENT_SECRET = "7f9d7193f3fd0fe1b73455dc85db89ba"
 REDIRECT_URI = "https://localhost/callback"
 
 # Código de autorización copiado de la URL
-AUTHORIZATION_CODE = "63711b420ba538ee5992f215dda90a96df7354cd"
+AUTHORIZATION_CODE = "e63e3d894f674a46b2212a7d9fba6318f46a1ed6"
 # Construir headers con autenticación básica
 auth_header = b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 headers = {

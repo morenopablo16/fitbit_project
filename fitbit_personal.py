@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import psycopg2
 import requests
 import time
+import base64
 
 # Configure logging
 logging.basicConfig(
@@ -27,12 +28,123 @@ DB_CONFIG = {
     "sslmode": "require"
 }
 
-# Fitbit API configuration
-FITBIT_CONFIG = {
-    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FLMlkiLCJzdWIiOiJDRzZaTDYiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJlY2cgcnNldCByaXJuIHJveHkgcm51dCBycHJvIHJzbGUgcmNmIHJhY3QgcmxvYyBycmVzIHJ3ZWkgcmhyIHJ0ZW0iLCJleHAiOjE3NDgzOTQ5OTAsImlhdCI6MTc0ODM2NjE5MH0.DZVEYEYANSGVGXdjS6upni48UMKfsOyXt96qoONoQw0",
-    "refresh_token": "b4c44b74f63b0b930f2b77da0b7a63b13e6b2460730c139efa3d76238948b762",
-    "user_id": "-"  # Use "-" for personal mode
+# Fitbit API configuration for multiple accounts
+ACCOUNTS_CONFIG = {
+    "wearable2livelyageign@gmail.com": {
+        "client_id": "23QK2Y",
+        "client_secret": "15dff85f95fb2b521461fa4e0c9abf2b",
+        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FLMlkiLCJzdWIiOiJDRzZaTDYiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJlY2cgcnNldCByaXJuIHJveHkgcm51dCBycHJvIHJzbGUgcmNmIHJhY3QgcmxvYyBycmVzIHJ3ZWkgcmhyIHJ0ZW0iLCJleHAiOjE3NDkwMDEyMjgsImlhdCI6MTc0ODk3MjQyOH0.rRQWbU2_CspxoKF4Xt9soxcUgrA7WNbxc0Td8GTkuVQ",
+        "refresh_token": "683749cbda33927ec3b67ba1a7c08ff57439c94c3e911fee58a7f68606a5cf19",
+        "user_id_placeholder": "-" # Fitbit API uses '-' for current user, actual DB user_id will be used for storage
+    },
+    "wearable1livelyageign@gmail.com": {
+        "client_id": "23QJN8",
+        "client_secret": "7f9d7193f3fd0fe1b73455dc85db89ba",
+        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FKTjgiLCJzdWIiOiJDRzhUNkoiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd2VjZyB3c29jIHdhY3Qgd294eSB3dGVtIHd3ZWkgd2lybiB3Y2Ygd3NldCB3bG9jIHdyZXMiLCJleHAiOjE3NDkwMDM0OTcsImlhdCI6MTc0ODk3NDY5N30.0ynKe2ctIYce9NyF2zX0q9xNO0JazbsZaBHuBK8kcDE",
+        "refresh_token": "632a5acef0be0b94c80d0fab54edbad778a990f44359e333cdac45d305edfe09",
+        "user_id_placeholder": "-"
+    }
+    # Add more accounts here if needed
 }
+
+# Global variable to store the currently selected user's email and their config
+CURRENT_USER_EMAIL = None
+CURRENT_USER_CONFIG = None
+
+def load_tokens_from_db(email):
+    """Load all credentials from the database for the specified email."""
+    global CURRENT_USER_CONFIG
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT client_id, client_secret, access_token, refresh_token FROM users WHERE email = %s", (email,))
+        creds = cur.fetchone()
+        if creds and all(creds):
+            CURRENT_USER_CONFIG = {
+                "client_id": creds[0],
+                "client_secret": creds[1],
+                "access_token": creds[2],
+                "refresh_token": creds[3],
+                "user_id_placeholder": "-" # Keep placeholder, actual API calls use this
+            }
+            logger.info(f"Successfully loaded tokens and credentials from database for {email}.")
+            return True
+        else:
+            logger.warning(f"No complete credentials found in database for {email}. Will use initial config if available.")
+            # Fallback to initial config for this email if DB load fails
+            if email in ACCOUNTS_CONFIG:
+                CURRENT_USER_CONFIG = ACCOUNTS_CONFIG[email].copy()
+                logger.info(f"Using initial hardcoded config for {email} as fallback.")
+            else:
+                logger.error(f"No configuration found for email {email} after DB load failure.")
+                CURRENT_USER_CONFIG = None # Ensure it's None if no config available
+            return False
+    except Exception as e:
+        logger.error(f"Error loading tokens from database for {email}: {e}.")
+        if email in ACCOUNTS_CONFIG:
+            CURRENT_USER_CONFIG = ACCOUNTS_CONFIG[email].copy() # Fallback
+            logger.info(f"Using initial hardcoded config for {email} due to DB error.")
+        else:
+            logger.error(f"No configuration found for email {email} after DB error.")
+            CURRENT_USER_CONFIG = None
+        return False
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+
+def refresh_fitbit_token():
+    """Refresh the Fitbit access token for the CURRENT_USER_EMAIL."""
+    global CURRENT_USER_CONFIG
+    if not CURRENT_USER_CONFIG or not CURRENT_USER_EMAIL:
+        logger.error("Cannot refresh token: No current user selected or config loaded.")
+        return None
+
+    logger.info(f"Attempting to refresh Fitbit token for {CURRENT_USER_EMAIL}.")
+    auth_str = f"{CURRENT_USER_CONFIG['client_id']}:{CURRENT_USER_CONFIG['client_secret']}"
+    auth_header = base64.b64encode(auth_str.encode()).decode()
+    
+    headers = {
+        "Authorization": f"Basic {auth_header}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": CURRENT_USER_CONFIG['refresh_token']
+    }
+    
+    try:
+        response = requests.post("https://api.fitbit.com/oauth2/token", headers=headers, data=data)
+        response.raise_for_status()
+        
+        new_tokens = response.json()
+        CURRENT_USER_CONFIG['access_token'] = new_tokens['access_token']
+        if 'refresh_token' in new_tokens:
+            CURRENT_USER_CONFIG['refresh_token'] = new_tokens['refresh_token']
+            logger.info(f"Fitbit token refreshed successfully for {CURRENT_USER_EMAIL}. New refresh token received.")
+        else:
+            logger.info(f"Fitbit token refreshed successfully for {CURRENT_USER_EMAIL}. Existing refresh token remains valid.")
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE users SET access_token = %s, refresh_token = %s
+            WHERE email = %s
+        """, (CURRENT_USER_CONFIG['access_token'], CURRENT_USER_CONFIG['refresh_token'], CURRENT_USER_EMAIL))
+        conn.commit()
+        logger.info(f"Updated tokens in the database for {CURRENT_USER_EMAIL}.")
+        cur.close()
+        conn.close()
+        
+        return CURRENT_USER_CONFIG['access_token']
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error refreshing Fitbit token for {CURRENT_USER_EMAIL}: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            logger.error(f"Response status: {e.response.status_code}")
+            logger.error(f"Response text: {e.response.text}")
+        return None
 
 def get_db_connection():
     """Create and return a database connection."""
@@ -55,6 +167,8 @@ def init_db():
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255),
                 email VARCHAR(255) NOT NULL UNIQUE,
+                client_id VARCHAR(255),
+                client_secret VARCHAR(255),
                 access_token TEXT,
                 refresh_token TEXT,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -244,7 +358,14 @@ def get_fitbit_data(access_token, date_str):
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 401:
-            raise  # Reenviar error 401 para manejo de token expirado
+            logger.warning("Token expired or invalid in get_fitbit_data. Attempting refresh...")
+            new_access_token = refresh_fitbit_token()
+            if new_access_token:
+                logger.info("Token refreshed. Retrying get_fitbit_data request...")
+                return get_fitbit_data(new_access_token, date_str) # Retry with new token
+            else:
+                logger.error("Failed to refresh token in get_fitbit_data. Cannot proceed.")
+                return None
         logger.error(f"Error HTTP al obtener datos de Fitbit: {e}")
         return None
     except Exception as e:
@@ -276,8 +397,8 @@ def get_intraday_data(access_token, date_str):
             logger.warning(f"Could not verify token scopes: {oauth_response.status_code}")
 
         # 1. FRECUENCIA CARDÍACA INTRADÍA
-        # Using the correct endpoint format for heart rate intraday data
-        heart_rate_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{date_str}/{date_str}/{detail_level}.json"
+        # Reverting to the simpler intraday endpoint (no time segmentation) as per documentation
+        heart_rate_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{date_str}/1d/{detail_level}.json"
         logger.info(f"Requesting heart rate intraday data from: {heart_rate_url}")
         
         response = requests.get(heart_rate_url, headers=headers)
@@ -315,11 +436,12 @@ def get_intraday_data(access_token, date_str):
             for point in dataset:
                 time_str = point.get('time')
                 value = point.get('value')
-                if time_str and value:
+                if time_str and value is not None: # Check for None explicitly for value
                     timestamp = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    logger.info(f"Yielding heart_rate: {timestamp}, {value}")
                     yield ('heart_rate', timestamp, value)
         else:
-            logger.warning("No intraday heart rate data available in response")
+            logger.warning("No 'activities-heart-intraday' key in heart_data response.")
             # Log the summary data if available
             if 'activities-heart' in heart_data:
                 for activity in heart_data['activities-heart']:
@@ -345,8 +467,9 @@ def get_intraday_data(access_token, date_str):
                     for point in dataset:
                         time_str = point.get('time')
                         value = point.get('value')
-                        if time_str and value:
+                        if time_str and value is not None: # Check for None explicitly for value
                             timestamp = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                            logger.info(f"Yielding alt_heart_rate: {timestamp}, {value}")
                             yield ('heart_rate', timestamp, value)
 
         # 2. PASOS INTRADÍA (Steps)
@@ -370,18 +493,29 @@ def get_intraday_data(access_token, date_str):
                 for point in dataset:
                     time_str = point.get('time')
                     value = point.get('value')
-                    if time_str and value:
+                    if time_str and value is not None: # Check for None explicitly for value, as 0 is a valid value
                         timestamp = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                        logger.info(f"Yielding steps: {timestamp}, {value}")
                         yield ('steps', timestamp, value)
             else:
-                logger.warning("No intraday steps data available in response")
+                logger.warning("No 'activities-steps-intraday' key in steps_data response.")
         else:
             logger.error(f"Error getting steps data: {steps_response.status_code}")
             logger.error(f"Response: {steps_response.text}")
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 401:
-            raise  # Reenviar error 401 para manejo de token expirado
+            logger.warning("Token expired or invalid in get_intraday_data. Attempting refresh...")
+            new_access_token = refresh_fitbit_token()
+            if new_access_token:
+                logger.info("Token refreshed. Retrying get_intraday_data logic with new token...")
+                # Re-call itself effectively, and yield from that new call
+                for item in get_intraday_data(new_access_token, date_str):
+                    yield item
+                return # Important to return after yielding from the recursive call
+            else:
+                logger.error("Failed to refresh token in get_intraday_data. Cannot proceed.")
+                return # End the generator
         elif e.response.status_code == 429:
             logger.error("Rate limit exceeded. Waiting for reset...")
             reset_time = int(e.response.headers.get('fitbit-rate-limit-reset', 60))
@@ -469,28 +603,32 @@ def log_intraday_metrics(user_id, start_date, end_date):
         conn.close()
 
 def collect_historical_data(days=3):
-    """Collect historical data for the specified number of days."""
-    if not FITBIT_CONFIG['access_token']:
-        logger.error("No access token provided")
+    """Collect historical data for the specified number of days for the CURRENT_USER_EMAIL."""
+    global CURRENT_USER_CONFIG, CURRENT_USER_EMAIL
+    if not CURRENT_USER_CONFIG or not CURRENT_USER_CONFIG.get('access_token'):
+        logger.error(f"No access token available for {CURRENT_USER_EMAIL}. Cannot collect data.")
+        return False
+    if not CURRENT_USER_EMAIL:
+        logger.error("No user email selected. Cannot collect data.")
         return False
 
     try:
-        # Reset and reinitialize tables
-        reset_tables()
-
-        # Create user if not exists
+        # The user record (including client_id, client_secret, tokens) should already be in the DB
+        # from the initial sync or loaded by load_tokens_from_db.
+        # We just need the user_id for data association.
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO users (email, access_token, refresh_token)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (email) DO UPDATE SET
-                access_token = EXCLUDED.access_token,
-                refresh_token = EXCLUDED.refresh_token
-            RETURNING id;
-        """, ("Wearable2LivelyAgeign@gmail.com", FITBIT_CONFIG['access_token'], FITBIT_CONFIG['refresh_token']))
-        user_id = cur.fetchone()[0]
-        conn.commit()
+        cur.execute("SELECT id FROM users WHERE email = %s", (CURRENT_USER_EMAIL,))
+        user_record = cur.fetchone()
+        if not user_record:
+            logger.error(f"User {CURRENT_USER_EMAIL} not found in database. Cannot proceed.")
+            cur.close()
+            conn.close()
+            return False
+        user_id = user_record[0]
+        # No need to commit here as we are just selecting. DB connection for data insertion is handled below.
+        # cur.close() # Keep cursor open for data insertion
+        # conn.close() # Keep connection open
 
         # Collect data for each day
         end_date = datetime.now()
@@ -559,10 +697,16 @@ def collect_historical_data(days=3):
 
                 # Get and save intraday data with improved error handling
                 try:
-                    # Only collect intraday data for May 26, 2025
-                    if date_str == "2025-05-26":
-                        intraday_data_points = 0
-                        for metric_type, timestamp, value in get_intraday_data(FITBIT_CONFIG['access_token'], date_str):
+                    # Collect intraday data for the current processing date
+                    intraday_data_points = 0
+                    # Ensure we are using the potentially refreshed token from CURRENT_USER_CONFIG
+                    current_access_token = CURRENT_USER_CONFIG['access_token']
+                    intraday_generator = get_intraday_data(current_access_token, date_str)
+                    
+                    if intraday_generator:
+                        logger.info(f"Iterating intraday_generator for {date_str}...")
+                        for metric_type, timestamp, value in intraday_generator:
+                            logger.info(f"Received from generator: {metric_type}, {timestamp}, {value} for user_id {user_id}")
                             try:
                                 cur.execute("""
                                     INSERT INTO intraday_metrics (user_id, time, type, value)
@@ -581,12 +725,16 @@ def collect_historical_data(days=3):
                         
                         if intraday_data_points == 0:
                             logger.warning(f"No intraday data points were saved for {date_str}")
-                            logger.warning("This might indicate an issue with the API response or data format")
-                    else:
-                        logger.info(f"Skipping intraday data collection for {date_str} (only collecting for May 26)")
+                            logger.warning("This might indicate an issue with the API response or data format if data was expected.")
+                    # Removed the else block that skipped intraday data collection for other dates
                         
                 except requests.exceptions.HTTPError as e:
+                    # get_intraday_data now handles its own 401s.
+                    # This block will catch other HTTP errors or if refresh failed and 401 is re-raised.
                     if e.response.status_code == 401:
+                        logger.error(f"Authentication error (401) persisted for intraday data on {date_str} even after refresh attempt.")
+                        # Potentially log more details or decide to stop. For now, loop continues.
+                    elif e.response.status_code == 429:
                         logger.error("Authentication error (401) - Token might be expired")
                         raise  # Re-raise to handle token refresh
                     elif e.response.status_code == 429:
@@ -627,7 +775,70 @@ def collect_historical_data(days=3):
 if __name__ == "__main__":
     # Create logs directory if it doesn't exist
     os.makedirs("logs", exist_ok=True)
+
+    # Reset tables to ensure schema is updated with client_id and client_secret columns
+    reset_tables()
+    # init_db() will be called by reset_tables()
+
+    # Synchronize all accounts from ACCOUNTS_CONFIG to the database.
+    conn_sync = None
+    try:
+        conn_sync = get_db_connection()
+        cur_sync = conn_sync.cursor()
+        logger.info("Synchronizing all initial account configurations to database...")
+        for email, config in ACCOUNTS_CONFIG.items():
+            cur_sync.execute("""
+                INSERT INTO users (email, client_id, client_secret, access_token, refresh_token)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (email) DO UPDATE SET
+                    client_id = EXCLUDED.client_id,
+                    client_secret = EXCLUDED.client_secret,
+                    access_token = EXCLUDED.access_token,
+                    refresh_token = EXCLUDED.refresh_token;
+            """, (email, config['client_id'], config['client_secret'], config['access_token'], config['refresh_token']))
+            logger.info(f"Synchronized initial config for {email}.")
+        conn_sync.commit()
+        cur_sync.close()
+    except Exception as e:
+        logger.error(f"Error synchronizing initial account configs to DB: {e}")
+        if conn_sync:
+            conn_sync.rollback()
+    finally:
+        if conn_sync:
+            conn_sync.close()
+
+    # Interactive menu to select user
+    # global CURRENT_USER_EMAIL, CURRENT_USER_CONFIG # This is not needed at module level
+    print("\nAvailable Fitbit Accounts:")
+    account_emails = list(ACCOUNTS_CONFIG.keys())
+    for i, email_option in enumerate(account_emails):
+        print(f"{i + 1}. {email_option}")
     
-    logger.info("Starting Fitbit personal data collection")
-    collect_historical_data()
-    logger.info("Finished Fitbit personal data collection") 
+    selected_index = -1
+    while selected_index < 0 or selected_index >= len(account_emails):
+        try:
+            choice = input(f"Select account by number (1-{len(account_emails)}): ")
+            selected_index = int(choice) - 1
+            if selected_index < 0 or selected_index >= len(account_emails):
+                print("Invalid choice. Please try again.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    CURRENT_USER_EMAIL = account_emails[selected_index]
+    logger.info(f"User selected: {CURRENT_USER_EMAIL}")
+
+    # Load tokens for the selected user (this will also set CURRENT_USER_CONFIG)
+    if not load_tokens_from_db(CURRENT_USER_EMAIL):
+        # If DB load fails or no tokens, CURRENT_USER_CONFIG is already set to initial config by load_tokens_from_db
+        logger.warning(f"Could not load full credentials for {CURRENT_USER_EMAIL} from DB, relying on initial config.")
+        # Ensure CURRENT_USER_CONFIG is populated from ACCOUNTS_CONFIG if it's still None
+        if CURRENT_USER_EMAIL in ACCOUNTS_CONFIG and CURRENT_USER_CONFIG is None:
+             CURRENT_USER_CONFIG = ACCOUNTS_CONFIG[CURRENT_USER_EMAIL].copy()
+
+
+    if CURRENT_USER_CONFIG:
+        logger.info(f"Starting Fitbit personal data collection for {CURRENT_USER_EMAIL}")
+        collect_historical_data(days=1) # Collect for yesterday and today
+        logger.info(f"Finished Fitbit personal data collection for {CURRENT_USER_EMAIL}")
+    else:
+        logger.error(f"No configuration loaded for {CURRENT_USER_EMAIL}. Cannot proceed.")

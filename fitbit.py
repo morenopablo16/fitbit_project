@@ -253,17 +253,11 @@ def process_emails(emails):
             print(f"Error inesperado al procesar el correo {email}: {e}")
 
 if __name__ == "__main__":
-    # Verificar que se proporcionen los argumentos necesarios
-    # if len(sys.argv) < 2:
-    #     print("Usage: python fitbit.py <email1> <email2> ...")
-    #     sys.exit(1)
-
-    # Obtener la lista de correos electrónicos desde los argumentos de la terminal
-    # emails = sys.argv[1:]
-    #emails = ["Wearable4LivelyAgeign@gmail.com", ""]
     # Obtener la lista de emails únicos
     unique_emails = get_unique_emails()
-    print(f"Emails únicos: {unique_emails}") 
+    if not unique_emails:
+        print("No se encontraron emails en la base de datos")
+        sys.exit(1)
 
-    # Procesar cada correo electrónico
-    process_emails(emails)
+    print(f"Emails únicos encontrados en la base de datos: {unique_emails}")
+    process_emails(unique_emails)

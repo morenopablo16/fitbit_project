@@ -1,0 +1,1542 @@
+2025-05-27 18:52:12,185 [INFO] Starting Fitbit personal data collection
+2025-05-27 18:52:12,534 [INFO] Database initialized successfully
+2025-05-27 18:52:12,740 [INFO] Collecting data for 2025-04-27
+2025-05-27 18:52:14,770 [INFO] Daily summary saved for date 2025-04-27
+2025-05-27 18:52:16,598 [INFO] Collecting data for 2025-04-28
+2025-05-27 18:52:19,277 [INFO] Daily summary saved for date 2025-04-28
+2025-05-27 18:52:21,658 [INFO] Collecting data for 2025-04-29
+2025-05-27 18:52:23,638 [INFO] Daily summary saved for date 2025-04-29
+2025-05-27 18:52:25,447 [INFO] Collecting data for 2025-04-30
+2025-05-27 18:52:27,398 [INFO] Daily summary saved for date 2025-04-30
+2025-05-27 18:52:29,450 [INFO] Collecting data for 2025-05-01
+2025-05-27 18:52:31,020 [INFO] Daily summary saved for date 2025-05-01
+2025-05-27 18:52:32,954 [INFO] Collecting data for 2025-05-02
+2025-05-27 18:52:34,369 [INFO] Daily summary saved for date 2025-05-02
+2025-05-27 18:52:36,199 [INFO] Collecting data for 2025-05-03
+2025-05-27 18:52:37,718 [INFO] Daily summary saved for date 2025-05-03
+2025-05-27 18:52:39,503 [INFO] Collecting data for 2025-05-04
+2025-05-27 18:52:41,354 [INFO] Daily summary saved for date 2025-05-04
+2025-05-27 18:52:43,152 [INFO] Collecting data for 2025-05-05
+2025-05-27 18:52:45,098 [INFO] Daily summary saved for date 2025-05-05
+2025-05-27 18:52:47,158 [INFO] Collecting data for 2025-05-06
+2025-05-27 18:52:49,088 [INFO] Daily summary saved for date 2025-05-06
+2025-05-27 18:52:50,941 [INFO] Collecting data for 2025-05-07
+2025-05-27 18:52:52,795 [INFO] Daily summary saved for date 2025-05-07
+2025-05-27 18:52:54,639 [INFO] Collecting data for 2025-05-08
+2025-05-27 18:52:56,110 [INFO] Daily summary saved for date 2025-05-08
+2025-05-27 18:52:57,885 [INFO] Collecting data for 2025-05-09
+2025-05-27 18:53:00,043 [INFO] Daily summary saved for date 2025-05-09
+2025-05-27 18:53:01,899 [INFO] Collecting data for 2025-05-10
+2025-05-27 18:53:03,506 [INFO] Daily summary saved for date 2025-05-10
+2025-05-27 18:53:05,317 [INFO] Collecting data for 2025-05-11
+2025-05-27 18:53:06,876 [INFO] Daily summary saved for date 2025-05-11
+2025-05-27 18:53:08,659 [INFO] Collecting data for 2025-05-12
+2025-05-27 18:53:10,106 [INFO] Daily summary saved for date 2025-05-12
+2025-05-27 18:53:11,895 [INFO] Collecting data for 2025-05-13
+2025-05-27 18:53:13,590 [INFO] Daily summary saved for date 2025-05-13
+2025-05-27 18:53:15,544 [INFO] Collecting data for 2025-05-14
+2025-05-27 18:53:16,981 [INFO] Daily summary saved for date 2025-05-14
+2025-05-27 18:53:18,831 [INFO] Collecting data for 2025-05-15
+2025-05-27 18:53:20,365 [INFO] Daily summary saved for date 2025-05-15
+2025-05-27 18:53:22,135 [INFO] Collecting data for 2025-05-16
+2025-05-27 18:53:23,582 [INFO] Daily summary saved for date 2025-05-16
+2025-05-27 18:53:25,491 [INFO] Collecting data for 2025-05-17
+2025-05-27 18:53:27,048 [INFO] Daily summary saved for date 2025-05-17
+2025-05-27 18:53:28,847 [INFO] Collecting data for 2025-05-18
+2025-05-27 18:53:30,352 [INFO] Daily summary saved for date 2025-05-18
+2025-05-27 18:53:32,153 [INFO] Collecting data for 2025-05-19
+2025-05-27 18:53:33,737 [INFO] Daily summary saved for date 2025-05-19
+2025-05-27 18:53:35,513 [INFO] Collecting data for 2025-05-20
+2025-05-27 18:53:37,343 [INFO] Daily summary saved for date 2025-05-20
+2025-05-27 18:53:39,250 [INFO] Collecting data for 2025-05-21
+2025-05-27 18:53:41,746 [INFO] Daily summary saved for date 2025-05-21
+2025-05-27 18:53:43,746 [INFO] Collecting data for 2025-05-22
+2025-05-27 18:53:45,740 [INFO] Daily summary saved for date 2025-05-22
+2025-05-27 18:53:47,530 [INFO] Collecting data for 2025-05-23
+2025-05-27 18:53:49,725 [INFO] Daily summary saved for date 2025-05-23
+2025-05-27 18:53:51,637 [INFO] Collecting data for 2025-05-24
+2025-05-27 18:53:53,173 [INFO] Daily summary saved for date 2025-05-24
+2025-05-27 18:53:54,997 [INFO] Collecting data for 2025-05-25
+2025-05-27 18:53:56,939 [INFO] Daily summary saved for date 2025-05-25
+2025-05-27 18:53:58,890 [INFO] Collecting data for 2025-05-26
+2025-05-27 18:54:00,573 [INFO] Daily summary saved for date 2025-05-26
+2025-05-27 18:54:02,337 [INFO] Collecting data for 2025-05-27
+2025-05-27 18:54:03,182 [ERROR] Error getting Fitbit data: 429 Client Error: Too Many Requests for url: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/1d.json
+2025-05-27 18:54:03,565 [ERROR] Error getting intraday data: 429 Client Error: Too Many Requests for url: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/1d/1min.json
+2025-05-27 18:54:04,568 [INFO] Historical data collection completed
+2025-05-27 18:54:04,569 [INFO] Finished Fitbit personal data collection
+2025-05-27 19:56:43,478 [INFO] Starting Fitbit personal data collection
+2025-05-27 19:56:43,710 [ERROR] TimeScaleDB no está instalado. Por favor, instala la extensión primero.
+2025-05-27 19:57:24,961 [INFO] Starting Fitbit personal data collection
+2025-05-27 19:57:25,401 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 19:57:25,606 [INFO] Collecting data for 2025-05-24
+2025-05-27 19:57:27,141 [INFO] 
+Datos recopilados para 2025-05-24:
+2025-05-27 19:57:27,141 [INFO] steps: 6772
+2025-05-27 19:57:27,141 [INFO] distance: 4.6485
+2025-05-27 19:57:27,142 [INFO] calories: 1891
+2025-05-27 19:57:27,142 [INFO] floors: 2
+2025-05-27 19:57:27,142 [INFO] elevation: 6.096
+2025-05-27 19:57:27,142 [INFO] active_minutes: 0
+2025-05-27 19:57:27,143 [INFO] sedentary_minutes: 1206
+2025-05-27 19:57:27,143 [INFO] heart_rate: 69
+2025-05-27 19:57:27,143 [INFO] sleep_minutes: 0
+2025-05-27 19:57:27,143 [INFO] nutrition_calories: 0
+2025-05-27 19:57:27,143 [INFO] water: 0
+2025-05-27 19:57:27,144 [INFO] spo2: 0
+2025-05-27 19:57:27,144 [INFO] respiratory_rate: 0
+2025-05-27 19:57:27,144 [INFO] temperature: 0
+2025-05-27 19:57:27,204 [INFO] Daily data saved for 2025-05-24
+2025-05-27 19:57:29,968 [INFO] Collecting data for 2025-05-25
+2025-05-27 19:57:31,868 [INFO] 
+Datos recopilados para 2025-05-25:
+2025-05-27 19:57:31,868 [INFO] steps: 12635
+2025-05-27 19:57:31,868 [INFO] distance: 8.5845
+2025-05-27 19:57:31,868 [INFO] calories: 2133
+2025-05-27 19:57:31,868 [INFO] floors: 13
+2025-05-27 19:57:31,868 [INFO] elevation: 39.624
+2025-05-27 19:57:31,869 [INFO] active_minutes: 37
+2025-05-27 19:57:31,869 [INFO] sedentary_minutes: 1153
+2025-05-27 19:57:31,869 [INFO] heart_rate: 68
+2025-05-27 19:57:31,869 [INFO] sleep_minutes: 0
+2025-05-27 19:57:31,869 [INFO] nutrition_calories: 0
+2025-05-27 19:57:31,869 [INFO] water: 0
+2025-05-27 19:57:31,869 [INFO] spo2: 0
+2025-05-27 19:57:31,869 [INFO] respiratory_rate: 0
+2025-05-27 19:57:31,869 [INFO] temperature: 0
+2025-05-27 19:57:31,927 [INFO] Daily data saved for 2025-05-25
+2025-05-27 19:57:34,475 [INFO] Collecting data for 2025-05-26
+2025-05-27 19:57:35,753 [INFO] 
+Datos recopilados para 2025-05-26:
+2025-05-27 19:57:35,753 [INFO] steps: 0
+2025-05-27 19:57:35,753 [INFO] distance: 0.0
+2025-05-27 19:57:35,753 [INFO] calories: 1352
+2025-05-27 19:57:35,753 [INFO] floors: 0
+2025-05-27 19:57:35,754 [INFO] elevation: 0.0
+2025-05-27 19:57:35,754 [INFO] active_minutes: 0
+2025-05-27 19:57:35,754 [INFO] sedentary_minutes: 1440
+2025-05-27 19:57:35,754 [INFO] heart_rate: 0
+2025-05-27 19:57:35,754 [INFO] sleep_minutes: 0
+2025-05-27 19:57:35,754 [INFO] nutrition_calories: 0
+2025-05-27 19:57:35,754 [INFO] water: 0
+2025-05-27 19:57:35,754 [INFO] spo2: 0
+2025-05-27 19:57:35,754 [INFO] respiratory_rate: 0
+2025-05-27 19:57:35,755 [INFO] temperature: 0
+2025-05-27 19:57:35,811 [INFO] Daily data saved for 2025-05-26
+2025-05-27 19:57:38,589 [INFO] Collecting data for 2025-05-27
+2025-05-27 19:57:40,197 [INFO] 
+Datos recopilados para 2025-05-27:
+2025-05-27 19:57:40,198 [INFO] steps: 0
+2025-05-27 19:57:40,198 [INFO] distance: 0.0
+2025-05-27 19:57:40,198 [INFO] calories: 1125
+2025-05-27 19:57:40,198 [INFO] floors: 0
+2025-05-27 19:57:40,198 [INFO] elevation: 0.0
+2025-05-27 19:57:40,198 [INFO] active_minutes: 0
+2025-05-27 19:57:40,198 [INFO] sedentary_minutes: 1197
+2025-05-27 19:57:40,198 [INFO] heart_rate: 0
+2025-05-27 19:57:40,199 [INFO] sleep_minutes: 0
+2025-05-27 19:57:40,199 [INFO] nutrition_calories: 0
+2025-05-27 19:57:40,199 [INFO] water: 0
+2025-05-27 19:57:40,199 [INFO] spo2: 0
+2025-05-27 19:57:40,199 [INFO] respiratory_rate: 0
+2025-05-27 19:57:40,199 [INFO] temperature: 0
+2025-05-27 19:57:40,256 [INFO] Daily data saved for 2025-05-27
+2025-05-27 19:57:42,708 [INFO] Historical data collection completed
+2025-05-27 19:57:42,710 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:02:31,782 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:02:32,230 [INFO] All tables dropped successfully.
+2025-05-27 20:02:32,720 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:02:32,939 [ERROR] Error collecting historical data: there is no unique or exclusion constraint matching the ON CONFLICT specification
+
+2025-05-27 20:02:32,939 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:03:17,159 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:03:17,550 [INFO] All tables dropped successfully.
+2025-05-27 20:03:17,950 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:03:18,168 [ERROR] Error collecting historical data: null value in column "name" of relation "users" violates not-null constraint
+DETAIL:  Failing row contains (1, null, Wearable2LivelyAgeign@gmail.com, eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FLMlkiLCJzdWIiOiJDRzZaTDYiLCJ..., b4c44b74f63b0b930f2b77da0b7a63b13e6b2460730c139efa3d76238948b762, 2025-05-27 18:03:18.132464+00).
+
+2025-05-27 20:03:18,169 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:04:22,785 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:04:23,173 [INFO] All tables dropped successfully.
+2025-05-27 20:04:23,533 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:04:23,736 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:04:25,226 [INFO] 
+Datos recopilados para 2025-05-24:
+2025-05-27 20:04:25,227 [INFO] steps: 6772
+2025-05-27 20:04:25,227 [INFO] distance: 4.6485
+2025-05-27 20:04:25,227 [INFO] calories: 1891
+2025-05-27 20:04:25,227 [INFO] floors: 2
+2025-05-27 20:04:25,227 [INFO] elevation: 6.096
+2025-05-27 20:04:25,227 [INFO] active_minutes: 0
+2025-05-27 20:04:25,228 [INFO] sedentary_minutes: 1206
+2025-05-27 20:04:25,228 [INFO] heart_rate: 69
+2025-05-27 20:04:25,228 [INFO] sleep_minutes: 0
+2025-05-27 20:04:25,228 [INFO] nutrition_calories: 0
+2025-05-27 20:04:25,228 [INFO] water: 0
+2025-05-27 20:04:25,228 [INFO] spo2: 0
+2025-05-27 20:04:25,228 [INFO] respiratory_rate: 0
+2025-05-27 20:04:25,228 [INFO] temperature: 0
+2025-05-27 20:04:25,294 [INFO] Daily data saved for 2025-05-24
+2025-05-27 20:04:28,038 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:04:30,453 [INFO] 
+Datos recopilados para 2025-05-25:
+2025-05-27 20:04:30,453 [INFO] steps: 12635
+2025-05-27 20:04:30,453 [INFO] distance: 8.5845
+2025-05-27 20:04:30,454 [INFO] calories: 2133
+2025-05-27 20:04:30,454 [INFO] floors: 13
+2025-05-27 20:04:30,454 [INFO] elevation: 39.624
+2025-05-27 20:04:30,454 [INFO] active_minutes: 37
+2025-05-27 20:04:30,454 [INFO] sedentary_minutes: 1153
+2025-05-27 20:04:30,454 [INFO] heart_rate: 68
+2025-05-27 20:04:30,454 [INFO] sleep_minutes: 0
+2025-05-27 20:04:30,454 [INFO] nutrition_calories: 0
+2025-05-27 20:04:30,454 [INFO] water: 0
+2025-05-27 20:04:30,455 [INFO] spo2: 0
+2025-05-27 20:04:30,455 [INFO] respiratory_rate: 0
+2025-05-27 20:04:30,455 [INFO] temperature: 0
+2025-05-27 20:04:30,513 [INFO] Daily data saved for 2025-05-25
+2025-05-27 20:04:33,012 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:04:34,198 [INFO] 
+Datos recopilados para 2025-05-26:
+2025-05-27 20:04:34,198 [INFO] steps: 0
+2025-05-27 20:04:34,199 [INFO] distance: 0.0
+2025-05-27 20:04:34,199 [INFO] calories: 1352
+2025-05-27 20:04:34,199 [INFO] floors: 0
+2025-05-27 20:04:34,199 [INFO] elevation: 0.0
+2025-05-27 20:04:34,199 [INFO] active_minutes: 0
+2025-05-27 20:04:34,199 [INFO] sedentary_minutes: 1440
+2025-05-27 20:04:34,199 [INFO] heart_rate: 0
+2025-05-27 20:04:34,199 [INFO] sleep_minutes: 0
+2025-05-27 20:04:34,200 [INFO] nutrition_calories: 0
+2025-05-27 20:04:34,200 [INFO] water: 0
+2025-05-27 20:04:34,200 [INFO] spo2: 0
+2025-05-27 20:04:34,200 [INFO] respiratory_rate: 0
+2025-05-27 20:04:34,200 [INFO] temperature: 0
+2025-05-27 20:04:34,257 [INFO] Daily data saved for 2025-05-26
+2025-05-27 20:04:36,762 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:04:37,986 [INFO] 
+Datos recopilados para 2025-05-27:
+2025-05-27 20:04:37,987 [INFO] steps: 0
+2025-05-27 20:04:37,987 [INFO] distance: 0.0
+2025-05-27 20:04:37,987 [INFO] calories: 1131
+2025-05-27 20:04:37,987 [INFO] floors: 0
+2025-05-27 20:04:37,987 [INFO] elevation: 0.0
+2025-05-27 20:04:37,987 [INFO] active_minutes: 0
+2025-05-27 20:04:37,987 [INFO] sedentary_minutes: 1204
+2025-05-27 20:04:37,987 [INFO] heart_rate: 0
+2025-05-27 20:04:37,988 [INFO] sleep_minutes: 0
+2025-05-27 20:04:37,988 [INFO] nutrition_calories: 0
+2025-05-27 20:04:37,988 [INFO] water: 0
+2025-05-27 20:04:37,988 [INFO] spo2: 0
+2025-05-27 20:04:37,988 [INFO] respiratory_rate: 0
+2025-05-27 20:04:37,988 [INFO] temperature: 0
+2025-05-27 20:04:38,045 [INFO] Daily data saved for 2025-05-27
+2025-05-27 20:04:41,069 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:04:41,070 [INFO] (1, 1, datetime.date(2025, 5, 24), 6772, 69, 0, 1891, 4.6485, 2, 6.096, 0, 1206, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+2025-05-27 20:04:41,070 [INFO] (2, 1, datetime.date(2025, 5, 25), 12635, 68, 0, 2133, 8.5845, 13, 39.624, 37, 1153, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+2025-05-27 20:04:41,070 [INFO] (3, 1, datetime.date(2025, 5, 26), 0, 0, 0, 1352, 0.0, 0, 0.0, 0, 1440, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+2025-05-27 20:04:41,070 [INFO] (4, 1, datetime.date(2025, 5, 27), 0, 0, 0, 1131, 0.0, 0, 0.0, 0, 1204, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+2025-05-27 20:04:41,335 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:04:41,335 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:04:41,336 [INFO] Historical data collection completed
+2025-05-27 20:04:41,336 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:10:17,544 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:10:17,987 [INFO] All tables dropped successfully.
+2025-05-27 20:10:18,354 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:10:18,637 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:10:20,271 [INFO] Total intraday data points saved for 2025-05-24: 0
+2025-05-27 20:10:20,272 [WARNING] No intraday data points were saved for 2025-05-24
+2025-05-27 20:10:20,272 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:10:21,273 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:10:22,930 [INFO] Total intraday data points saved for 2025-05-25: 0
+2025-05-27 20:10:22,930 [WARNING] No intraday data points were saved for 2025-05-25
+2025-05-27 20:10:22,930 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:10:23,931 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:10:25,452 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 20:10:25,453 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 20:10:25,453 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:10:26,453 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:10:28,607 [INFO] Total intraday data points saved for 2025-05-27: 0
+2025-05-27 20:10:28,608 [WARNING] No intraday data points were saved for 2025-05-27
+2025-05-27 20:10:28,608 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:10:29,797 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:10:30,063 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:10:30,063 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:10:30,064 [INFO] Historical data collection completed
+2025-05-27 20:10:30,064 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:11:19,570 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:11:19,872 [INFO] All tables dropped successfully.
+2025-05-27 20:11:20,357 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:11:20,631 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:11:22,652 [INFO] Total intraday data points saved for 2025-05-24: 0
+2025-05-27 20:11:22,653 [WARNING] No intraday data points were saved for 2025-05-24
+2025-05-27 20:11:22,654 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:11:23,654 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:11:25,578 [INFO] Total intraday data points saved for 2025-05-25: 0
+2025-05-27 20:11:25,579 [WARNING] No intraday data points were saved for 2025-05-25
+2025-05-27 20:11:25,579 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:11:26,580 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:11:28,092 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 20:11:28,093 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 20:11:28,093 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:11:29,094 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:11:30,898 [INFO] Total intraday data points saved for 2025-05-27: 0
+2025-05-27 20:11:30,900 [WARNING] No intraday data points were saved for 2025-05-27
+2025-05-27 20:11:30,900 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:11:32,146 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:11:32,393 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:11:32,394 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:11:32,395 [INFO] Historical data collection completed
+2025-05-27 20:11:32,396 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:12:10,971 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:12:11,371 [INFO] All tables dropped successfully.
+2025-05-27 20:12:11,769 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:12:12,045 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:16:53,382 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:16:53,837 [INFO] All tables dropped successfully.
+2025-05-27 20:16:54,243 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:16:54,468 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:16:54,941 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:16:54,942 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/1d/1min.json
+2025-05-27 20:16:54,942 [INFO] Status Code: 200
+2025-05-27 20:16:54,942 [INFO] Headers: {'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Content-Language': 'en', 'Content-Type': 'application/json; charset=UTF-8', 'X-Frame-Options': 'SAMEORIGIN', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Fitbit-rate-limit-reset': '2118', 'Fitbit-rate-limit-remaining': '60', 'Date': 'Tue, 27 May 2025 18:16:54 GMT', 'Cache-control': 'no-cache, private', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=305', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:16:54,943 [INFO] Response Body:
+2025-05-27 20:16:54,945 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1757.05808,
+            "max": 111,
+            "min": 30,
+            "minutes": 1398,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 73.2264,
+            "max": 132,
+            "min": 111,
+            "minutes": 22,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 56.140240000000006,
+            "max": 159,
+            "min": 132,
+            "minutes": 19,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 4.694,
+            "max": 220,
+            "min": 159,
+            "minutes": 1,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 69
+      },
+      "dateTime": "2025-05-24"
+    }
+  ]
+}
+2025-05-27 20:16:54,946 [INFO] =====================================
+2025-05-27 20:19:14,957 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:19:15,291 [INFO] All tables dropped successfully.
+2025-05-27 20:19:15,769 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:19:16,013 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:19:16,357 [INFO] Token introspection status: 200
+2025-05-27 20:19:16,357 [INFO] Available scopes: {HEARTRATE=READ, SOCIAL=READ, SLEEP=READ, RESPIRATORY_RATE=READ, ACTIVITY=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, SETTINGS=READ, LOCATION=READ, NUTRITION=READ, OXYGEN_SATURATION=READ, TEMPERATURE=READ, ELECTROCARDIOGRAM=READ, CARDIO_FITNESS=READ, PROFILE=READ, WEIGHT=READ}
+2025-05-27 20:19:16,358 [WARNING] Token does not have heartrate scope. Intraday heart rate data will not be available.
+2025-05-27 20:19:16,764 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:19:16,764 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/1d/1min.json
+2025-05-27 20:19:16,764 [INFO] Status Code: 200
+2025-05-27 20:19:16,765 [INFO] Headers: {'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Date': 'Tue, 27 May 2025 18:19:16 GMT', 'X-Frame-Options': 'SAMEORIGIN', 'Cache-control': 'no-cache, private', 'Content-Type': 'application/json; charset=UTF-8', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '58', 'Fitbit-rate-limit-reset': '1976', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=307', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:19:16,765 [INFO] Response Body:
+2025-05-27 20:19:16,765 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1757.05808,
+            "max": 111,
+            "min": 30,
+            "minutes": 1398,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 73.2264,
+            "max": 132,
+            "min": 111,
+            "minutes": 22,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 56.140240000000006,
+            "max": 159,
+            "min": 132,
+            "minutes": 19,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 4.694,
+            "max": 220,
+            "min": 159,
+            "minutes": 1,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 69
+      },
+      "dateTime": "2025-05-24"
+    }
+  ]
+}
+2025-05-27 20:19:16,766 [INFO] =====================================
+2025-05-27 20:19:16,766 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:19:16,766 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:19:16,766 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-24/1d/1min.json
+2025-05-27 20:19:17,104 [INFO] Status Code: 200
+2025-05-27 20:19:17,105 [INFO] Response Body:
+2025-05-27 20:19:17,105 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-24",
+      "value": "6772"
+    }
+  ]
+}
+2025-05-27 20:19:17,105 [WARNING] No intraday steps data available in response
+2025-05-27 20:19:17,112 [INFO] Total intraday data points saved for 2025-05-24: 0
+2025-05-27 20:19:17,112 [WARNING] No intraday data points were saved for 2025-05-24
+2025-05-27 20:19:17,112 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:19:18,113 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:19:18,390 [INFO] Token introspection status: 200
+2025-05-27 20:19:18,390 [INFO] Available scopes: {PROFILE=READ, TEMPERATURE=READ, NUTRITION=READ, ELECTROCARDIOGRAM=READ, LOCATION=READ, OXYGEN_SATURATION=READ, CARDIO_FITNESS=READ, WEIGHT=READ, SLEEP=READ, SETTINGS=READ, ACTIVITY=READ, RESPIRATORY_RATE=READ, SOCIAL=READ, HEARTRATE=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ}
+2025-05-27 20:19:18,390 [WARNING] Token does not have heartrate scope. Intraday heart rate data will not be available.
+2025-05-27 20:19:18,744 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:19:18,745 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-25/1d/1min.json
+2025-05-27 20:19:18,745 [INFO] Status Code: 200
+2025-05-27 20:19:18,745 [INFO] Headers: {'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'X-Frame-Options': 'SAMEORIGIN', 'Cache-control': 'no-cache, private', 'Fitbit-rate-limit-reset': '1974', 'Date': 'Tue, 27 May 2025 18:19:18 GMT', 'server': 'fws', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '55', 'Content-Type': 'application/json; charset=UTF-8', 'Fitbit-rate-limit-limit': '150', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=256', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:19:18,745 [INFO] Response Body:
+2025-05-27 20:19:18,746 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 2088.26672,
+            "max": 110,
+            "min": 30,
+            "minutes": 1429,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 42.15212,
+            "max": 132,
+            "min": 110,
+            "minutes": 10,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 2.62864,
+            "max": 158,
+            "min": 132,
+            "minutes": 1,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 68
+      },
+      "dateTime": "2025-05-25"
+    }
+  ]
+}
+2025-05-27 20:19:18,746 [INFO] =====================================
+2025-05-27 20:19:18,746 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:19:18,746 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:19:18,746 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-25/1d/1min.json
+2025-05-27 20:19:19,088 [INFO] Status Code: 200
+2025-05-27 20:19:19,088 [INFO] Response Body:
+2025-05-27 20:19:19,088 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-25",
+      "value": "12635"
+    }
+  ]
+}
+2025-05-27 20:19:19,088 [WARNING] No intraday steps data available in response
+2025-05-27 20:19:19,095 [INFO] Total intraday data points saved for 2025-05-25: 0
+2025-05-27 20:19:19,096 [WARNING] No intraday data points were saved for 2025-05-25
+2025-05-27 20:19:19,096 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:19:20,096 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:19:20,376 [INFO] Token introspection status: 200
+2025-05-27 20:19:20,376 [INFO] Available scopes: {ELECTROCARDIOGRAM=READ, LOCATION=READ, PROFILE=READ, WEIGHT=READ, HEARTRATE=READ, CARDIO_FITNESS=READ, NUTRITION=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, SETTINGS=READ, ACTIVITY=READ, OXYGEN_SATURATION=READ, RESPIRATORY_RATE=READ, SOCIAL=READ, SLEEP=READ, TEMPERATURE=READ}
+2025-05-27 20:19:20,376 [WARNING] Token does not have heartrate scope. Intraday heart rate data will not be available.
+2025-05-27 20:19:20,735 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:19:20,736 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/1d/1min.json
+2025-05-27 20:19:20,736 [INFO] Status Code: 200
+2025-05-27 20:19:20,736 [INFO] Headers: {'server': 'fws', 'X-Frame-Options': 'SAMEORIGIN', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Cache-control': 'no-cache, private', 'Fitbit-rate-limit-remaining': '52', 'Content-Type': 'application/json; charset=UTF-8', 'Content-Language': 'en', 'Fitbit-rate-limit-limit': '150', 'Fitbit-rate-limit-reset': '1972', 'Date': 'Tue, 27 May 2025 18:19:19 GMT', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=261', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:19:20,736 [INFO] Response Body:
+2025-05-27 20:19:20,737 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1351.8719999999998,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 20:19:20,737 [INFO] =====================================
+2025-05-27 20:19:20,737 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:19:20,737 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:19:20,737 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-26/1d/1min.json
+2025-05-27 20:19:21,083 [INFO] Status Code: 200
+2025-05-27 20:19:21,083 [INFO] Response Body:
+2025-05-27 20:19:21,084 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-26",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:19:21,084 [WARNING] No intraday steps data available in response
+2025-05-27 20:19:21,092 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 20:19:21,093 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 20:19:21,093 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:19:22,093 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:19:22,387 [INFO] Token introspection status: 200
+2025-05-27 20:19:22,388 [INFO] Available scopes: {ACTIVITY=READ, RESPIRATORY_RATE=READ, SLEEP=READ, TEMPERATURE=READ, ELECTROCARDIOGRAM=READ, OXYGEN_SATURATION=READ, NUTRITION=READ, PROFILE=READ, HEARTRATE=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, CARDIO_FITNESS=READ, SOCIAL=READ, LOCATION=READ, SETTINGS=READ, WEIGHT=READ}
+2025-05-27 20:19:22,388 [WARNING] Token does not have heartrate scope. Intraday heart rate data will not be available.
+2025-05-27 20:19:22,741 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:19:22,742 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/1d/1min.json
+2025-05-27 20:19:22,742 [INFO] Status Code: 200
+2025-05-27 20:19:22,742 [INFO] Headers: {'server': 'fws', 'Content-Type': 'application/json; charset=UTF-8', 'Fitbit-rate-limit-limit': '150', 'Fitbit-rate-limit-remaining': '49', 'Fitbit-rate-limit-reset': '1970', 'X-Frame-Options': 'SAMEORIGIN', 'Content-Language': 'en', 'Date': 'Tue, 27 May 2025 18:19:21 GMT', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Cache-control': 'no-cache, private', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=253', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:19:22,742 [INFO] Response Body:
+2025-05-27 20:19:22,743 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1144.3971999999999,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-27"
+    }
+  ]
+}
+2025-05-27 20:19:22,743 [INFO] =====================================
+2025-05-27 20:19:22,743 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:19:22,743 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:19:22,743 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-27/1d/1min.json
+2025-05-27 20:19:23,101 [INFO] Status Code: 200
+2025-05-27 20:19:23,101 [INFO] Response Body:
+2025-05-27 20:19:23,102 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-27",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:19:23,102 [WARNING] No intraday steps data available in response
+2025-05-27 20:19:23,109 [INFO] Total intraday data points saved for 2025-05-27: 0
+2025-05-27 20:19:23,109 [WARNING] No intraday data points were saved for 2025-05-27
+2025-05-27 20:19:23,110 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:19:24,316 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:19:24,585 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:19:24,585 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:19:24,585 [INFO] Historical data collection completed
+2025-05-27 20:19:24,586 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:20:22,407 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:20:22,827 [INFO] All tables dropped successfully.
+2025-05-27 20:20:23,299 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:20:23,521 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:20:23,873 [INFO] Token introspection status: 200
+2025-05-27 20:20:23,874 [INFO] Available scopes: {IRREGULAR_RHYTHM_NOTIFICATIONS=READ, CARDIO_FITNESS=READ, WEIGHT=READ, SLEEP=READ, SOCIAL=READ, RESPIRATORY_RATE=READ, OXYGEN_SATURATION=READ, TEMPERATURE=READ, NUTRITION=READ, ELECTROCARDIOGRAM=READ, ACTIVITY=READ, HEARTRATE=READ, PROFILE=READ, SETTINGS=READ, LOCATION=READ}
+2025-05-27 20:20:24,229 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:20:24,229 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/1d/15min.json
+2025-05-27 20:20:24,229 [INFO] Status Code: 200
+2025-05-27 20:20:24,229 [INFO] Headers: {'Fitbit-rate-limit-limit': '150', 'Date': 'Tue, 27 May 2025 18:20:23 GMT', 'Fitbit-rate-limit-remaining': '46', 'server': 'fws', 'Content-Language': 'en', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Type': 'application/json; charset=UTF-8', 'X-Frame-Options': 'SAMEORIGIN', 'Fitbit-rate-limit-reset': '1908', 'Cache-control': 'no-cache, private', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=252', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:20:24,230 [INFO] Response Body:
+2025-05-27 20:20:24,230 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1757.05808,
+            "max": 111,
+            "min": 30,
+            "minutes": 1398,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 73.2264,
+            "max": 132,
+            "min": 111,
+            "minutes": 22,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 56.140240000000006,
+            "max": 159,
+            "min": 132,
+            "minutes": 19,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 4.694,
+            "max": 220,
+            "min": 159,
+            "minutes": 1,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 69
+      },
+      "dateTime": "2025-05-24"
+    }
+  ]
+}
+2025-05-27 20:20:24,230 [INFO] =====================================
+2025-05-27 20:20:24,231 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:20:24,231 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:20:24,231 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-24/1d/15min.json
+2025-05-27 20:20:24,634 [INFO] Status Code: 200
+2025-05-27 20:20:24,634 [INFO] Response Body:
+2025-05-27 20:20:24,635 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-24",
+      "value": "6772"
+    }
+  ]
+}
+2025-05-27 20:20:24,635 [WARNING] No intraday steps data available in response
+2025-05-27 20:20:24,641 [INFO] Total intraday data points saved for 2025-05-24: 0
+2025-05-27 20:20:24,642 [WARNING] No intraday data points were saved for 2025-05-24
+2025-05-27 20:20:24,642 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:20:25,642 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:20:25,930 [INFO] Token introspection status: 200
+2025-05-27 20:20:25,930 [INFO] Available scopes: {PROFILE=READ, SLEEP=READ, OXYGEN_SATURATION=READ, RESPIRATORY_RATE=READ, LOCATION=READ, ELECTROCARDIOGRAM=READ, SETTINGS=READ, HEARTRATE=READ, SOCIAL=READ, CARDIO_FITNESS=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, TEMPERATURE=READ, NUTRITION=READ, ACTIVITY=READ, WEIGHT=READ}
+2025-05-27 20:20:26,308 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:20:26,308 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-25/1d/15min.json
+2025-05-27 20:20:26,308 [INFO] Status Code: 200
+2025-05-27 20:20:26,308 [INFO] Headers: {'Content-Type': 'application/json; charset=UTF-8', 'Cache-control': 'no-cache, private', 'X-Frame-Options': 'SAMEORIGIN', 'Date': 'Tue, 27 May 2025 18:20:25 GMT', 'Fitbit-rate-limit-reset': '1906', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '43', 'server': 'fws', 'Fitbit-rate-limit-limit': '150', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=280', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:20:26,309 [INFO] Response Body:
+2025-05-27 20:20:26,309 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 2088.26672,
+            "max": 110,
+            "min": 30,
+            "minutes": 1429,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 42.15212,
+            "max": 132,
+            "min": 110,
+            "minutes": 10,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 2.62864,
+            "max": 158,
+            "min": 132,
+            "minutes": 1,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 68
+      },
+      "dateTime": "2025-05-25"
+    }
+  ]
+}
+2025-05-27 20:20:26,309 [INFO] =====================================
+2025-05-27 20:20:26,309 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:20:26,310 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:20:26,310 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-25/1d/15min.json
+2025-05-27 20:20:26,718 [INFO] Status Code: 200
+2025-05-27 20:20:26,718 [INFO] Response Body:
+2025-05-27 20:20:26,718 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-25",
+      "value": "12635"
+    }
+  ]
+}
+2025-05-27 20:20:26,718 [WARNING] No intraday steps data available in response
+2025-05-27 20:20:26,725 [INFO] Total intraday data points saved for 2025-05-25: 0
+2025-05-27 20:20:26,726 [WARNING] No intraday data points were saved for 2025-05-25
+2025-05-27 20:20:26,726 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:20:27,726 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:20:28,011 [INFO] Token introspection status: 200
+2025-05-27 20:20:28,011 [INFO] Available scopes: {SETTINGS=READ, ACTIVITY=READ, HEARTRATE=READ, NUTRITION=READ, RESPIRATORY_RATE=READ, ELECTROCARDIOGRAM=READ, LOCATION=READ, SOCIAL=READ, PROFILE=READ, OXYGEN_SATURATION=READ, SLEEP=READ, CARDIO_FITNESS=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, WEIGHT=READ, TEMPERATURE=READ}
+2025-05-27 20:20:28,361 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:20:28,362 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/1d/15min.json
+2025-05-27 20:20:28,362 [INFO] Status Code: 200
+2025-05-27 20:20:28,362 [INFO] Headers: {'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '40', 'Fitbit-rate-limit-reset': '1904', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'X-Frame-Options': 'SAMEORIGIN', 'Date': 'Tue, 27 May 2025 18:20:28 GMT', 'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Cache-control': 'no-cache, private', 'Content-Type': 'application/json; charset=UTF-8', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=257', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:20:28,362 [INFO] Response Body:
+2025-05-27 20:20:28,363 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1351.8719999999998,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 20:20:28,363 [INFO] =====================================
+2025-05-27 20:20:28,363 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:20:28,363 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:20:28,363 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-26/1d/15min.json
+2025-05-27 20:20:28,826 [INFO] Status Code: 200
+2025-05-27 20:20:28,826 [INFO] Response Body:
+2025-05-27 20:20:28,827 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-26",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:20:28,827 [WARNING] No intraday steps data available in response
+2025-05-27 20:20:28,834 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 20:20:28,835 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 20:20:28,835 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:20:29,835 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:20:30,126 [INFO] Token introspection status: 200
+2025-05-27 20:20:30,126 [INFO] Available scopes: {WEIGHT=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, LOCATION=READ, OXYGEN_SATURATION=READ, TEMPERATURE=READ, ACTIVITY=READ, CARDIO_FITNESS=READ, ELECTROCARDIOGRAM=READ, RESPIRATORY_RATE=READ, HEARTRATE=READ, SETTINGS=READ, SLEEP=READ, PROFILE=READ, SOCIAL=READ, NUTRITION=READ}
+2025-05-27 20:20:30,565 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:20:30,565 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/1d/15min.json
+2025-05-27 20:20:30,566 [INFO] Status Code: 200
+2025-05-27 20:20:30,566 [INFO] Headers: {'Content-Language': 'en', 'Fitbit-rate-limit-reset': '1902', 'Fitbit-rate-limit-remaining': '37', 'Cache-control': 'no-cache, private', 'X-Frame-Options': 'SAMEORIGIN', 'server': 'fws', 'Fitbit-rate-limit-limit': '150', 'Date': 'Tue, 27 May 2025 18:20:29 GMT', 'Content-Type': 'application/json; charset=UTF-8', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=331', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:20:30,566 [INFO] Response Body:
+2025-05-27 20:20:30,566 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1145.336,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-27"
+    }
+  ]
+}
+2025-05-27 20:20:30,567 [INFO] =====================================
+2025-05-27 20:20:30,567 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:20:30,567 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:20:30,567 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-27/1d/15min.json
+2025-05-27 20:20:30,920 [INFO] Status Code: 200
+2025-05-27 20:20:30,921 [INFO] Response Body:
+2025-05-27 20:20:30,921 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-27",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:20:30,921 [WARNING] No intraday steps data available in response
+2025-05-27 20:20:30,928 [INFO] Total intraday data points saved for 2025-05-27: 0
+2025-05-27 20:20:30,929 [WARNING] No intraday data points were saved for 2025-05-27
+2025-05-27 20:20:30,929 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:20:32,135 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:20:32,341 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:20:32,341 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:20:32,342 [INFO] Historical data collection completed
+2025-05-27 20:20:32,342 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:24:06,880 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:24:07,347 [INFO] All tables dropped successfully.
+2025-05-27 20:24:07,716 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:24:08,010 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:24:08,383 [INFO] Token introspection status: 200
+2025-05-27 20:24:08,384 [INFO] Available scopes: {HEARTRATE=READ, PROFILE=READ, CARDIO_FITNESS=READ, TEMPERATURE=READ, OXYGEN_SATURATION=READ, WEIGHT=READ, RESPIRATORY_RATE=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, ELECTROCARDIOGRAM=READ, ACTIVITY=READ, SETTINGS=READ, LOCATION=READ, NUTRITION=READ, SOCIAL=READ, SLEEP=READ}
+2025-05-27 20:24:08,384 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/2025-05-24/1min.json
+2025-05-27 20:24:08,831 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:24:08,832 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/2025-05-24/1min.json
+2025-05-27 20:24:08,832 [INFO] Status Code: 200
+2025-05-27 20:24:08,832 [INFO] Headers: {'Date': 'Tue, 27 May 2025 18:24:08 GMT', 'Fitbit-rate-limit-remaining': '34', 'Fitbit-rate-limit-reset': '1684', 'Content-Type': 'application/json; charset=UTF-8', 'Cache-control': 'no-cache, private', 'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'X-Frame-Options': 'SAMEORIGIN', 'Content-Language': 'en', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=339', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:24:08,832 [INFO] Response Body:
+2025-05-27 20:24:08,833 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1757.05808,
+            "max": 111,
+            "min": 30,
+            "minutes": 1398,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 73.2264,
+            "max": 132,
+            "min": 111,
+            "minutes": 22,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 56.140240000000006,
+            "max": 159,
+            "min": 132,
+            "minutes": 19,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 4.694,
+            "max": 220,
+            "min": 159,
+            "minutes": 1,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 69
+      },
+      "dateTime": "2025-05-24"
+    }
+  ]
+}
+2025-05-27 20:24:08,833 [INFO] =====================================
+2025-05-27 20:24:08,833 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:24:08,833 [INFO] Summary data for 2025-05-24:
+2025-05-27 20:24:08,833 [INFO] - Resting heart rate: 69
+2025-05-27 20:24:08,834 [INFO] - Heart rate zones: [{'caloriesOut': 1757.05808, 'max': 111, 'min': 30, 'minutes': 1398, 'name': 'Out of Range'}, {'caloriesOut': 73.2264, 'max': 132, 'min': 111, 'minutes': 22, 'name': 'Fat Burn'}, {'caloriesOut': 56.140240000000006, 'max': 159, 'min': 132, 'minutes': 19, 'name': 'Cardio'}, {'caloriesOut': 4.694, 'max': 220, 'min': 159, 'minutes': 1, 'name': 'Peak'}]
+2025-05-27 20:24:08,834 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:24:08,834 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-24/1d/1min.json
+2025-05-27 20:24:09,294 [INFO] Status Code: 200
+2025-05-27 20:24:09,294 [INFO] Response Body:
+2025-05-27 20:24:09,295 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-24",
+      "value": "6772"
+    }
+  ]
+}
+2025-05-27 20:24:09,295 [WARNING] No intraday steps data available in response
+2025-05-27 20:24:09,302 [INFO] Total intraday data points saved for 2025-05-24: 0
+2025-05-27 20:24:09,302 [WARNING] No intraday data points were saved for 2025-05-24
+2025-05-27 20:24:09,302 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:24:10,303 [INFO] Collecting data for 2025-05-25
+2025-05-27 20:24:10,585 [INFO] Token introspection status: 200
+2025-05-27 20:24:10,585 [INFO] Available scopes: {IRREGULAR_RHYTHM_NOTIFICATIONS=READ, PROFILE=READ, TEMPERATURE=READ, HEARTRATE=READ, SLEEP=READ, CARDIO_FITNESS=READ, ACTIVITY=READ, WEIGHT=READ, RESPIRATORY_RATE=READ, SETTINGS=READ, OXYGEN_SATURATION=READ, LOCATION=READ, NUTRITION=READ, ELECTROCARDIOGRAM=READ, SOCIAL=READ}
+2025-05-27 20:24:10,585 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-25/2025-05-25/1min.json
+2025-05-27 20:24:10,972 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:24:10,972 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-25/2025-05-25/1min.json
+2025-05-27 20:24:10,972 [INFO] Status Code: 200
+2025-05-27 20:24:10,972 [INFO] Headers: {'Content-Type': 'application/json; charset=UTF-8', 'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Fitbit-rate-limit-reset': '1682', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '31', 'Cache-control': 'no-cache, private', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'X-Frame-Options': 'SAMEORIGIN', 'Date': 'Tue, 27 May 2025 18:24:10 GMT', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=270', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:24:10,972 [INFO] Response Body:
+2025-05-27 20:24:10,973 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 2088.26672,
+            "max": 110,
+            "min": 30,
+            "minutes": 1429,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 42.15212,
+            "max": 132,
+            "min": 110,
+            "minutes": 10,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 2.62864,
+            "max": 158,
+            "min": 132,
+            "minutes": 1,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 68
+      },
+      "dateTime": "2025-05-25"
+    }
+  ]
+}
+2025-05-27 20:24:10,973 [INFO] =====================================
+2025-05-27 20:24:10,973 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:24:10,973 [INFO] Summary data for 2025-05-25:
+2025-05-27 20:24:10,974 [INFO] - Resting heart rate: 68
+2025-05-27 20:24:10,974 [INFO] - Heart rate zones: [{'caloriesOut': 2088.26672, 'max': 110, 'min': 30, 'minutes': 1429, 'name': 'Out of Range'}, {'caloriesOut': 42.15212, 'max': 132, 'min': 110, 'minutes': 10, 'name': 'Fat Burn'}, {'caloriesOut': 2.62864, 'max': 158, 'min': 132, 'minutes': 1, 'name': 'Cardio'}, {'caloriesOut': 0, 'max': 220, 'min': 158, 'minutes': 0, 'name': 'Peak'}]
+2025-05-27 20:24:10,974 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:24:10,974 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-25/1d/1min.json
+2025-05-27 20:24:11,536 [INFO] Status Code: 200
+2025-05-27 20:24:11,536 [INFO] Response Body:
+2025-05-27 20:24:11,536 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-25",
+      "value": "12635"
+    }
+  ]
+}
+2025-05-27 20:24:11,537 [WARNING] No intraday steps data available in response
+2025-05-27 20:24:11,543 [INFO] Total intraday data points saved for 2025-05-25: 0
+2025-05-27 20:24:11,544 [WARNING] No intraday data points were saved for 2025-05-25
+2025-05-27 20:24:11,544 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:24:12,545 [INFO] Collecting data for 2025-05-26
+2025-05-27 20:24:12,825 [INFO] Token introspection status: 200
+2025-05-27 20:24:12,826 [INFO] Available scopes: {SLEEP=READ, WEIGHT=READ, SETTINGS=READ, NUTRITION=READ, PROFILE=READ, SOCIAL=READ, LOCATION=READ, TEMPERATURE=READ, ELECTROCARDIOGRAM=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, ACTIVITY=READ, RESPIRATORY_RATE=READ, CARDIO_FITNESS=READ, OXYGEN_SATURATION=READ, HEARTRATE=READ}
+2025-05-27 20:24:12,826 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 20:24:13,176 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:24:13,177 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 20:24:13,177 [INFO] Status Code: 200
+2025-05-27 20:24:13,177 [INFO] Headers: {'Content-Language': 'en', 'Date': 'Tue, 27 May 2025 18:24:12 GMT', 'server': 'fws', 'Fitbit-rate-limit-remaining': '28', 'Fitbit-rate-limit-reset': '1679', 'Content-Type': 'application/json; charset=UTF-8', 'X-Frame-Options': 'SAMEORIGIN', 'Fitbit-rate-limit-limit': '150', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Cache-control': 'no-cache, private', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=240', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:24:13,177 [INFO] Response Body:
+2025-05-27 20:24:13,177 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1351.8719999999998,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 20:24:13,178 [INFO] =====================================
+2025-05-27 20:24:13,178 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:24:13,178 [INFO] Summary data for 2025-05-26:
+2025-05-27 20:24:13,178 [INFO] - Resting heart rate: N/A
+2025-05-27 20:24:13,178 [INFO] - Heart rate zones: [{'caloriesOut': 1351.8719999999998, 'max': 110, 'min': 30, 'minutes': 1440, 'name': 'Out of Range'}, {'caloriesOut': 0, 'max': 132, 'min': 110, 'minutes': 0, 'name': 'Fat Burn'}, {'caloriesOut': 0, 'max': 158, 'min': 132, 'minutes': 0, 'name': 'Cardio'}, {'caloriesOut': 0, 'max': 220, 'min': 158, 'minutes': 0, 'name': 'Peak'}]
+2025-05-27 20:24:13,178 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:24:13,179 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-26/1d/1min.json
+2025-05-27 20:24:13,558 [INFO] Status Code: 200
+2025-05-27 20:24:13,559 [INFO] Response Body:
+2025-05-27 20:24:13,559 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-26",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:24:13,559 [WARNING] No intraday steps data available in response
+2025-05-27 20:24:13,566 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 20:24:13,567 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 20:24:13,567 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:24:14,567 [INFO] Collecting data for 2025-05-27
+2025-05-27 20:24:14,870 [INFO] Token introspection status: 200
+2025-05-27 20:24:14,870 [INFO] Available scopes: {CARDIO_FITNESS=READ, ACTIVITY=READ, OXYGEN_SATURATION=READ, SLEEP=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, LOCATION=READ, RESPIRATORY_RATE=READ, HEARTRATE=READ, TEMPERATURE=READ, ELECTROCARDIOGRAM=READ, WEIGHT=READ, NUTRITION=READ, SETTINGS=READ, SOCIAL=READ, PROFILE=READ}
+2025-05-27 20:24:14,871 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/2025-05-27/1min.json
+2025-05-27 20:24:15,247 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:24:15,247 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-27/2025-05-27/1min.json
+2025-05-27 20:24:15,247 [INFO] Status Code: 200
+2025-05-27 20:24:15,247 [INFO] Headers: {'Fitbit-rate-limit-remaining': '25', 'server': 'fws', 'Fitbit-rate-limit-limit': '150', 'Content-Type': 'application/json; charset=UTF-8', 'Cache-control': 'no-cache, private', 'X-Frame-Options': 'SAMEORIGIN', 'Date': 'Tue, 27 May 2025 18:24:14 GMT', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Language': 'en', 'Fitbit-rate-limit-reset': '1677', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=253', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:24:15,248 [INFO] Response Body:
+2025-05-27 20:24:15,248 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1149.0912,
+            "max": 110,
+            "min": 30,
+            "minutes": 1440,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 132,
+            "min": 110,
+            "minutes": 0,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 132,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ]
+      },
+      "dateTime": "2025-05-27"
+    }
+  ]
+}
+2025-05-27 20:24:15,249 [INFO] =====================================
+2025-05-27 20:24:15,249 [WARNING] No intraday heart rate data available in response
+2025-05-27 20:24:15,249 [INFO] Summary data for 2025-05-27:
+2025-05-27 20:24:15,249 [INFO] - Resting heart rate: N/A
+2025-05-27 20:24:15,250 [INFO] - Heart rate zones: [{'caloriesOut': 1149.0912, 'max': 110, 'min': 30, 'minutes': 1440, 'name': 'Out of Range'}, {'caloriesOut': 0, 'max': 132, 'min': 110, 'minutes': 0, 'name': 'Fat Burn'}, {'caloriesOut': 0, 'max': 158, 'min': 132, 'minutes': 0, 'name': 'Cardio'}, {'caloriesOut': 0, 'max': 220, 'min': 158, 'minutes': 0, 'name': 'Peak'}]
+2025-05-27 20:24:15,250 [INFO] 
+=== Steps API Request ===
+2025-05-27 20:24:15,250 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-27/1d/1min.json
+2025-05-27 20:24:15,553 [INFO] Status Code: 200
+2025-05-27 20:24:15,553 [INFO] Response Body:
+2025-05-27 20:24:15,553 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-27",
+      "value": "0"
+    }
+  ]
+}
+2025-05-27 20:24:15,554 [WARNING] No intraday steps data available in response
+2025-05-27 20:24:15,562 [INFO] Total intraday data points saved for 2025-05-27: 0
+2025-05-27 20:24:15,563 [WARNING] No intraday data points were saved for 2025-05-27
+2025-05-27 20:24:15,563 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 20:24:16,769 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 20:24:17,038 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 20:24:17,038 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 20:24:17,039 [INFO] Historical data collection completed
+2025-05-27 20:24:17,040 [INFO] Finished Fitbit personal data collection
+2025-05-27 20:29:29,342 [INFO] Starting Fitbit personal data collection
+2025-05-27 20:29:29,777 [INFO] All tables dropped successfully.
+2025-05-27 20:29:30,146 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 20:29:30,387 [INFO] Collecting data for 2025-05-24
+2025-05-27 20:29:30,792 [INFO] Token introspection status: 200
+2025-05-27 20:29:30,794 [INFO] Available scopes: {IRREGULAR_RHYTHM_NOTIFICATIONS=READ, PROFILE=READ, SETTINGS=READ, TEMPERATURE=READ, OXYGEN_SATURATION=READ, RESPIRATORY_RATE=READ, HEARTRATE=READ, ELECTROCARDIOGRAM=READ, SOCIAL=READ, WEIGHT=READ, CARDIO_FITNESS=READ, LOCATION=READ, SLEEP=READ, ACTIVITY=READ, NUTRITION=READ}
+2025-05-27 20:29:30,794 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/2025-05-24/1min.json
+2025-05-27 20:29:31,198 [INFO] === Heart Rate API Response Details ===
+2025-05-27 20:29:31,198 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-24/2025-05-24/1min.json
+2025-05-27 20:29:31,199 [INFO] Status Code: 200
+2025-05-27 20:29:31,199 [INFO] Headers: {'Content-Type': 'application/json; charset=UTF-8', 'Fitbit-rate-limit-reset': '1361', 'Date': 'Tue, 27 May 2025 18:29:30 GMT', 'Fitbit-rate-limit-limit': '150', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '22', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'server': 'fws', 'X-Frame-Options': 'SAMEORIGIN', 'Cache-control': 'no-cache, private', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=293', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 20:29:31,200 [INFO] Response Body:
+2025-05-27 20:29:31,203 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1757.05808,
+            "max": 111,
+            "min": 30,
+            "minutes": 1398,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 73.2264,
+            "max": 132,
+            "min": 111,
+            "minutes": 22,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 56.140240000000006,
+            "max": 159,
+            "min": 132,
+            "minutes": 19,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 4.694,
+            "max": 220,
+            "min": 159,
+            "minutes": 1,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 69
+      },
+      "dateTime": "2025-05-24"
+    }
+  ]
+}
+2025-05-27 20:29:31,203 [INFO] =====================================
+2025-05-27 21:34:39,108 [INFO] Starting Fitbit personal data collection
+2025-05-27 21:34:39,495 [INFO] All tables dropped successfully.
+2025-05-27 21:34:39,863 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 21:34:40,133 [INFO] Collecting data for 2025-05-24
+2025-05-27 21:34:40,134 [INFO] Skipping intraday data collection for 2025-05-24 (only collecting for May 26)
+2025-05-27 21:34:41,134 [INFO] Collecting data for 2025-05-25
+2025-05-27 21:34:41,135 [INFO] Skipping intraday data collection for 2025-05-25 (only collecting for May 26)
+2025-05-27 21:34:42,135 [INFO] Collecting data for 2025-05-26
+2025-05-27 21:34:42,541 [INFO] Token introspection status: 200
+2025-05-27 21:34:42,541 [INFO] Available scopes: {ELECTROCARDIOGRAM=READ, SOCIAL=READ, RESPIRATORY_RATE=READ, WEIGHT=READ, CARDIO_FITNESS=READ, NUTRITION=READ, TEMPERATURE=READ, SETTINGS=READ, ACTIVITY=READ, HEARTRATE=READ, PROFILE=READ, SLEEP=READ, OXYGEN_SATURATION=READ, LOCATION=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ}
+2025-05-27 21:34:42,542 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:34:42,952 [INFO] === Heart Rate API Response Details ===
+2025-05-27 21:34:42,952 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:34:42,952 [INFO] Status Code: 200
+2025-05-27 21:34:42,953 [INFO] Headers: {'Content-Type': 'application/json; charset=UTF-8', 'Content-Language': 'en', 'Fitbit-rate-limit-remaining': '148', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Fitbit-rate-limit-reset': '3600', 'server': 'fws', 'Cache-control': 'no-cache, private', 'Fitbit-rate-limit-limit': '150', 'X-Frame-Options': 'SAMEORIGIN', 'Date': 'Tue, 27 May 2025 19:34:42 GMT', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=313', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 21:34:42,953 [INFO] Response Body:
+2025-05-27 21:34:42,953 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1851.50136,
+            "max": 110,
+            "min": 30,
+            "minutes": 1434,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 25.817000000000004,
+            "max": 131,
+            "min": 110,
+            "minutes": 6,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 131,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 67
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 21:34:42,954 [INFO] =====================================
+2025-05-27 21:34:42,954 [WARNING] No intraday heart rate data available in response
+2025-05-27 21:34:42,954 [INFO] Summary data for 2025-05-26:
+2025-05-27 21:34:42,954 [INFO] - Resting heart rate: 67
+2025-05-27 21:34:42,954 [INFO] - Heart rate zones: [{'caloriesOut': 1851.50136, 'max': 110, 'min': 30, 'minutes': 1434, 'name': 'Out of Range'}, {'caloriesOut': 25.817000000000004, 'max': 131, 'min': 110, 'minutes': 6, 'name': 'Fat Burn'}, {'caloriesOut': 0, 'max': 158, 'min': 131, 'minutes': 0, 'name': 'Cardio'}, {'caloriesOut': 0, 'max': 220, 'min': 158, 'minutes': 0, 'name': 'Peak'}]
+2025-05-27 21:34:42,954 [INFO] 
+=== Steps API Request ===
+2025-05-27 21:34:42,954 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-26/1d/1min.json
+2025-05-27 21:34:43,433 [INFO] Status Code: 200
+2025-05-27 21:34:43,433 [INFO] Response Body:
+2025-05-27 21:34:43,433 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-26",
+      "value": "7823"
+    }
+  ]
+}
+2025-05-27 21:34:43,434 [WARNING] No intraday steps data available in response
+2025-05-27 21:34:43,440 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 21:34:43,441 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 21:34:43,441 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 21:34:44,441 [INFO] Collecting data for 2025-05-27
+2025-05-27 21:34:44,442 [INFO] Skipping intraday data collection for 2025-05-27 (only collecting for May 26)
+2025-05-27 21:34:45,686 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 21:34:45,889 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 21:34:45,889 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 21:34:45,890 [INFO] Historical data collection completed
+2025-05-27 21:34:45,890 [INFO] Finished Fitbit personal data collection
+2025-05-27 21:36:45,783 [INFO] Starting Fitbit personal data collection
+2025-05-27 21:36:46,136 [INFO] All tables dropped successfully.
+2025-05-27 21:36:46,658 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 21:36:46,884 [INFO] Collecting data for 2025-05-24
+2025-05-27 21:36:46,885 [INFO] Skipping intraday data collection for 2025-05-24 (only collecting for May 26)
+2025-05-27 21:36:47,886 [INFO] Collecting data for 2025-05-25
+2025-05-27 21:36:47,886 [INFO] Skipping intraday data collection for 2025-05-25 (only collecting for May 26)
+2025-05-27 21:36:48,887 [INFO] Collecting data for 2025-05-26
+2025-05-27 21:36:49,240 [INFO] Token introspection status: 200
+2025-05-27 21:36:49,241 [INFO] Available scopes: {PROFILE=READ, WEIGHT=READ, OXYGEN_SATURATION=READ, SLEEP=READ, CARDIO_FITNESS=READ, SETTINGS=READ, NUTRITION=READ, RESPIRATORY_RATE=READ, TEMPERATURE=READ, ELECTROCARDIOGRAM=READ, HEARTRATE=READ, SOCIAL=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, ACTIVITY=READ, LOCATION=READ}
+2025-05-27 21:36:49,242 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:36:49,601 [INFO] === Heart Rate API Response Details ===
+2025-05-27 21:36:49,601 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:36:49,601 [INFO] Status Code: 200
+2025-05-27 21:36:49,602 [INFO] Headers: {'Fitbit-rate-limit-reset': '3473', 'Date': 'Tue, 27 May 2025 19:36:49 GMT', 'Content-Language': 'en', 'Fitbit-rate-limit-limit': '150', 'server': 'fws', 'Fitbit-rate-limit-remaining': '145', 'X-Frame-Options': 'SAMEORIGIN', 'Cache-control': 'no-cache, private', 'Content-Type': 'application/json; charset=UTF-8', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=267', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 21:36:49,602 [INFO] Response Body:
+2025-05-27 21:36:49,606 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1851.50136,
+            "max": 110,
+            "min": 30,
+            "minutes": 1434,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 25.817000000000004,
+            "max": 131,
+            "min": 110,
+            "minutes": 6,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 131,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 67
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 21:36:49,606 [INFO] =====================================
+2025-05-27 21:39:54,080 [INFO] Starting Fitbit personal data collection
+2025-05-27 21:39:54,538 [INFO] All tables dropped successfully.
+2025-05-27 21:39:55,066 [INFO] Database initialized successfully with TimeScaleDB
+2025-05-27 21:39:55,310 [INFO] Collecting data for 2025-05-24
+2025-05-27 21:39:55,310 [INFO] Skipping intraday data collection for 2025-05-24 (only collecting for May 26)
+2025-05-27 21:39:56,311 [INFO] Collecting data for 2025-05-25
+2025-05-27 21:39:56,311 [INFO] Skipping intraday data collection for 2025-05-25 (only collecting for May 26)
+2025-05-27 21:39:57,312 [INFO] Collecting data for 2025-05-26
+2025-05-27 21:39:57,688 [INFO] Token introspection status: 200
+2025-05-27 21:39:57,688 [INFO] Available scopes: {LOCATION=READ, SLEEP=READ, WEIGHT=READ, IRREGULAR_RHYTHM_NOTIFICATIONS=READ, SOCIAL=READ, CARDIO_FITNESS=READ, ACTIVITY=READ, SETTINGS=READ, OXYGEN_SATURATION=READ, NUTRITION=READ, ELECTROCARDIOGRAM=READ, RESPIRATORY_RATE=READ, PROFILE=READ, HEARTRATE=READ, TEMPERATURE=READ}
+2025-05-27 21:39:57,688 [INFO] Requesting heart rate intraday data from: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:39:58,108 [INFO] === Heart Rate API Response Details ===
+2025-05-27 21:39:58,108 [INFO] URL: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/2025-05-26/1min.json
+2025-05-27 21:39:58,108 [INFO] Status Code: 200
+2025-05-27 21:39:58,108 [INFO] Headers: {'X-Frame-Options': 'SAMEORIGIN', 'Fitbit-rate-limit-reset': '3284', 'Fitbit-rate-limit-remaining': '143', 'Date': 'Tue, 27 May 2025 19:39:57 GMT', 'Vary': 'Origin,Accept-Encoding, X-Origin, Referer', 'Content-Type': 'application/json; charset=UTF-8', 'Cache-control': 'no-cache, private', 'server': 'fws', 'Content-Language': 'en', 'Fitbit-rate-limit-limit': '150', 'Content-Encoding': 'gzip', 'X-XSS-Protection': '0', 'X-Content-Type-Options': 'nosniff', 'Server-Timing': 'gfet4t7; dur=309', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000', 'Transfer-Encoding': 'chunked'}
+2025-05-27 21:39:58,108 [INFO] Response Body:
+2025-05-27 21:39:58,109 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1851.50136,
+            "max": 110,
+            "min": 30,
+            "minutes": 1434,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 25.817000000000004,
+            "max": 131,
+            "min": 110,
+            "minutes": 6,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 131,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 67
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 21:39:58,109 [INFO] =====================================
+2025-05-27 21:39:58,109 [WARNING] No intraday heart rate data available in response
+2025-05-27 21:39:58,109 [INFO] Summary data for 2025-05-26:
+2025-05-27 21:39:58,110 [INFO] - Resting heart rate: 67
+2025-05-27 21:39:58,110 [INFO] - Heart rate zones: [{'caloriesOut': 1851.50136, 'max': 110, 'min': 30, 'minutes': 1434, 'name': 'Out of Range'}, {'caloriesOut': 25.817000000000004, 'max': 131, 'min': 110, 'minutes': 6, 'name': 'Fat Burn'}, {'caloriesOut': 0, 'max': 158, 'min': 131, 'minutes': 0, 'name': 'Cardio'}, {'caloriesOut': 0, 'max': 220, 'min': 158, 'minutes': 0, 'name': 'Peak'}]
+2025-05-27 21:39:58,110 [INFO] Trying alternative endpoint: https://api.fitbit.com/1/user/-/activities/heart/date/2025-05-26/1d/1min.json
+2025-05-27 21:39:58,502 [INFO] Alternative endpoint response:
+2025-05-27 21:39:58,503 [INFO] {
+  "activities-heart": [
+    {
+      "value": {
+        "customHeartRateZones": [],
+        "heartRateZones": [
+          {
+            "caloriesOut": 1851.50136,
+            "max": 110,
+            "min": 30,
+            "minutes": 1434,
+            "name": "Out of Range"
+          },
+          {
+            "caloriesOut": 25.817000000000004,
+            "max": 131,
+            "min": 110,
+            "minutes": 6,
+            "name": "Fat Burn"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 158,
+            "min": 131,
+            "minutes": 0,
+            "name": "Cardio"
+          },
+          {
+            "caloriesOut": 0,
+            "max": 220,
+            "min": 158,
+            "minutes": 0,
+            "name": "Peak"
+          }
+        ],
+        "restingHeartRate": 67
+      },
+      "dateTime": "2025-05-26"
+    }
+  ]
+}
+2025-05-27 21:39:58,503 [INFO] 
+=== Steps API Request ===
+2025-05-27 21:39:58,503 [INFO] URL: https://api.fitbit.com/1/user/-/activities/steps/date/2025-05-26/1d/1min.json
+2025-05-27 21:39:59,042 [INFO] Status Code: 200
+2025-05-27 21:39:59,042 [INFO] Response Body:
+2025-05-27 21:39:59,042 [INFO] {
+  "activities-steps": [
+    {
+      "dateTime": "2025-05-26",
+      "value": "7823"
+    }
+  ]
+}
+2025-05-27 21:39:59,043 [WARNING] No intraday steps data available in response
+2025-05-27 21:39:59,051 [INFO] Total intraday data points saved for 2025-05-26: 0
+2025-05-27 21:39:59,052 [WARNING] No intraday data points were saved for 2025-05-26
+2025-05-27 21:39:59,052 [WARNING] This might indicate an issue with the API response or data format
+2025-05-27 21:40:00,052 [INFO] Collecting data for 2025-05-27
+2025-05-27 21:40:00,053 [INFO] Skipping intraday data collection for 2025-05-27 (only collecting for May 26)
+2025-05-27 21:40:01,321 [INFO] 
+=== RAW daily_summaries for user_id=1 ===
+2025-05-27 21:40:01,580 [INFO] 
+=== RAW intraday_metrics for user_id=1 ===
+2025-05-27 21:40:01,581 [ERROR] Error querying intraday_metrics: tuple index out of range
+2025-05-27 21:40:01,581 [INFO] Historical data collection completed
+2025-05-27 21:40:01,582 [INFO] Finished Fitbit personal data collection

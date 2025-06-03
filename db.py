@@ -1169,12 +1169,22 @@ def reset_database():
                 if db.connect():
                     db.add_user(
                         name="",
-                        email="Wearable4LivelyAgeign@gmail.com",
+                        email="Wearable2LivelyAgeign@gmail.com",
                         access_token="",
                         refresh_token=""
                     )
                     db.close()
-                print("Test user added successfully.")
+                print("Giovanni user added successfully.")
+                db = DatabaseManager()
+                if db.connect():
+                    db.add_user(
+                        name="",
+                        email="Wearable1LivelyAgeign@gmail.com",
+                        access_token="",
+                        refresh_token=""
+                    )
+                    db.close()
+                print("Federica user added successfully.")
                 
         except Exception as e:
             print(f"Error resetting database: {e}")
@@ -1299,4 +1309,4 @@ if __name__ == "__main__":
     # Reset and reinitialize the database
     reset_database()
     # Create test data
-    create_test_data()
+    #create_test_data()

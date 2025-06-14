@@ -1,16 +1,16 @@
 import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno desde .env
-load_dotenv()
+# Cargar variables de entorno desde .env, forzando la sobreescritura
+load_dotenv(override=True)
 ADMIN_MAIL = os.getenv("ADMIN_MAIL")
 ADMIN_PSSW = os.getenv("ADMIN_PSSW")
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 # URL de redirección basada en el entorno
-#REDIRECT_URI = "http://localhost:5000/livelyageing/callback"
-REDIRECT_URI = "https://tango.ing.unimo.it/livelyageing/callback"
+REDIRECT_URI = "http://localhost:5000/livelyageing/callback"
+#REDIRECT_URI = "https://tango.ing.unimo.it/livelyageing/callback"
 # if os.getenv("FLASK_ENV") == "production":
 #     REDIRECT_URI = "https://tango.ing.unimo.it/livelyageing/callback"
 #     #REDIRECT_URI = "http://localhost:5000/livelyageing/callback"

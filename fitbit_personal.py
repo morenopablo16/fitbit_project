@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 # Database configuration
 DB_CONFIG = {
-    "host": "tt1b0ye4qb.wuphxgc8qn.tsdb.cloud.timescale.com",
+    "host": "l45jsd1dwi.b24njbbdat.tsdb.cloud.timescale.com",
     "database": "tsdb",
     "user": "tsdbadmin",
-    "password": "h6jcpcnwrhthgfzl",
-    "port": "32317",
+    "password": "sec05ujryx4177rx",
+    "port": "38012",
     "sslmode": "require"
 }
 
@@ -33,15 +33,15 @@ ACCOUNTS_CONFIG = {
     "wearable2livelyageign@gmail.com": {
         "client_id": "23QK2Y",
         "client_secret": "15dff85f95fb2b521461fa4e0c9abf2b",
-        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FLMlkiLCJzdWIiOiJDRzZaTDYiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJlY2cgcnNldCByaXJuIHJveHkgcm51dCBycHJvIHJzbGUgcmNmIHJhY3QgcmxvYyBycmVzIHJ3ZWkgcmhyIHJ0ZW0iLCJleHAiOjE3NDkwMDEyMjgsImlhdCI6MTc0ODk3MjQyOH0.rRQWbU2_CspxoKF4Xt9soxcUgrA7WNbxc0Td8GTkuVQ",
-        "refresh_token": "683749cbda33927ec3b67ba1a7c08ff57439c94c3e911fee58a7f68606a5cf19",
+        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FLMlkiLCJzdWIiOiJDRzZaTDYiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd3RlbSB3d2VpIHdzb2Mgd2FjdCB3c2V0IHdyZXMgd294eSIsImV4cCI6MTc0OTk0NDQ1NSwiaWF0IjoxNzQ5OTE1NjU1fQ.kNvyp_pc7JSZVvoITTLfAc-Ml8mxIPgdZy3Gt4AxZG4",
+        "refresh_token": "7043731c1f8436104fec26ea5148f1286b2ba733eff109f23ead4b934d67d751",
         "user_id_placeholder": "-" # Fitbit API uses '-' for current user, actual DB user_id will be used for storage
     },
     "wearable1livelyageign@gmail.com": {
         "client_id": "23QJN8",
         "client_secret": "7f9d7193f3fd0fe1b73455dc85db89ba",
-        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FKTjgiLCJzdWIiOiJDRzhUNkoiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd2VjZyB3c29jIHdhY3Qgd294eSB3dGVtIHd3ZWkgd2lybiB3Y2Ygd3NldCB3bG9jIHdyZXMiLCJleHAiOjE3NDkwMDM0OTcsImlhdCI6MTc0ODk3NDY5N30.0ynKe2ctIYce9NyF2zX0q9xNO0JazbsZaBHuBK8kcDE",
-        "refresh_token": "632a5acef0be0b94c80d0fab54edbad778a990f44359e333cdac45d305edfe09",
+        "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1FKTjgiLCJzdWIiOiJDRzhUNkoiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd3RlbSB3d2VpIHdzb2Mgd2FjdCB3c2V0IHdveHkgd3JlcyIsImV4cCI6MTc0OTk0NDYxMSwiaWF0IjoxNzQ5OTE1ODExfQ.BtEpl3rv5FI6wb1IDY0LCkUSIc21Bw16milRCoSHxxA",
+        "refresh_token": "92e26c5aa4f677b0df637ddc4156a985be168505b00693a8e36d9bbb9f11899d",
         "user_id_placeholder": "-"
     }
     # Add more accounts here if needed
@@ -375,7 +375,7 @@ def get_fitbit_data(access_token, date_str):
 def get_intraday_data(access_token, date_str):
     """Get intraday data for a specific date."""
     headers = {"Authorization": f"Bearer {access_token}"}
-    detail_level = "1min"  # Using 1min as per API documentation
+    detail_level = "15min"  # Using 1min as per API documentation
     
     try:
         # Verificar scopes del token
@@ -634,6 +634,7 @@ def collect_historical_data(days=3):
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         current_date = start_date
+   
 
         while current_date <= end_date:
             date_str = current_date.strftime("%Y-%m-%d")

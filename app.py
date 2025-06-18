@@ -469,6 +469,11 @@ def link_device():
 @app.route('/livelyageing/assign', methods=['GET', 'POST'])
 @login_required
 def assign_user():
+    # Si viene el email por GET, lo guardamos en la sesión para preseleccionarlo
+    if request.method == 'GET':
+        email = request.args.get('email')
+        if email:
+            session['pending_email'] = email
     if request.method == 'POST':
         user_name = request.form.get('user_name')
         email = session.get('pending_email')  # Get email from session

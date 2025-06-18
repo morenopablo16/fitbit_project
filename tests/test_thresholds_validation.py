@@ -372,7 +372,7 @@ def generate_logs(test_results):
                     if result['triggered'] and not result['expected']:
                         # Solo considerar como falso positivo si no es una excepción como 'data_quality'
                         if alert_type != "data_quality":
-                        false_positives += 1
+                           false_positives += 1
                     if not result['triggered'] and result['expected']:
                         false_negatives += 1
                         
@@ -390,10 +390,10 @@ def generate_logs(test_results):
         f.write(f"False Positives: {false_positives}\n")
         f.write(f"False Negatives: {false_negatives}\n")
         
-            detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
+        detection_rate = (actual_triggers / expected_triggers * 100) if expected_triggers > 0 else 0
         precision = ((actual_triggers - false_positives) / actual_triggers * 100) if actual_triggers > 0 else 0
-            f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
-            f.write(f"Precision: {precision:.1f}%\n")
+        f.write(f"\nDetection Rate: {detection_rate:.1f}%\n")
+        f.write(f"Precision: {precision:.1f}%\n")
 
 def run_all_tests():
     """

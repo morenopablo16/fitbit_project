@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <!-- Chart.js Luxon date adapter para ejes de tiempo -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
     <!-- jQuery UI para el date picker -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -389,7 +392,7 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="intradayDate" class="form-label">{{ _('Date') }}:</label>
-                            <input type="text" class="form-control" id="intradayDate" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}" readonly>
+                            <input type="text" class="form-control" id="intradayDate" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}">
                         </div>
                         <div class="col-md-4">
                             <label for="intradayMetric" class="form-label">{{ _('Metric') }}:</label>
@@ -423,27 +426,14 @@
                             </button>
                         </div>
                     </div>
-                    if (data.length < 6) {
-                        chartContainer.classList.add('d-none');
-                        // Mostrar mensaje informativo SIEMPRE debajo de la nota azul
-                        let warningDiv = document.getElementById('modal-intraday-warning');
-                        if (warningDiv) {
-                            const warningMessage = `
-                                <div class="alert alert-warning mt-2">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    {{ _('Not enough intraday data to show activity pattern (<6 points).') }}
-                                    <br>
-                                    <small>
-                                        {{ _('This may be due to insufficient data recorded by the device or the device not being worn during the day.') }}
-                                    </small>
-                                </div>`;
-                            warningDiv.innerHTML = warningMessage;
-                        }
-                        // Si existe un gráfico previo, destruirlo
-                        if (window.intradayChart) {
-                            window.intradayChart.destroy();
-                        }
-                    }
+                    <div id="modal-intraday-warning" class="alert alert-warning mt-2 d-none">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ _('Not enough intraday data to show activity pattern (<6 points).') }}
+                        <br>
+                        <small>
+                            {{ _('This may be due to insufficient data recorded by the device or the device not being worn during the day.') }}
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -564,7 +554,7 @@
                     <h5 class="mb-0">{{ _('Inactivity Pattern Analysis') }}</h5>
                     <div>
                         <label for="inactivityDay" class="form-label">{{ _('Date') }}:</label>
-                        <input type="text" class="form-control" id="inactivityDay" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}" readonly>
+                        <input type="text" class="form-control" id="inactivityDay" value="{{ now.strftime('%d/%m/%Y') if get_locale() == 'es' else now.strftime('%m/%d/%Y') }}">
                     </div>
                 </div>
                 <div class="card-body">
@@ -611,6 +601,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script>
+// --- SOLUCIÓN ReferenceError: _ is not defined ---
+// Función dummy para traducción en JS (solo devuelve el texto tal cual)
+function _(txt) { return txt; }
+
 // Register Chart.js annotation plugin robustly
 if (window['ChartAnnotation']) {
     Chart.register(window['ChartAnnotation']);
@@ -629,7 +623,6 @@ if (window.ChartDataLabels) {
     console.warn('Chart.js DataLabels plugin not found or not loaded correctly!');
 }
 
-let intradayChart = null;
 let weeklyCharts = {};
 let inactivityChart = null;
 let currentAlerts = [];
@@ -648,7 +641,14 @@ document.addEventListener('DOMContentLoaded', function() {
             changeMonth: true,
             changeYear: true,
             maxDate: '0',
-            regional: currentLang
+            regional: currentLang,
+            onSelect: function(dateText, inst) {
+                if (this.id === 'intradayDate') {
+                    loadIntradayData();
+                } else if (this.id === 'inactivityDay') {
+                    loadInactivityData();
+                }
+            }
         });
 
         // Establecer el idioma
@@ -658,6 +658,12 @@ document.addEventListener('DOMContentLoaded', function() {
             $("#intradayDate, #inactivityDay").datepicker('option', $.datepicker.regional['']);
         }
     }
+    
+    // Eliminar readonly de los inputs de fecha para permitir interacción completa
+    $(document).ready(function() {
+        $('#intradayDate').removeAttr('readonly');
+        $('#inactivityDay').removeAttr('readonly');
+    });
     
     // Cargar datos iniciales
     loadIntradayData();
@@ -693,11 +699,35 @@ function loadIntradayData() {
     const date = convertDateToISO(dateStr);
     const metric = document.getElementById('intradayMetric').value;
     const chartType = document.getElementById('chartType').value;
-    
+    const chartContainer = document.querySelector('.chart-container');
+    const warningDivId = 'modal-intraday-warning';
+    let warningDiv = document.getElementById(warningDivId);
+    if (!warningDiv) {
+        warningDiv = document.createElement('div');
+        warningDiv.id = warningDivId;
+        chartContainer.parentNode.insertBefore(warningDiv, chartContainer.nextSibling);
+    }
+    warningDiv.innerHTML = '';
     fetch(`/livelyageing/api/user/{{ user.id }}/intraday?date=${date}&type=${metric}`)
         .then(response => response.json())
         .then(data => {
-            // Get alerts for the selected date
+            // Si hay menos de 6 puntos, mostrar advertencia y ocultar gráfica
+            if (!data.intraday || data.intraday.length < 6) {
+                chartContainer.classList.add('d-none');
+                warningDiv.innerHTML = `
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ _('Not enough intraday data to show activity pattern (<6 points).') }}<br>
+                        <small>{{ _('This may be due to insufficient data recorded by the device or the device not being worn during the day.') }}</small>
+                    </div>`;
+                if (window.intradayChart) {
+                    window.intradayChart.destroy();
+                }
+                return;
+            } else {
+                chartContainer.classList.remove('d-none');
+                warningDiv.innerHTML = '';
+            }
             fetch(`/livelyageing/api/user/{{ user.id }}/alerts?date=${date}`)
                 .then(response => response.json())
                 .then(alerts => {
@@ -705,58 +735,106 @@ function loadIntradayData() {
                     updateIntradayChart(data.intraday, chartType);
                 });
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            warningDiv.innerHTML = `<div class='alert alert-danger'>${error.message}</div>`;
+        });
 }
 
 function updateIntradayChart(data, chartType) {
     const ctx = document.getElementById('intradayChart').getContext('2d');
-    
-    if (intradayChart) {
-        intradayChart.destroy();
+    if (window.intradayChart && typeof window.intradayChart.destroy === 'function') {
+        window.intradayChart.destroy();
     }
-    
-    // Definir colores según el tipo de métrica
     const metric = document.getElementById('intradayMetric').value;
     let borderColor, backgroundColorBar, backgroundColorArea;
-    
     switch(metric) {
         case 'heart_rate':
-            borderColor = 'rgb(220, 53, 69)'; // Rojo
+            borderColor = 'rgb(220, 53, 69)';
             backgroundColorBar = 'rgba(220, 53, 69, 0.7)';
             backgroundColorArea = 'rgba(220, 53, 69, 0.2)';
             break;
         case 'steps':
-            borderColor = 'rgb(40, 167, 69)'; // Verde
+            borderColor = 'rgb(40, 167, 69)';
             backgroundColorBar = 'rgba(40, 167, 69, 0.7)';
             backgroundColorArea = 'rgba(40, 167, 69, 0.2)';
             break;
         case 'calories':
-            borderColor = 'rgb(255, 123, 0)'; // Naranja
+            borderColor = 'rgb(255, 123, 0)';
             backgroundColorBar = 'rgba(255, 123, 0, 0.7)';
             backgroundColorArea = 'rgba(255, 123, 0, 0.2)';
             break;
         case 'active_zone_minutes':
-            borderColor = 'rgb(102, 16, 242)'; // Morado
+            borderColor = 'rgb(102, 16, 242)';
             backgroundColorBar = 'rgba(102, 16, 242, 0.7)';
             backgroundColorArea = 'rgba(102, 16, 242, 0.2)';
             break;
         default:
-            borderColor = 'rgb(23, 162, 184)'; // Azul
+            borderColor = 'rgb(23, 162, 184)';
             backgroundColorBar = 'rgba(23, 162, 184, 0.7)';
             backgroundColorArea = 'rgba(23, 162, 184, 0.2)';
     }
-    
     let finalBackgroundColor;
     if (chartType === 'bar') {
         finalBackgroundColor = backgroundColorBar;
     } else if (chartType === 'area') {
         finalBackgroundColor = backgroundColorArea;
     } else {
-        finalBackgroundColor = 'rgba(0,0,0,0)'; // Sin fondo para línea normal
+        finalBackgroundColor = 'rgba(0,0,0,0)';
     }
-    
+    // Forzar formato ISO para los timestamps
+    const formatToISO = t => {
+        if (!t) return t;
+        if (typeof t === 'string') {
+            // Si ya es ISO y tiene microsegundos, quitarlos
+            if (t.includes('T')) return t.split('.')[0];
+            // Si es tipo 'YYYY-MM-DD HH:mm:ss', convertir a ISO
+            if (t.includes(' ')) return t.replace(' ', 'T');
+        }
+        if (t instanceof Date) return t.toISOString().split('.')[0];
+        return t;
+    };
+    // Obtener el día seleccionado en formato YYYY-MM-DD
+    const dateStr = document.getElementById('intradayDate').value;
+    const currentLang = '{{ get_locale() }}';
+    let selectedDay;
+    if (currentLang === 'es') {
+        // dd/mm/yyyy
+        const parts = dateStr.split('/');
+        selectedDay = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else {
+        // mm/dd/yyyy
+        const parts = dateStr.split('/');
+        selectedDay = `${parts[2]}-${parts[0]}-${parts[1]}`;
+    }
+    // Extraer solo día y mes del selectedDay
+    const [selYear, selMonth, selDay] = selectedDay.split('-');
+    // Normalizar todos los labels y guardar día y hora
+    const labels = data.map(d => {
+        if (typeof d.time === 'string' && d.time.includes('T')) {
+            return d.time.split('T')[1].substring(0,5); // 'HH:mm'
+        }
+        if (typeof d.time === 'string' && d.time.includes(' ')) {
+            return d.time.split(' ')[1].substring(0,5);
+        }
+        return d.time;
+    });
+    const days = data.map(d => {
+        if (typeof d.time === 'string' && d.time.includes('T')) {
+            return d.time.split('T')[0];
+        }
+        if (typeof d.time === 'string' && d.time.includes(' ')) {
+            return d.time.split(' ')[0];
+        }
+        return '';
+    });
+    // LOGS para depuración
+    console.log('selectedDay:', selectedDay);
+    console.log('labels:', labels);
+    console.log('days:', days);
+    console.log('currentAlerts:', currentAlerts);
     const chartData = {
-        labels: data.map(d => d.time),
+        labels: labels,
         datasets: [{
             label: document.getElementById('intradayMetric').options[document.getElementById('intradayMetric').selectedIndex].text,
             data: data.map(d => d.value),
@@ -767,34 +845,76 @@ function updateIntradayChart(data, chartType) {
             fill: chartType === 'area'
         }]
     };
-    
+    // Solo mostrar el punto rojo si la alerta es del mismo día y mes (ignorar año) y hora/minuto
+    const alertAnnotations = [];
+    currentAlerts.forEach(alert => {
+        let alertTime = alert.alert_time;
+        let alertDay = '', alertHour = '';
+        if (typeof alertTime === 'string' && alertTime.includes('T')) {
+            [alertDay, alertHour] = alertTime.split('T');
+            alertHour = alertHour.substring(0,5);
+        } else if (typeof alertTime === 'string' && alertTime.includes(' ')) {
+            // Puede ser 'YYYY-MM-DD HH:mm' o 'DD/MM HH:mm'
+            const [datePart, hourPart] = alertTime.split(' ');
+            if (datePart.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                alertDay = datePart;
+            } else if (datePart.match(/^\d{2}\/\d{2}$/)) {
+                // 'DD/MM' => usar año del selectedDay
+                const [d, m] = datePart.split('/');
+                alertDay = `${selYear}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+            } else if (datePart.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                // 'DD/MM/YYYY'
+                const [d, m, y] = datePart.split('/');
+                alertDay = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+            }
+            alertHour = hourPart.substring(0,5);
+        }
+        // Extraer solo mes y día de alertDay
+        let alertMonth = '', alertDayNum = '';
+        if (alertDay && alertDay.includes('-')) {
+            const parts = alertDay.split('-');
+            alertMonth = parts[1];
+            alertDayNum = parts[2];
+        }
+        // Comparar solo mes y día
+        if (alertMonth === selMonth && alertDayNum === selDay) {
+            for (let i = 0; i < labels.length; i++) {
+                if (labels[i].substring(0,5) === alertHour.substring(0,5)) {
+                    alertAnnotations.push({
+                        type: 'point',
+                        xValue: labels[i],
+                        yValue: data[i].value,
+                        backgroundColor: 'red',
+                        borderColor: 'red',
+                        radius: 8,
+                        label: {
+                            content: alert.type,
+                            enabled: true
+                        }
+                    });
+                }
+            }
+        }
+    });
+    console.log('alertAnnotations:', alertAnnotations);
     const options = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
+            x: {
+                type: 'category',
+            },
             y: {
                 beginAtZero: true
             }
         },
         plugins: {
             annotation: {
-                annotations: currentAlerts.map(alert => ({
-                    type: 'point',
-                    xValue: alert.alert_time,
-                    yValue: alert.triggering_value,
-                    backgroundColor: 'red',
-                    borderColor: 'red',
-                    radius: 5,
-                    label: {
-                        content: alert.type,
-                        enabled: true
-                    }
-                }))
+                annotations: alertAnnotations
             }
         }
     };
-    
-    intradayChart = new Chart(ctx, {
+    window.intradayChart = new Chart(ctx, {
         type: chartType === 'area' ? 'line' : chartType,
         data: chartData,
         options: options
@@ -805,7 +925,7 @@ function updateIntradayChart(data, chartType) {
 function loadWeeklyData() {
     fetch(`/livelyageing/api/user/{{ user.id }}/weekly_summary`)
         .then(response => response.json())
-        .then(data => {
+        .then((data) => {
             // Gráfico de pasos
             createWeeklyChart('weekly-steps-chart', '{{ _("Steps") }}', data.weekly.map(d => d.steps));
             
@@ -845,7 +965,7 @@ function createWeeklyChart(canvasId, label, data) {
     weeklyCharts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['{{ _('Mon') }}', '{{ _('Tue') }}', '{{ _('Wed') }}', '{{ _('Thu') }}', '{{ _('Fri') }}', '{{ _('Sat') }}', '{{ _('Sun') }}'],
+            labels: ["{{ _('Mon') }}", "{{ _('Tue') }}", "{{ _('Wed') }}", "{{ _('Thu') }}", "{{ _('Fri') }}", "{{ _('Sat') }}", "{{ _('Sun') }}"],
             datasets: [{
                 label: label,
                 data: data,
@@ -1106,4 +1226,4 @@ document.querySelectorAll('.acknowledge-btn').forEach(function(btn) {
 });
 </script>
 </body>
-</html> 
+</html>

@@ -978,6 +978,7 @@ def alerts_dashboard():
                                     now=datetime.now(timezone.utc))
 
             # Convertir las tuplas en diccionarios con nombres de atributos
+            import json  # <--- Añadido para parsear JSON
             alerts = []
             for alert in alerts_data:
                 try:
@@ -1002,7 +1003,7 @@ def alerts_dashboard():
                     elif base_alert_type == 'intraday':
                         # Para alertas de intraday_activity_drop, siempre mostrar datos de pasos
                         intraday_metric_type = 'steps'
-                        app.logger.info(f"Alerta {alert[0]}: {alertType}, se buscarán datos intradía de steps.")
+                        app.logger.info(f"Alerta {alert[0]}: {alert_type}, se buscarán datos intradía de steps.")
 
                     if intraday_metric_type:
                         start_time = alert[1] - timedelta(hours=24)
@@ -1026,26 +1027,34 @@ def alerts_dashboard():
                         else:
                             app.logger.info(f"No se encontraron datos intradía para {intraday_metric_type}")
 
-                    # Convertir el datetime a string formateado
-                    alert_time = alert[1].strftime('%Y-%m-%d %H:%M')
-
-                    alerts.append({
+                    # Construir el diccionario de la alerta
+                    alert_dict = {
                         'id': alert[0],
-                        'alert_time': alert_time,
+                        'alert_time': alert[1].strftime('%Y-%m-%d %H:%M'),
+                        'raw_alert_time': alert[1],
                         'user_id': alert[2],
                         'alert_type': alert[3],
-                        'priority': alert[4].lower(),
+                        'priority': alert[4],
                         'triggering_value': alert[5],
                         'threshold_value': alert[6],
                         'details': alert[7],
                         'acknowledged': alert[8],
                         'user_name': alert[9],
                         'user_email': alert[10],
-                        'intraday_data': intraday_data,
-                        'raw_alert_time': alert[1]
-                    })
+                        'intraday_data': intraday_data
+                    }
+                    # --- Solución al problema de details ---
+                    if isinstance(alert_dict['details'], str):
+                        try:
+                            details_obj = json.loads(alert_dict['details'])
+                            if isinstance(details_obj, dict):
+                                alert_dict['details'] = details_obj
+                        except Exception:
+                            pass  # Si no es un JSON válido, lo dejamos como está
+
+                    alerts.append(alert_dict)
                 except Exception as e:
-                    app.logger.error(f"Error procesando alerta {alert[0]}: {e}")
+                    app.logger.error(f"Error procesando alerta: {e}")
                     continue
 
             app.logger.info(f"Alertas procesadas: {len(alerts)}")

@@ -114,9 +114,9 @@
             <i class="bi bi-globe"></i> {{ _('Language') }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-            <li><a class="dropdown-item" href="{{ url_for('change_language', lang='es') }}">{{ _('Spanish') }}</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('change_language', lang='en') }}">{{ _('English') }}</a></li>
-          </ul>
+  <li><a class="dropdown-item {% if get_locale() == 'es' %}active{% endif %}" href="{{ url_for('change_language', lang='es') }}">{{ _('Spanish') }}</a></li>
+  <li><a class="dropdown-item {% if get_locale() == 'en' %}active{% endif %}" href="{{ url_for('change_language', lang='en') }}">{{ _('English') }}</a></li>
+</ul>
         </li>
       </ul>
     </div>
@@ -627,7 +627,19 @@ let weeklyCharts = {};
 let inactivityChart = null;
 let currentAlerts = [];
 
-// Inicialización
+// Guardar y restaurar la pestaña activa al recargar
+function setActiveTab(tabId) {
+    localStorage.setItem('userDetailActiveTab', tabId);
+}
+function restoreActiveTab() {
+    const tabId = localStorage.getItem('userDetailActiveTab');
+    if (tabId) {
+        const tab = document.querySelector(`a[href='${tabId}']`);
+        if (tab) {
+            new bootstrap.Tab(tab).show();
+        }
+    }
+}
 document.addEventListener('DOMContentLoaded', function() {
     // Configurar el idioma del date picker
     const currentLang = '{{ get_locale() }}';
@@ -663,6 +675,15 @@ document.addEventListener('DOMContentLoaded', function() {
     $(document).ready(function() {
         $('#intradayDate').removeAttr('readonly');
         $('#inactivityDay').removeAttr('readonly');
+    });
+    
+    // Restaurar pestaña activa si existe
+    restoreActiveTab();
+    // Guardar pestaña activa al cambiar
+    document.querySelectorAll('#userTabs a[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            setActiveTab(e.target.getAttribute('href'));
+        });
     });
     
     // Cargar datos iniciales
@@ -998,6 +1019,7 @@ function acknowledgeAlert(alertId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Recargar manteniendo la pestaña
             location.reload();
         } else {
             alert('Error al reconocer la alerta: ' + data.error);
@@ -1126,7 +1148,7 @@ function loadInactivityData() {
                     data: {
                         labels: data.map(point => point.time),
                         datasets: [{
-                            label: 'Pasos',
+                            label: "{{ _('Steps') }}",
                             data: data.map(point => point.value),
                             backgroundColor: colors,
                             borderColor: borderColors,

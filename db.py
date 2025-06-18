@@ -717,124 +717,188 @@ def run_tests():
     """
     print("\n=== Iniciando pruebas con datos simulados ===\n")
 
+    db = DatabaseManager()
+    if not db.connect():
+        print("No se pudo conectar a la base de datos para pruebas.")
+        return
+
     # Caso 1: Usuario con datos normales iniciales
     print("1. Creando usuario con datos normales...")
-    user_id_1 = add_user(
+    user_id_1 = db.add_user(
         name="Juan Pérez",
         email="juan@example.com",
         access_token="token_juan",
         refresh_token="refresh_juan"
     )
 
-    # Insertar 5 días de datos normales
     from datetime import datetime, timedelta
     base_date = datetime.now().date()
-    
+
     print("\n2. Insertando datos normales para los primeros 5 días...")
     for i in range(5):
         date = (base_date - timedelta(days=i)).strftime("%Y-%m-%d")
-        save_to_db(
-            user_id=user_id_1,
-            date=date,
-            steps=10000,
-            heart_rate=75,
-            sleep_minutes=420,
-            calories=2000,
-            distance=8.5,
-            floors=10,
-            elevation=100.5,
-            active_minutes=60,
-            sedentary_minutes=480,
-            nutrition_calories=1800,
-            water=2.5,
-            weight=70.5,
-            bmi=22.5,
-            fat=18.5,
-            oxygen_saturation=98.0,
-            respiratory_rate=16.5,
-            temperature=36.5
+        db.execute_query(
+            """
+            INSERT INTO daily_summaries (
+                user_id, date, steps, heart_rate, sleep_minutes,
+                calories, distance, floors, elevation, active_minutes,
+                sedentary_minutes, nutrition_calories, water, weight,
+                bmi, fat, oxygen_saturation, respiratory_rate, temperature
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
+            ON CONFLICT (user_id, date) DO UPDATE SET
+                steps = EXCLUDED.steps,
+                heart_rate = EXCLUDED.heart_rate,
+                sleep_minutes = EXCLUDED.sleep_minutes,
+                calories = EXCLUDED.calories,
+                distance = EXCLUDED.distance,
+                floors = EXCLUDED.floors,
+                elevation = EXCLUDED.elevation,
+                active_minutes = EXCLUDED.active_minutes,
+                sedentary_minutes = EXCLUDED.sedentary_minutes,
+                nutrition_calories = EXCLUDED.nutrition_calories,
+                water = EXCLUDED.water,
+                weight = EXCLUDED.weight,
+                bmi = EXCLUDED.bmi,
+                fat = EXCLUDED.fat,
+                oxygen_saturation = EXCLUDED.oxygen_saturation,
+                respiratory_rate = EXCLUDED.respiratory_rate,
+                temperature = EXCLUDED.temperature;
+            """,
+            (
+                user_id_1, date,
+                10000, 75, 420, 2000, 8.5, 10, 100.5, 60, 480,
+                1800, 2.5, 70.5, 22.5, 18.5, 98.0, 16.5, 36.5
+            )
         )
 
     # Caso 2: Caída significativa en actividad física
     print("\n3. Simulando caída en actividad física...")
     date = (base_date + timedelta(days=1)).strftime("%Y-%m-%d")
-    save_to_db(
-        user_id=user_id_1,
-        date=date,
-        steps=2000,  # Caída significativa en pasos (80% menos)
-        heart_rate=90,  # Aumento en frecuencia cardíaca
-        sleep_minutes=420,
-        calories=1200,
-        distance=1.5,
-        floors=2,
-        elevation=20.5,
-        active_minutes=15,  # Reducción significativa en minutos activos
-        sedentary_minutes=900,  # Aumento significativo en tiempo sedentario
-        nutrition_calories=1800,
-        water=2.0,
-        weight=70.5,
-        bmi=22.5,
-        fat=18.5,
-        oxygen_saturation=95.0,
-        respiratory_rate=16.5,
-        temperature=36.5
+    db.execute_query(
+        """
+        INSERT INTO daily_summaries (
+            user_id, date, steps, heart_rate, sleep_minutes,
+            calories, distance, floors, elevation, active_minutes,
+            sedentary_minutes, nutrition_calories, water, weight,
+            bmi, fat, oxygen_saturation, respiratory_rate, temperature
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+        ON CONFLICT (user_id, date) DO UPDATE SET
+            steps = EXCLUDED.steps,
+            heart_rate = EXCLUDED.heart_rate,
+            sleep_minutes = EXCLUDED.sleep_minutes,
+            calories = EXCLUDED.calories,
+            distance = EXCLUDED.distance,
+            floors = EXCLUDED.floors,
+            elevation = EXCLUDED.elevation,
+            active_minutes = EXCLUDED.active_minutes,
+            sedentary_minutes = EXCLUDED.sedentary_minutes,
+            nutrition_calories = EXCLUDED.nutrition_calories,
+            water = EXCLUDED.water,
+            weight = EXCLUDED.weight,
+            bmi = EXCLUDED.bmi,
+            fat = EXCLUDED.fat,
+            oxygen_saturation = EXCLUDED.oxygen_saturation,
+            respiratory_rate = EXCLUDED.respiratory_rate,
+            temperature = EXCLUDED.temperature;
+        """,
+        (
+            user_id_1, date,
+            2000, 90, 420, 1200, 1.5, 2, 20.5, 15, 900,
+            1800, 2.0, 70.5, 22.5, 18.5, 95.0, 16.5, 36.5
+        )
     )
 
     # Caso 3: Datos erróneos o faltantes
     print("\n4. Insertando datos con errores y valores faltantes...")
     date = (base_date + timedelta(days=2)).strftime("%Y-%m-%d")
-    save_to_db(
-        user_id=user_id_1,
-        date=date,
-        steps=None,  # Datos faltantes de pasos
-        heart_rate=None,  # Datos faltantes de frecuencia cardíaca
-        sleep_minutes=None,  # Datos faltantes de sueño
-        calories=None,
-        distance=None,
-        floors=None,
-        elevation=None,
-        active_minutes=None,
-        sedentary_minutes=None,
-        nutrition_calories=None,
-        water=None,
-        weight=None,
-        bmi=None,
-        fat=None,
-        oxygen_saturation=None,
-        respiratory_rate=None,
-        temperature=None
+    db.execute_query(
+        """
+        INSERT INTO daily_summaries (
+            user_id, date, steps, heart_rate, sleep_minutes,
+            calories, distance, floors, elevation, active_minutes,
+            sedentary_minutes, nutrition_calories, water, weight,
+            bmi, fat, oxygen_saturation, respiratory_rate, temperature
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+        ON CONFLICT (user_id, date) DO UPDATE SET
+            steps = EXCLUDED.steps,
+            heart_rate = EXCLUDED.heart_rate,
+            sleep_minutes = EXCLUDED.sleep_minutes,
+            calories = EXCLUDED.calories,
+            distance = EXCLUDED.distance,
+            floors = EXCLUDED.floors,
+            elevation = EXCLUDED.elevation,
+            active_minutes = EXCLUDED.active_minutes,
+            sedentary_minutes = EXCLUDED.sedentary_minutes,
+            nutrition_calories = EXCLUDED.nutrition_calories,
+            water = EXCLUDED.water,
+            weight = EXCLUDED.weight,
+            bmi = EXCLUDED.bmi,
+            fat = EXCLUDED.fat,
+            oxygen_saturation = EXCLUDED.oxygen_saturation,
+            respiratory_rate = EXCLUDED.respiratory_rate,
+            temperature = EXCLUDED.temperature;
+        """,
+        (
+            user_id_1, date,
+            None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, None, None, None
+        )
     )
 
     # Caso 4: Datos inconsistentes
     print("\n5. Insertando datos inconsistentes...")
     date = (base_date + timedelta(days=3)).strftime("%Y-%m-%d")
-    save_to_db(
-        user_id=user_id_1,
-        date=date,
-        steps=15000,  # Alto número de pasos
-        heart_rate=95,  # Frecuencia cardíaca elevada
-        sleep_minutes=480,
-        calories=1200,  # Calorías bajas para la actividad
-        distance=2.0,   # Distancia baja para los pasos
-        floors=25,      # Número alto de pisos
-        elevation=250.5,
-        active_minutes=30,  # Minutos activos bajos para los pasos
-        sedentary_minutes=600,
-        nutrition_calories=3500,  # Calorías de nutrición muy altas
-        water=1.0,
-        weight=70.5,
-        bmi=22.5,
-        fat=18.5,
-        oxygen_saturation=92.0,  # Saturación de oxígeno ligeramente baja
-        respiratory_rate=16.5,
-        temperature=36.5
+    db.execute_query(
+        """
+        INSERT INTO daily_summaries (
+            user_id, date, steps, heart_rate, sleep_minutes,
+            calories, distance, floors, elevation, active_minutes,
+            sedentary_minutes, nutrition_calories, water, weight,
+            bmi, fat, oxygen_saturation, respiratory_rate, temperature
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+        ON CONFLICT (user_id, date) DO UPDATE SET
+            steps = EXCLUDED.steps,
+            heart_rate = EXCLUDED.heart_rate,
+            sleep_minutes = EXCLUDED.sleep_minutes,
+            calories = EXCLUDED.calories,
+            distance = EXCLUDED.distance,
+            floors = EXCLUDED.floors,
+            elevation = EXCLUDED.elevation,
+            active_minutes = EXCLUDED.active_minutes,
+            sedentary_minutes = EXCLUDED.sedentary_minutes,
+            nutrition_calories = EXCLUDED.nutrition_calories,
+            water = EXCLUDED.water,
+            weight = EXCLUDED.weight,
+            bmi = EXCLUDED.bmi,
+            fat = EXCLUDED.fat,
+            oxygen_saturation = EXCLUDED.oxygen_saturation,
+            respiratory_rate = EXCLUDED.respiratory_rate,
+            temperature = EXCLUDED.temperature;
+        """,
+        (
+            user_id_1, date,
+            15000, 95, 480, 1200, 2.0, 25, 250.5, 30, 600,
+            3500, 1.0, 70.5, 22.5, 18.5, 92.0, 16.5, 36.5
+        )
     )
 
     print("\n6. Evaluando alertas para el usuario...")
-    from alert_rules import evaluate_all_alerts
-    alerts = evaluate_all_alerts(user_id_1, datetime.now())
-    print(f"Alertas generadas: {alerts}")
+    try:
+        from alert_rules import evaluate_all_alerts
+        alerts = evaluate_all_alerts(user_id_1, datetime.now())
+        print(f"Alertas generadas: {alerts}")
+    except Exception as e:
+        print(f"Error al evaluar alertas: {e}")
 
+    db.close()
     print("\n=== Pruebas completadas ===\n")
 
 def insert_daily_summary(user_id, date, **data):
@@ -1305,8 +1369,185 @@ def create_test_data():
     finally:
         conn.close()
 
+def generate_demo_data():
+    """
+    Genera datos de ejemplo completos para demo/presentación:
+    - 3 usuarios
+    - 7 días de daily summaries por usuario (con variedad: normales, bajos, altos, nulos, inconsistentes)
+    - Datos intradía ricos y anómalos SOLO para el primer usuario (varios tipos, heart_rate anomaly bien construida)
+    - Alertas generadas automáticamente (y solo una manual de inactivity_pattern_analysis)
+    """
+    from datetime import datetime, timedelta
+    from alert_rules import evaluate_all_alerts
+    import random
+
+    print("[DEMO] Iniciando generación de datos demo...")
+    db = DatabaseManager()
+    if not db.connect():
+        print("[DEMO] No se pudo conectar a la base de datos para demo data.")
+        return
+
+    # Usuarios demo
+    users = [
+        {"name": "Ana Demo", "email": "ana.demo@example.com"},
+        {"name": "Luis Prueba", "email": "luis.prueba@example.com"},
+        {"name": "Maria Test", "email": "maria.test@example.com"},
+    ]
+    user_ids = []
+    for u in users:
+        user_id = db.add_user(u["name"], u["email"], access_token="tok", refresh_token="ref")
+        user_ids.append(user_id)
+        print(f"[DEMO] Usuario creado: {u['name']} (ID: {user_id})")
+
+    base_date = datetime.now().date()
+    print("[DEMO] Insertando daily summaries...")
+    for idx, user_id in enumerate(user_ids):
+        for i in range(7):
+            date = base_date - timedelta(days=6-i)
+            # Variedad de datos
+            if i == 0:
+                steps = 9000 + idx*1000
+                heart_rate = 65 + idx*2
+                sleep = 420
+                sedentary = 600
+            elif i == 1:
+                steps = 2000
+                heart_rate = 90
+                sleep = 400
+                sedentary = 1100
+            elif i == 2:
+                steps = None
+                heart_rate = None
+                sleep = None
+                sedentary = None
+            elif i == 3:
+                steps = 20000
+                heart_rate = 120
+                sleep = 200
+                sedentary = 200
+            elif i == 4:
+                steps = 8000
+                heart_rate = 70
+                sleep = 120
+                sedentary = 700
+            elif i == 5:
+                steps = 4000
+                heart_rate = 75
+                sleep = 430
+                sedentary = 1300
+            else:
+                steps = 10000
+                heart_rate = 68
+                sleep = 450
+                sedentary = 500
+            db.execute_query(
+                """
+                INSERT INTO daily_summaries (
+                    user_id, date, steps, heart_rate, sleep_minutes,
+                    calories, distance, floors, elevation, active_minutes,
+                    sedentary_minutes, nutrition_calories, water, weight,
+                    bmi, fat, oxygen_saturation, respiratory_rate, temperature
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                ON CONFLICT (user_id, date) DO UPDATE SET
+                    steps = EXCLUDED.steps,
+                    heart_rate = EXCLUDED.heart_rate,
+                    sleep_minutes = EXCLUDED.sleep_minutes,
+                    calories = EXCLUDED.calories,
+                    distance = EXCLUDED.distance,
+                    floors = EXCLUDED.floors,
+                    elevation = EXCLUDED.elevation,
+                    active_minutes = EXCLUDED.active_minutes,
+                    sedentary_minutes = EXCLUDED.sedentary_minutes,
+                    nutrition_calories = EXCLUDED.nutrition_calories,
+                    water = EXCLUDED.water,
+                    weight = EXCLUDED.weight,
+                    bmi = EXCLUDED.bmi,
+                    fat = EXCLUDED.fat,
+                    oxygen_saturation = EXCLUDED.oxygen_saturation,
+                    respiratory_rate = EXCLUDED.respiratory_rate,
+                    temperature = EXCLUDED.temperature;
+                """,
+                (
+                    user_id, date,
+                    steps, heart_rate, sleep,
+                    1800+random.randint(-200,200), 7.0+random.random(), 10+random.randint(-2,2), 20.0+random.random(),
+                    60+random.randint(-10,10), sedentary,
+                    2000+random.randint(-300,300), 2.0+random.random(), 70+random.randint(-3,3),
+                    22.0+random.random(), 18.0+random.random(), 96.0+random.random(), 16.0+random.random(), 36.5+random.random()
+                )
+            )
+            print(f"[DEMO] Daily summary insertado para usuario {user_id} en fecha {date}")
+
+    # SOLO el primer usuario recibe datos intradía ricos y anómalos
+    first_user_id = user_ids[0]
+    print(f"[DEMO] Insertando datos intradía jugosos SOLO para usuario {first_user_id}...")
+    for j in range(3):  # 3 días: hoy y dos anteriores
+        date = base_date - timedelta(days=j)
+        for h in range(24):
+            for m in range(0, 60, 15):
+                t = datetime.combine(date, datetime.min.time()) + timedelta(hours=h, minutes=m)
+                # --- HEART RATE ---
+                # Normal casi todo el día
+                hr = 70 + (h % 3) * 3 + (m // 15)
+                # Ventana corta de HR alto (1h) al final del segundo día (j==1, h==22)
+                if j == 1 and h == 22:
+                    hr = 140 + random.randint(0, 10)  # Anomalía clara
+                db.execute_query(
+                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+                    (first_user_id, t, 'heart_rate', hr)
+                )
+                # --- STEPS ---
+                steps = 40 + random.randint(-5, 5)
+                # Ventana de steps = 0 (inactividad) en el segundo día, h==15-16
+                if j == 1 and h in [15, 16]:
+                    steps = 0
+                # NUEVO: Ventana de steps > 100 (actividad normal) en el tercer día, h==10-12
+                if j == 2 and h in [10, 11, 12]:
+                    steps = 120 + random.randint(0, 20)
+                db.execute_query(
+                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+                    (first_user_id, t, 'steps', steps)
+                )
+                # --- SEDENTARY MINUTES ---
+                sedentary = 10 + random.randint(-2, 2)
+                # Ventana de sedentarismo alto en el primer día, h==10-12
+                if j == 0 and h in [10, 11, 12]:
+                    sedentary = 30
+                db.execute_query(
+                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+                    (first_user_id, t, 'sedentary_minutes', sedentary)
+                )
+                # --- ACTIVE ZONE MINUTES ---
+                azm = 2 + random.randint(0, 2)
+                # Ventana de AZM = 0 en el tercer día, h==8-9
+                if j == 2 and h in [8, 9]:
+                    azm = 0
+                db.execute_query(
+                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+                    (first_user_id, t, 'active_zone_minutes', azm)
+                )
+        print(f"[DEMO] Datos intradía jugosos insertados para usuario {first_user_id} en fecha {date}.")
+
+    print("[DEMO] Evaluando alertas para todos los usuarios...")
+    for idx, user_id in enumerate(user_ids):
+        for i in range(7):
+            date = base_date - timedelta(days=6-i)
+            dt = datetime.combine(date, datetime.max.time().replace(microsecond=0))
+            print(f"[DEMO] Evaluando alertas para usuario {user_id} en fecha {date}...")
+            evaluate_all_alerts(user_id, dt)
+        db.execute_query(
+            "INSERT INTO alerts (user_id, alert_type, priority, triggering_value, threshold_value, alert_time, details) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (user_id, 'inactivity_pattern_analysis', 'high', 0, 'N/A', datetime.now(), 'Alerta manual de patrón de inactividad para demo')
+        )
+        print(f"[DEMO] Alerta manual insertada para usuario {user_id}.")
+    db.close()
+    print("\n=== Datos de demo generados correctamente ===\n")
+
 if __name__ == "__main__":
     # Reset and reinitialize the database
     reset_database()
-    # Create test data
-    #create_test_data()
+    # Crea los datos de demo
+    generate_demo_data()
+

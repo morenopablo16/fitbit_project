@@ -292,30 +292,28 @@ def check_sleep_duration_change(user_id, current_date):
 def check_heart_rate_anomaly(user_id, current_date):
     """Verifica anomalías en la frecuencia cardíaca."""
     try:
-        # Obtener datos intradía de las últimas 24 horas
-        start_time = current_date - timedelta(hours=24)
-        heart_rate_data = get_intraday_metrics(user_id, 'heart_rate', start_time, current_date)
+        start_time = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_time = current_date.replace(hour=23, minute=59, second=59, microsecond=0)
+        heart_rate_data = get_intraday_metrics(user_id, 'heart_rate', start_time, end_time)
         if not heart_rate_data:
-            print(f"No hay datos intradía de frecuencia cardíaca para el usuario {user_id}. Probablemente no tienes acceso a los datos intradía de Fitbit.")
             return False
         values = [hr[1] for hr in heart_rate_data]
-        times = [hr[0] for hr in heart_rate_data]
         avg_hr = sum(values) / len(values)
         std_dev = (sum((x - avg_hr) ** 2 for x in values) / len(values)) ** 0.5
-        # Aumentado el umbral de 2 a 2.5 desviaciones estándar para reducir falsos positivos
+        # Umbral original: 2.5 desviaciones estándar y porcentaje original (por ejemplo, >2.5%)
         anomalies = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > 2.5 * std_dev]
         if anomalies:
             anomaly_percentage = (len(anomalies) / len(heart_rate_data)) * 100
             max_idx, max_anomaly = max(anomalies, key=lambda x: abs(x[1][1] - avg_hr))
             max_anomaly_value = max_anomaly[1]
-            max_anomaly_time = max_anomaly[0]
-            max_deviation = abs(max_anomaly_value - avg_hr)
+            # Ajustar timestamp: quitar microsegundos y asegurar formato exacto
+            alert_timestamp = heart_rate_data[max_idx][0].replace(microsecond=0)
             db = DatabaseManager()
             if not db.connect():
                 return False
             try:
-                # Umbral aumentado al 15% para reducir falsos positivos
-                if anomaly_percentage > 15 or max_deviation > 2.5 * std_dev:
+                # Restaurar lógica original: alerta si hay al menos una anomalía clara
+                if anomaly_percentage > 15 or abs(max_anomaly_value - avg_hr) > 2.5 * std_dev:
                     priority = "high"
                     threshold = 2.5
                 elif anomaly_percentage > 10:
@@ -324,16 +322,17 @@ def check_heart_rate_anomaly(user_id, current_date):
                 else:
                     return False
                 details = (f"Anomalía en frecuencia cardíaca: {anomaly_percentage:.1f}% de lecturas anómalas. "
-                         f"Valor máximo: {max_anomaly_value:.0f} bpm a las {max_anomaly_time.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
+                         f"Valor máximo: {max_anomaly_value:.0f} bpm a las {alert_timestamp.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="heart_rate_anomaly",
                     priority=priority,
                     triggering_value=max_anomaly_value,
                     threshold=threshold,
-                    timestamp=max_anomaly_time,
+                    timestamp=alert_timestamp,
                     details=details
                 )
+                print(f"[heart_rate_anomaly] user_id={user_id} avg_hr={avg_hr:.2f} max_value={max_anomaly_value} anomaly_percentage={anomaly_percentage:.2f}% ALERTA {priority.upper()} generada.")
                 return True
             finally:
                 db.close()
@@ -596,13 +595,13 @@ def check_intraday_activity_drop(user_id, current_date):
     return False
 
 def evaluate_all_alerts(user_id, current_date):
-    """Evalúa todas las reglas de alerta para un usuario."""
+    """Evalúa todas las reglas de alerta para un usuario (versión final sin prints de debug)."""
     try:
         alerts_triggered = False
         # Verificar caída en actividad física
         if check_activity_drop(user_id, current_date):
             alerts_triggered = True
-        # Verificar anomalías en frecuencia cardíaca - No se ejecuta si no hay datos intradía
+        # Verificar anomalías en frecuencia cardíaca
         try:
             if check_heart_rate_anomaly(user_id, current_date):
                 alerts_triggered = True
@@ -627,7 +626,7 @@ def evaluate_all_alerts(user_id, current_date):
                 alerts_triggered = True
         except Exception as e:
             print(f"Error al verificar calidad de datos: {e}")
-        # Nueva: detectar caídas de actividad intradía
+        # Detectar caídas de actividad intradía
         try:
             if check_intraday_activity_drop(user_id, current_date):
                 alerts_triggered = True
@@ -636,7 +635,7 @@ def evaluate_all_alerts(user_id, current_date):
         return alerts_triggered
     except Exception as e:
         print(f"Error al evaluar alertas: {e}")
-        return False 
+        return False
 
 def get_triggered_alerts(user_id, current_date):
     """
@@ -685,4 +684,4 @@ def get_triggered_alerts(user_id, current_date):
     except Exception as e:
         print(f"Error checking intraday activity drop: {e}")
         
-    return triggered_alerts 
+    return triggered_alerts

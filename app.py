@@ -960,11 +960,29 @@ def alerts_dashboard():
         app.logger.info(f"Query: {query}")
         app.logger.info(f"Params: {params}")
 
+
         try:
             # Obtener el total de alertas para la paginación
             count_query = f"SELECT COUNT(*) FROM ({query}) AS count_query"
             total = db.execute_query(count_query, params)[0][0]
             app.logger.info(f"Total de alertas encontradas: {total}")
+
+            # Obtener el total de alertas por prioridad y no reconocidas (sin paginación)
+            count_priority_query = f"""
+                SELECT 
+                    SUM(CASE WHEN a.priority = 'high' THEN 1 ELSE 0 END) AS high,
+                    SUM(CASE WHEN a.priority = 'medium' THEN 1 ELSE 0 END) AS medium,
+                    SUM(CASE WHEN a.priority = 'low' THEN 1 ELSE 0 END) AS low,
+                    SUM(CASE WHEN a.acknowledged = FALSE THEN 1 ELSE 0 END) AS unacknowledged
+                FROM ({query}) AS a
+            """
+            alert_counts_result = db.execute_query(count_priority_query, params)[0]
+            alert_counts = {
+                'high': alert_counts_result[0] or 0,
+                'medium': alert_counts_result[1] or 0,
+                'low': alert_counts_result[2] or 0,
+                'unacknowledged': alert_counts_result[3] or 0
+            }
 
             # Aplicar paginación
             query += " LIMIT %s OFFSET %s"
@@ -980,7 +998,8 @@ def alerts_dashboard():
                                     alerts=[], 
                                     pagination=None,
                                     filters_dict=filters_dict,
-                                    now=datetime.now(timezone.utc))
+                                    now=datetime.now(timezone.utc),
+                                    alert_counts=alert_counts)
 
             # Convertir las tuplas en diccionarios con nombres de atributos
             import json  # <--- Añadido para parsear JSON
@@ -1048,6 +1067,52 @@ def alerts_dashboard():
                         'user_email': alert[10],
                         'intraday_data': intraday_data
                     }
+
+                    # Si es heart_rate_anomaly, calcular y añadir el rango anómalo
+                    if alert[3]:
+                        app.logger.info(f"DEBUG ALERT: id={alert[0]}, alert_type={alert[3]}")
+                        if str(alert[3]).strip().lower() == 'heart_rate_anomaly':
+                            app.logger.info(f"DEBUG: Procesando heart_rate_anomaly para alerta id={alert[0]}")
+                            import json, re
+                            mean = None
+                            std_dev = None
+                            threshold_de = None
+                            upper_bound = None
+                            lower_bound = None
+                            details_raw = alert[7]
+                            details_obj = None
+                            app.logger.info(f"DEBUG: details_raw={details_raw}")
+                            # 1. Intentar JSON
+                            if isinstance(details_raw, str):
+                                try:
+                                    details_obj = json.loads(details_raw)
+                                    app.logger.info(f"DEBUG: details_obj (parsed)={details_obj}")
+                                except Exception as e:
+                                    app.logger.warning(f"DEBUG: Error parseando details_raw: {e}")
+                                    details_obj = None
+                            elif isinstance(details_raw, dict):
+                                details_obj = details_raw
+                                app.logger.info(f"DEBUG: details_obj (dict)={details_obj}")
+                            # 2. Si es JSON válido, usarlo
+                            if details_obj and isinstance(details_obj, dict):
+                                mean = float(details_obj.get('mean', 0))
+                                std_dev = float(details_obj.get('std_dev', 0))
+                                threshold_de = float(details_obj.get('threshold', 0))
+                                app.logger.info(f"DEBUG: mean={mean}, std_dev={std_dev}, threshold_de={threshold_de}")
+                                if mean is not None and std_dev is not None and threshold_de is not None and std_dev != 0:
+                                    upper_bound = mean + threshold_de * std_dev
+                                    lower_bound = mean - threshold_de * std_dev
+                            # 3. Si no hay JSON, intentar extraer del string (>X o <Y)
+                            if (upper_bound is None or lower_bound is None) and isinstance(details_raw, str):
+                                match = re.search(r">\s*([\d\.]+)\s*o\s*<\s*([\d\.]+)", details_raw)
+                                if match:
+                                    upper_bound = float(match.group(1))
+                                    lower_bound = float(match.group(2))
+                                    app.logger.info(f"DEBUG: Extraído del string: upper_bound={upper_bound}, lower_bound={lower_bound}")
+                            if upper_bound is not None and lower_bound is not None:
+                                alert_dict['hr_upper_bound'] = upper_bound
+                                alert_dict['hr_lower_bound'] = lower_bound
+
                     # --- Solución al problema de details ---
                     if isinstance(alert_dict['details'], str):
                         try:
@@ -1084,7 +1149,8 @@ def alerts_dashboard():
                                 alerts=alerts, 
                                 pagination=pagination, 
                                 filters_dict=filters_dict,
-                                now=now)
+                                now=now,
+                                alert_counts=alert_counts)
 
         except Exception as e:
             app.logger.error(f"Error en la consulta SQL: {e}")

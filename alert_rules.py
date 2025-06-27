@@ -277,40 +277,24 @@ def check_heart_rate_anomaly(user_id, current_date):
         start_time = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_time = current_date.replace(hour=23, minute=59, second=59, microsecond=0)
         heart_rate_data = get_intraday_metrics(user_id, 'heart_rate', start_time, end_time)
-        print(f"[HRA][DEBUG] user_id={user_id} fecha={current_date}")
-        print(f"[HRA][DEBUG] start_time={start_time} end_time={end_time}")
-        print(f"[HRA][DEBUG] heart_rate_data sample={heart_rate_data[:10]} total={len(heart_rate_data) if heart_rate_data else 0}")
         if not heart_rate_data:
-            print("[heart_rate_anomaly][DEBUG] ---")
-            print(f"[heart_rate_anomaly][DEBUG] No hay datos intradía de heart_rate para user_id={user_id}")
             return False
         values = [hr[1] for hr in heart_rate_data]
-        print(f"[HRA][DEBUG] values sample={values[:10]} total={len(values)}")
         avg_hr = sum(values) / len(values)
         std_dev = (sum((x - avg_hr) ** 2 for x in values) / len(values)) ** 0.5
-        print(f"[HRA][DEBUG] avg_hr={avg_hr}, std_dev={std_dev}")
-        for i, hr in enumerate(values):
-            print(f"[HRA][DEBUG] idx={i} hr={hr} delta={hr-avg_hr} abs_delta={abs(hr-avg_hr)}")
         # Umbrales clínicos personalizados para ancianos:
         # MEDIUM: >2.5 std_dev, HIGH: >5.0 std_dev
         medium_mult = 2.5
         high_mult = 5.0
         high_peaks = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > high_mult * std_dev]
         medium_peaks = [(i, hr) for i, hr in enumerate(heart_rate_data) if medium_mult * std_dev < abs(hr[1] - avg_hr) <= high_mult * std_dev]
-        print(f"[HRA][DEBUG] high_peaks: {high_peaks}")
-        print(f"[HRA][DEBUG] medium_peaks: {medium_peaks}")
         # Detectar anomalías por acumulación
         high_accum = [hr for hr in values if abs(hr - avg_hr) > high_mult * std_dev]
         medium_accum = [hr for hr in values if medium_mult * std_dev < abs(hr - avg_hr) <= high_mult * std_dev]
-        print(f"[HRA][DEBUG] high_accum: {high_accum}")
-        print(f"[HRA][DEBUG] medium_accum: {medium_accum}")
         high_accum_pct = (len(high_accum) / len(values)) * 100
         medium_accum_pct = (len(medium_accum) / len(values)) * 100
-        print(f"[HRA][DEBUG] high_accum_pct={high_accum_pct}, medium_accum_pct={medium_accum_pct}")
-        print(f"[HRA][DEBUG] thresholds: high_peak > {high_mult*std_dev:.1f} (>{avg_hr+high_mult*std_dev:.1f} or <{avg_hr-high_mult*std_dev:.1f}), medium_peak > {medium_mult*std_dev:.1f} (>{avg_hr+medium_mult*std_dev:.1f} or <{avg_hr-medium_mult*std_dev:.1f})")
         db = DatabaseManager()
         if not db.connect():
-            print("[HRA][DEBUG] No se pudo conectar a la base de datos para alertas.")
             return False
         try:
             alerts_triggered = False
@@ -326,8 +310,6 @@ def check_heart_rate_anomaly(user_id, current_date):
                     timestamp=hr[0],
                     details=details
                 )
-                print(f"[heart_rate_anomaly][DEBUG] ALERTA HIGH generada por pico individual para user_id={user_id} en {hr[0]}")
-                print(f"[HRA][DEBUG] HIGH PEAK DETECTED idx={idx} hr={hr}")
                 alerts_triggered = True
             # MEDIUM ALERT: individual peak
             for idx, hr in medium_peaks:
@@ -341,8 +323,6 @@ def check_heart_rate_anomaly(user_id, current_date):
                     timestamp=hr[0],
                     details=details
                 )
-                print(f"[heart_rate_anomaly][DEBUG] ALERTA MEDIUM generada por pico individual para user_id={user_id} en {hr[0]}")
-                print(f"[HRA][DEBUG] MEDIUM PEAK DETECTED idx={idx} hr={hr}")
                 alerts_triggered = True
             # HIGH ALERT: acumulación
             if high_accum_pct >= 15:
@@ -356,8 +336,6 @@ def check_heart_rate_anomaly(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[HRA][DEBUG] HIGH ACCUM DETECTED pct={high_accum_pct}")
-                print(f"[heart_rate_anomaly][DEBUG] ALERTA HIGH generada por acumulación para user_id={user_id}")
                 alerts_triggered = True
             # MEDIUM ALERT: acumulación
             if medium_accum_pct >= 10:
@@ -371,13 +349,9 @@ def check_heart_rate_anomaly(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[heart_rate_anomaly][DEBUG] ALERTA MEDIUM generada por acumulación para user_id={user_id}")
-                print(f"[HRA][DEBUG] MEDIUM ACCUM DETECTED pct={medium_accum_pct}")
                 alerts_triggered = True
             if alerts_triggered:
                 return True
-            else:
-                print(f"[heart_rate_anomaly][DEBUG] No se detectaron anomalías relevantes para user_id={user_id}")
         finally:
             db.close()
     except Exception as e:

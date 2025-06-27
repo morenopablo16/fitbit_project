@@ -164,25 +164,25 @@
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="stats-card text-center">
-                <div class="text-danger stats-number">{{ alerts|selectattr('priority', 'equalto', 'high')|list|length }}</div>
+                <div class="text-danger stats-number">{{ alert_counts.high }}</div>
                 <div>{{ _('High Priority Alerts') }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stats-card text-center">
-                <div class="text-warning stats-number">{{ alerts|selectattr('priority', 'equalto', 'medium')|list|length }}</div>
+                <div class="text-warning stats-number">{{ alert_counts.medium }}</div>
                 <div>{{ _('Medium Priority Alerts') }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stats-card text-center">
-                <div class="text-success stats-number">{{ alerts|selectattr('priority', 'equalto', 'low')|list|length }}</div>
+                <div class="text-success stats-number">{{ alert_counts.low }}</div>
                 <div>{{ _('Low Priority Alerts') }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stats-card text-center">
-                <div class="text-primary stats-number">{{ alerts|selectattr('acknowledged', 'equalto', false)|list|length }}</div>
+                <div class="text-primary stats-number">{{ alert_counts.unacknowledged }}</div>
                 <div>{{ _('Unacknowledged Alerts') }}</div>
             </div>
         </div>
@@ -539,7 +539,15 @@ function showAlertDetails(alertId) {
     document.getElementById('modal-type').textContent = '{{ _("' + alert.alert_type + '") }}';
     document.getElementById('modal-priority').textContent = '{{ _("' + alert.priority.charAt(0).toUpperCase() + alert.priority.slice(1) + '") }}';
     document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
-    document.getElementById('modal-threshold').textContent = alert.threshold_value || 'N/A';
+    // Mostrar rango anómalo para heart_rate_anomaly
+    if (alert.alert_type === 'heart_rate_anomaly' && alert.hr_upper_bound !== undefined && alert.hr_lower_bound !== undefined) {
+        // Redondear a 1 decimal
+        const upper = Number(alert.hr_upper_bound).toFixed(1);
+        const lower = Number(alert.hr_lower_bound).toFixed(1);
+        document.getElementById('modal-threshold').textContent = `Rango anómalo: >${upper} bpm o <${lower} bpm`;
+    } else {
+        document.getElementById('modal-threshold').textContent = alert.threshold_value || 'N/A';
+    }
     document.getElementById('modal-status').textContent = alert.acknowledged ? '{{ _("Acknowledged") }}' : '{{ _("Pending") }}';
   // Configurar el botón de reconocimiento
   const acknowledgeBtn = document.getElementById('modal-acknowledge-btn');
@@ -582,15 +590,34 @@ function showAlertDetails(alertId) {
             anomalyValue = minValue;
             anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
         } else if (baseAlertType === 'heart' || baseAlertType === 'heart_rate') {
-                    borderColor = 'rgb(255, 99, 132)';
-                    backgroundColor = 'rgba(255, 99, 132, 0.2)';
-                    metricLabel = 'Frecuencia Cardíaca';
-                    yAxisLabel = 'Frecuencia Cardíaca (bpm)';
-            // Buscar el valor máximo anómalo
-            let maxValue = Math.max(...alert.intraday_data.values);
-            anomalyIndices = alert.intraday_data.values.map((v, i) => v === maxValue ? i : -1).filter(i => i !== -1);
-            anomalyValue = maxValue;
-            anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
+            borderColor = 'rgb(255, 99, 132)';
+            backgroundColor = 'rgba(255, 99, 132, 0.2)';
+            metricLabel = 'Frecuencia Cardíaca';
+            yAxisLabel = 'Frecuencia Cardíaca (bpm)';
+            // Buscar el índice del valor triggering_value (el valor que disparó la alerta)
+            let idx = -1;
+            if (alert.triggering_value !== undefined && alert.triggering_value !== null) {
+                // Buscar el índice más cercano al triggering_value (puede haber decimales)
+                let minDiff = Infinity;
+                alert.intraday_data.values.forEach((v, i) => {
+                    const diff = Math.abs(Number(v) - Number(alert.triggering_value));
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        idx = i;
+                    }
+                });
+            }
+            if (idx !== -1) {
+                anomalyIndices = [idx];
+                anomalyValue = alert.intraday_data.values[idx];
+                anomalyTime = alert.intraday_data.times[idx];
+            } else {
+                // Fallback: marcar el máximo si no se encuentra triggering_value
+                let maxValue = Math.max(...alert.intraday_data.values);
+                anomalyIndices = alert.intraday_data.values.map((v, i) => v === maxValue ? i : -1).filter(i => i !== -1);
+                anomalyValue = maxValue;
+                anomalyTime = alert.intraday_data.times[anomalyIndices[0]];
+            }
         } else if (alert.alert_type === 'intraday_activity_drop') {
             borderColor = 'rgb(40, 167, 69)';
             backgroundColor = 'rgba(40, 167, 69, 0.2)';
@@ -828,9 +855,24 @@ function showAlertDetails(alertId) {
                 translatedDetails = `${translations.noStepsBetween} ${matches[1]} ${translations.and} ${matches[2]}`;
             }
         } else if (alert.alert_type === 'heart_rate_anomaly') {
-            translatedDetails = translations.heartRateAbove;
-            if (alert.triggering_value && alert.threshold_value) {
-                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value}, ${translations.comparedToAverage}: ${alert.threshold_value})`;
+            // Mostrar información clínica clara: valor detectado, rango anómalo, media
+            let triggering = alert.triggering_value !== undefined && alert.triggering_value !== null ? Number(alert.triggering_value).toFixed(1) : 'N/A';
+            let mean = (alert.details && alert.details.mean !== undefined) ? Number(alert.details.mean).toFixed(1) : null;
+            // Si no viene en details, intentar buscar en el string (caso legacy)
+            if (!mean && alert.details && typeof alert.details === 'string') {
+                const meanMatch = alert.details.match(/media\s*[:=]\s*([\d\.]+)/i);
+                if (meanMatch) mean = Number(meanMatch[1]).toFixed(1);
+            }
+            let upper = (alert.hr_upper_bound !== undefined && alert.hr_upper_bound !== null) ? Number(alert.hr_upper_bound).toFixed(1) : null;
+            let lower = (alert.hr_lower_bound !== undefined && alert.hr_lower_bound !== null) ? Number(alert.hr_lower_bound).toFixed(1) : null;
+            if (upper && lower && mean) {
+                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Rango anómalo: >${upper} bpm o <${lower} bpm. Media: ${mean} bpm.`;
+            } else if (upper && lower) {
+                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Rango anómalo: >${upper} bpm o <${lower} bpm.`;
+            } else if (mean) {
+                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Media: ${mean} bpm.`;
+            } else {
+                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm.`;
             }
         } else if (alert.alert_type === 'activity_drop') {
             translatedDetails = translations.significantDecrease;

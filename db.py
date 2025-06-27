@@ -1390,8 +1390,8 @@ def generate_demo_data():
     # Usuarios demo
     users = [
         {"name": "Ana Demo", "email": "ana.demo@example.com"},
-        {"name": "Luis Prueba", "email": "luis.prueba@example.com"},
-        {"name": "Maria Test", "email": "maria.test@example.com"},
+        #{"name": "Luis Prueba", "email": "luis.prueba@example.com"},
+        #{"name": "Maria Test", "email": "maria.test@example.com"},
     ]
     user_ids = []
     for u in users:
@@ -1483,52 +1483,61 @@ def generate_demo_data():
     # SOLO el primer usuario recibe datos intradía ricos y anómalos
     first_user_id = user_ids[0]
     print(f"[DEMO] Insertando datos intradía jugosos SOLO para usuario {first_user_id}...")
-    for j in range(3):  # 3 días: hoy y dos anteriores
+    import random
+    # Días 1 y 2: normales (media estable, pero con variabilidad)
+    for j in range(2):
         date = base_date - timedelta(days=j)
         for h in range(24):
             for m in range(0, 60, 15):
                 t = datetime.combine(date, datetime.min.time()) + timedelta(hours=h, minutes=m)
-                # --- HEART RATE ---
-                # Normal casi todo el día
-                hr = 70 + (h % 3) * 3 + (m // 15)
-                # Ventana corta de HR alto (1h) al final del segundo día (j==1, h==22)
-                if j == 1 and h == 22:
-                    hr = 140 + random.randint(0, 10)  # Anomalía clara
+                hr = 72 + random.randint(-4, 4)  # heart rate normal con variabilidad
+                st = 38 + random.randint(-6, 6)  # steps normal con variabilidad
                 db.execute_query(
                     "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
                     (first_user_id, t, 'heart_rate', hr)
                 )
-                # --- STEPS ---
-                steps = 40 + random.randint(-5, 5)
-                # Ventana de steps = 0 (inactividad) en el segundo día, h==15-16
-                if j == 1 and h in [15, 16]:
-                    steps = 0
-                # NUEVO: Ventana de steps > 100 (actividad normal) en el tercer día, h==10-12
-                if j == 2 and h in [10, 11, 12]:
-                    steps = 120 + random.randint(0, 20)
                 db.execute_query(
                     "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
-                    (first_user_id, t, 'steps', steps)
+                    (first_user_id, t, 'steps', st)
                 )
-                # --- SEDENTARY MINUTES ---
-                sedentary = 10 + random.randint(-2, 2)
-                # Ventana de sedentarismo alto en el primer día, h==10-12
-                if j == 0 and h in [10, 11, 12]:
-                    sedentary = 30
-                db.execute_query(
-                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
-                    (first_user_id, t, 'sedentary_minutes', sedentary)
-                )
-                # --- ACTIVE ZONE MINUTES ---
-                azm = 2 + random.randint(0, 2)
-                # Ventana de AZM = 0 en el tercer día, h==8-9
-                if j == 2 and h in [8, 9]:
-                    azm = 0
-                db.execute_query(
-                    "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
-                    (first_user_id, t, 'active_zone_minutes', azm)
-                )
-        print(f"[DEMO] Datos intradía jugosos insertados para usuario {first_user_id} en fecha {date}.")
+    # Día 3: anomalías para alertas high y medium, y variabilidad en normales
+    date = base_date - timedelta(days=2)
+    # Generar datos base normales
+    hr_values = []
+    for h in range(24):
+        for m in range(0, 60, 15):
+            t = datetime.combine(date, datetime.min.time()) + timedelta(hours=h, minutes=m)
+            # Por defecto, valor normal
+            hr = 72 + random.randint(-4, 4)
+            # Insertar solo dos anomalías: una high y una medium
+            if h == 10 and m == 0:
+                hr = 150  # HIGH PEAK
+            elif h == 14 and m == 0:
+                hr = 105  # MEDIUM PEAK
+            hr_values.append((h, m, hr))
+
+    # Insertar en la base de datos
+    for idx, (h, m, hr) in enumerate(hr_values):
+        t = datetime.combine(date, datetime.min.time()) + timedelta(hours=h, minutes=m)
+        # Steps: mantener lógica anterior para steps
+        st = 38 + random.randint(-6, 6)
+        if h == 12 and m == 0:
+            st = 200  # HIGH
+        elif h == 16 and m == 0:
+            st = 0    # HIGH
+        if h == 8 and m == 0:
+            st = 85   # MEDIUM
+        elif h == 22 and m == 0:
+            st = 18   # MEDIUM
+        db.execute_query(
+            "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+            (first_user_id, t, 'heart_rate', hr)
+        )
+        db.execute_query(
+            "INSERT INTO intraday_metrics (user_id, time, type, value) VALUES (%s, %s, %s, %s)",
+            (first_user_id, t, 'steps', st)
+        )
+    print(f"[DEMO] Datos intradía simplificados (solo 2 anomalías HR) insertados para usuario {first_user_id}.")
 
     print("[DEMO] Evaluando alertas para todos los usuarios...")
     for idx, user_id in enumerate(user_ids):

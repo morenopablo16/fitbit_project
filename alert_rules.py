@@ -10,65 +10,52 @@ def check_activity_drop(user_id, current_date):
         start_date = current_date - timedelta(days=7)
         end_date = current_date - timedelta(days=1)
         daily_summaries = get_daily_summaries(user_id, start_date, end_date)
-        
         if not daily_summaries or len(daily_summaries) < 2:
             print(f"[activity_drop] No hay suficientes datos para el usuario {user_id}.")
             return False
-            
-        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
-            print(f"[activity_drop] No hay días previos para el usuario {user_id}.")
+            print(f"[activity_drop][DEBUG] No hay días previos para el usuario {user_id}.")
             return False
-            
-        # Calcular promedios solo con valores no nulos y mayores que cero
         valid_steps = [s[3] for s in previous_days if s[3] is not None and s[3] > 0]
         valid_active_minutes = [s[9] for s in previous_days if s[9] is not None and s[9] > 0]
-        
         if not valid_steps or not valid_active_minutes:
-            print(f"[activity_drop] No hay datos válidos de pasos o minutos activos para el usuario {user_id}.")
+            print(f"[activity_drop][DEBUG] No hay datos válidos de pasos o minutos activos para el usuario {user_id}.")
             return False
-            
         avg_steps = sum(valid_steps) / len(valid_steps)
         avg_active_minutes = sum(valid_active_minutes) / len(valid_active_minutes)
-        
-        # Solo generar alertas si hay datos significativos
         if avg_steps < 100 or avg_active_minutes < 5:
-            print(f"[activity_drop] Promedios demasiado bajos para usuario {user_id}: avg_steps={avg_steps}, avg_active_minutes={avg_active_minutes}")
+            print(f"[activity_drop][DEBUG] Promedios demasiado bajos para usuario {user_id}: avg_steps={avg_steps}, avg_active_minutes={avg_active_minutes}")
             return False
-            
-        # Obtener los valores de hoy
         today_data = get_daily_summaries(user_id, current_date, current_date)
         if not today_data:
-            print(f"[activity_drop] No hay datos de hoy para el usuario {user_id}.")
+            print(f"[activity_drop][DEBUG] No hay datos de hoy para el usuario {user_id}.")
             return False
         today_data = today_data[0]
         today_steps = today_data[3] or 0
         today_active_minutes = today_data[9] or 0
-        # Calcular porcentajes de caída
         steps_drop = ((avg_steps - today_steps) / avg_steps * 100) if today_steps < avg_steps else 0
         active_minutes_drop = ((avg_active_minutes - today_active_minutes) / avg_active_minutes * 100) if today_active_minutes < avg_active_minutes else 0
-        # Redondear valores para detalles
         avg_steps = round(avg_steps, 2)
         today_steps = round(today_steps, 2)
         steps_drop = round(steps_drop, 2)
         avg_active_minutes = round(avg_active_minutes, 2)
         today_active_minutes = round(today_active_minutes, 2)
         active_minutes_drop = round(active_minutes_drop, 2)
-        
-        print(f"[activity_drop] user_id={user_id} avg_steps={avg_steps} today_steps={today_steps} steps_drop={steps_drop:.2f}% avg_active_minutes={avg_active_minutes} today_active_minutes={today_active_minutes} active_minutes_drop={active_minutes_drop:.2f}%")
-        
+        print("[activity_drop][DEBUG] ---")
+        print(f"[activity_drop][DEBUG] user_id={user_id}")
+        print(f"[activity_drop][DEBUG] avg_steps={avg_steps}, today_steps={today_steps}, steps_drop={steps_drop:.2f}%")
+        print(f"[activity_drop][DEBUG] avg_active_minutes={avg_active_minutes}, today_active_minutes={today_active_minutes}, active_minutes_drop={active_minutes_drop:.2f}%")
+        print(f"[activity_drop][DEBUG] Thresholds: HIGH>30%, MEDIUM>20%")
         db = DatabaseManager()
         if not db.connect():
             return False
-            
         try:
-            # Solo generar alerta si hoy hay menos pasos/minutos activos que la media
             if (today_steps < avg_steps and steps_drop > 30) or (today_active_minutes < avg_active_minutes and active_minutes_drop > 30):
+                print(f"[activity_drop][DEBUG] Se dispara alerta HIGH para user_id={user_id}")
                 priority = "high"
                 threshold = 30.0
                 drop_value = max(steps_drop if today_steps < avg_steps else 0, active_minutes_drop if today_active_minutes < avg_active_minutes else 0)
-                # Mensaje según el tipo de cambio
                 if today_steps < avg_steps:
                     details = (f"Disminución significativa en los pasos diarios (Valor actual: {today_steps:.2f}, comparado con el promedio: {avg_steps:.2f})")
                 elif today_active_minutes < avg_active_minutes:
@@ -84,9 +71,10 @@ def check_activity_drop(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[activity_drop] ALERTA HIGH generada para user_id={user_id} con drop_value={drop_value}")
+                print(f"[activity_drop][DEBUG] ALERTA HIGH generada para user_id={user_id} con drop_value={drop_value}")
                 return True
             elif (today_steps < avg_steps and steps_drop > 20) or (today_active_minutes < avg_active_minutes and active_minutes_drop > 20):
+                print(f"[activity_drop][DEBUG] Se dispara alerta MEDIUM para user_id={user_id}")
                 priority = "medium"
                 threshold = 20.0
                 drop_value = max(steps_drop if today_steps < avg_steps else 0, active_minutes_drop if today_active_minutes < avg_active_minutes else 0)
@@ -105,10 +93,10 @@ def check_activity_drop(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[activity_drop] ALERTA MEDIUM generada para user_id={user_id} con drop_value={drop_value}")
+                print(f"[activity_drop][DEBUG] ALERTA MEDIUM generada para user_id={user_id} con drop_value={drop_value}")
                 return True
             else:
-                print(f"[activity_drop] No se supera el threshold: steps_drop={steps_drop:.2f}%, active_minutes_drop={active_minutes_drop:.2f}% (umbral 20/30%)")
+                print(f"[activity_drop][DEBUG] No se dispara alerta para user_id={user_id}. steps_drop={steps_drop:.2f}%, active_minutes_drop={active_minutes_drop:.2f}% (umbral 20/30%)")
         finally:
             db.close()
     except Exception as e:
@@ -118,57 +106,48 @@ def check_activity_drop(user_id, current_date):
 def check_sedentary_increase(user_id, current_date):
     """Verifica cambios significativos en el tiempo sedentario."""
     try:
-        # Obtener datos de los últimos 7 días (excluyendo hoy)
         start_date = current_date - timedelta(days=7)
         end_date = current_date - timedelta(days=1)
         daily_summaries = get_daily_summaries(user_id, start_date, end_date)
-        
         if not daily_summaries or len(daily_summaries) < 2:
-            print(f"[sedentary_increase] No hay suficientes datos sedentarios para el usuario {user_id} para generar alertas.")
+            print(f"[sedentary_increase][DEBUG] No hay suficientes datos sedentarios para el usuario {user_id} para generar alertas.")
             return False
-            
-        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
-            print(f"[sedentary_increase] No hay datos históricos de tiempo sedentario para el usuario {user_id} para comparar.")
+            print(f"[sedentary_increase][DEBUG] No hay datos históricos de tiempo sedentario para el usuario {user_id} para comparar.")
             return False
-            
-        # Calcular promedio solo con valores no nulos y mayores que cero
         valid_sedentary = [s[11] for s in previous_days if s[11] is not None and s[11] > 0]
         if not valid_sedentary:
-            print(f"[sedentary_increase] No hay datos válidos de tiempo sedentario para el usuario {user_id} para analizar.")
+            print(f"[sedentary_increase][DEBUG] No hay datos válidos de tiempo sedentario para el usuario {user_id} para analizar.")
             return False
-            
         avg_sedentary = sum(valid_sedentary) / len(valid_sedentary)
-        
         if avg_sedentary < 60:
-            print(f"[sedentary_increase] Promedio de tiempo sedentario demasiado bajo ({avg_sedentary} minutos) para generar alertas fiables.")
+            print(f"[sedentary_increase][DEBUG] Promedio de tiempo sedentario demasiado bajo ({avg_sedentary} minutos) para generar alertas fiables.")
             return False
-        
-        # Obtener los valores de hoy
         today_data = get_daily_summaries(user_id, current_date, current_date)
         if not today_data:
-            print(f"[sedentary_increase] No hay datos de tiempo sedentario para hoy para el usuario {user_id}.")
+            print(f"[sedentary_increase][DEBUG] No hay datos de tiempo sedentario para hoy para el usuario {user_id}.")
             return False
-            
         today_data = today_data[0]
         today_sedentary = today_data[11] or 0
-        
         if avg_sedentary == 0:
-            print("[sedentary_increase] Error: Promedio de tiempo sedentario es cero, no se puede calcular el cambio porcentual.")
+            print("[sedentary_increase][DEBUG] Error: Promedio de tiempo sedentario es cero, no se puede calcular el cambio porcentual.")
             return False
-        # Solo alertar si hay un AUMENTO relevante en tiempo sedentario
         if today_sedentary <= avg_sedentary:
-            print(f"[sedentary_increase] El tiempo sedentario ha disminuido o no ha cambiado. No se genera alerta.")
+            print(f"[sedentary_increase][DEBUG] El tiempo sedentario ha disminuido o no ha cambiado. No se genera alerta.")
             return False
         sedentary_change = ((today_sedentary - avg_sedentary) / avg_sedentary * 100)
         sedentary_change = round(sedentary_change, 1)
-        print(f"[sedentary_increase] user_id={user_id} avg_sedentary={avg_sedentary} today_sedentary={today_sedentary} sedentary_change={sedentary_change:.1f}%")
+        print("[sedentary_increase][DEBUG] ---")
+        print(f"[sedentary_increase][DEBUG] user_id={user_id}")
+        print(f"[sedentary_increase][DEBUG] avg_sedentary={avg_sedentary}, today_sedentary={today_sedentary}, sedentary_change={sedentary_change:.1f}%")
+        print(f"[sedentary_increase][DEBUG] Thresholds: HIGH>30%, MEDIUM>20%")
         db = DatabaseManager()
         if not db.connect():
             return False
         try:
             if sedentary_change > 30:
+                print(f"[sedentary_increase][DEBUG] Se dispara alerta HIGH para user_id={user_id}")
                 priority = "high"
                 threshold = 30.0
                 details = f"Aumento significativo en tiempo sedentario: {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
@@ -181,9 +160,10 @@ def check_sedentary_increase(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[sedentary_increase] ALERTA HIGH generada para user_id={user_id} con sedentary_change={sedentary_change}")
+                print(f"[sedentary_increase][DEBUG] ALERTA HIGH generada para user_id={user_id} con sedentary_change={sedentary_change}")
                 return True
             elif sedentary_change > 20:
+                print(f"[sedentary_increase][DEBUG] Se dispara alerta MEDIUM para user_id={user_id}")
                 priority = "medium"
                 threshold = 20.0
                 details = f"Aumento moderado en tiempo sedentario: {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
@@ -196,10 +176,10 @@ def check_sedentary_increase(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[sedentary_increase] ALERTA MEDIUM generada para user_id={user_id} con sedentary_change={sedentary_change}")
+                print(f"[sedentary_increase][DEBUG] ALERTA MEDIUM generada para user_id={user_id} con sedentary_change={sedentary_change}")
                 return True
             else:
-                print(f"[sedentary_increase] No se supera el threshold: sedentary_change={sedentary_change:.1f}% (umbral 20/30%)")
+                print(f"[sedentary_increase][DEBUG] No se dispara alerta para user_id={user_id}. sedentary_change={sedentary_change:.1f}% (umbral 20/30%)")
         finally:
             db.close()
     except Exception as e:
@@ -213,53 +193,44 @@ def check_sleep_duration_change(user_id, current_date):
         start_date = current_date - timedelta(days=7)
         end_date = current_date - timedelta(days=1)
         daily_summaries = get_daily_summaries(user_id, start_date, end_date)
-        
         if not daily_summaries or len(daily_summaries) < 2:
-            print(f"No hay suficientes datos de sueño para el usuario {user_id} para generar alertas.")
+            print(f"[sleep_duration_change][DEBUG] No hay suficientes datos de sueño para el usuario {user_id} para generar alertas.")
             return False
-            
-        # Obtener el promedio de los últimos 7 días
         previous_days = [s for s in daily_summaries if s[2] < current_date.date()]
         if not previous_days:
-            print(f"No hay datos históricos de sueño para el usuario {user_id} para comparar.")
+            print(f"[sleep_duration_change][DEBUG] No hay datos históricos de sueño para el usuario {user_id} para comparar.")
             return False
-            
-        # Calcular promedio solo con valores no nulos y mayores que cero
         valid_sleep = [s[5] for s in previous_days if s[5] is not None and s[5] > 0]
         if not valid_sleep:
-            print(f"No hay datos válidos de sueño para el usuario {user_id} para analizar.")
+            print(f"[sleep_duration_change][DEBUG] No hay datos válidos de sueño para el usuario {user_id} para analizar.")
             return False
-            
         avg_sleep = sum(valid_sleep) / len(valid_sleep)
         
         # Protección contra promedios muy bajos que podrían causar alertas falsas
         if avg_sleep < 60:
-            print(f"Promedio de sueño demasiado bajo ({avg_sleep} minutos) para generar alertas fiables.")
+            print(f"[sleep_duration_change][DEBUG] Promedio de sueño demasiado bajo ({avg_sleep} minutos) para generar alertas fiables.")
             return False
-        
-        # Obtener los valores de hoy
         today_data = get_daily_summaries(user_id, current_date, current_date)
         if not today_data:
-            print(f"No hay datos de sueño para hoy para el usuario {user_id}.")
+            print(f"[sleep_duration_change][DEBUG] No hay datos de sueño para hoy para el usuario {user_id}.")
             return False
-            
         today_data = today_data[0]
         today_sleep = today_data[5] or 0
-        
         if avg_sleep == 0:
-            print("Error: Promedio de sueño es cero, no se puede calcular el cambio porcentual.")
+            print("[sleep_duration_change][DEBUG] Error: Promedio de sueño es cero, no se puede calcular el cambio porcentual.")
             return False
-            
         sleep_change = abs((today_sleep - avg_sleep) / avg_sleep * 100)
         sleep_change = round(sleep_change, 1)
-        print(f"[sleep_duration_change] user_id={user_id} avg_sleep={avg_sleep} today_sleep={today_sleep} sleep_change={sleep_change:.1f}%")
-        
+        print("[sleep_duration_change][DEBUG] ---")
+        print(f"[sleep_duration_change][DEBUG] user_id={user_id}")
+        print(f"[sleep_duration_change][DEBUG] avg_sleep={avg_sleep}, today_sleep={today_sleep}, sleep_change={sleep_change:.1f}%")
+        print(f"[sleep_duration_change][DEBUG] Thresholds: HIGH>40%, MEDIUM>30%")
         db = DatabaseManager()
         if not db.connect():
             return False
-            
         try:
-            if sleep_change > 40:  # Aumentado de 30% a 40%
+            if sleep_change > 40:
+                print(f"[sleep_duration_change][DEBUG] Se dispara alerta HIGH para user_id={user_id}")
                 priority = "high"
                 threshold = 40.0
                 change_type = "aumento" if today_sleep > avg_sleep else "disminución"
@@ -273,9 +244,10 @@ def check_sleep_duration_change(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[sleep_duration_change] ALERTA HIGH generada para user_id={user_id} con sleep_change={sleep_change}")
+                print(f"[sleep_duration_change][DEBUG] ALERTA HIGH generada para user_id={user_id} con sleep_change={sleep_change}")
                 return True
-            elif sleep_change > 30:  # Aumentado de 20% a 30%
+            elif sleep_change > 30:
+                print(f"[sleep_duration_change][DEBUG] Se dispara alerta MEDIUM para user_id={user_id}")
                 priority = "medium"
                 threshold = 30.0
                 change_type = "aumento" if today_sleep > avg_sleep else "disminución"
@@ -289,13 +261,12 @@ def check_sleep_duration_change(user_id, current_date):
                     timestamp=current_date,
                     details=details
                 )
-                print(f"[sleep_duration_change] ALERTA MEDIUM generada para user_id={user_id} con sleep_change={sleep_change}")
+                print(f"[sleep_duration_change][DEBUG] ALERTA MEDIUM generada para user_id={user_id} con sleep_change={sleep_change}")
                 return True
             else:
-                print(f"[sleep_duration_change] No se supera el threshold: sleep_change={sleep_change:.2f}% (umbral 30/40%)")
+                print(f"[sleep_duration_change][DEBUG] No se dispara alerta para user_id={user_id}. sleep_change={sleep_change:.2f}% (umbral 30/40%)")
         finally:
             db.close()
-            
     except Exception as e:
         print(f"Error al verificar cambios en sueño: {e}")
     return False
@@ -306,47 +277,109 @@ def check_heart_rate_anomaly(user_id, current_date):
         start_time = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_time = current_date.replace(hour=23, minute=59, second=59, microsecond=0)
         heart_rate_data = get_intraday_metrics(user_id, 'heart_rate', start_time, end_time)
+        print(f"[HRA][DEBUG] user_id={user_id} fecha={current_date}")
+        print(f"[HRA][DEBUG] start_time={start_time} end_time={end_time}")
+        print(f"[HRA][DEBUG] heart_rate_data sample={heart_rate_data[:10]} total={len(heart_rate_data) if heart_rate_data else 0}")
         if not heart_rate_data:
+            print("[heart_rate_anomaly][DEBUG] ---")
+            print(f"[heart_rate_anomaly][DEBUG] No hay datos intradía de heart_rate para user_id={user_id}")
             return False
         values = [hr[1] for hr in heart_rate_data]
+        print(f"[HRA][DEBUG] values sample={values[:10]} total={len(values)}")
         avg_hr = sum(values) / len(values)
         std_dev = (sum((x - avg_hr) ** 2 for x in values) / len(values)) ** 0.5
-        # Umbral original: 2.5 desviaciones estándar y porcentaje original (por ejemplo, >2.5%)
-        anomalies = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > 2.5 * std_dev]
-        if anomalies:
-            anomaly_percentage = (len(anomalies) / len(heart_rate_data)) * 100
-            max_idx, max_anomaly = max(anomalies, key=lambda x: abs(x[1][1] - avg_hr))
-            max_anomaly_value = max_anomaly[1]
-            # Ajustar timestamp: quitar microsegundos y asegurar formato exacto
-            alert_timestamp = heart_rate_data[max_idx][0].replace(microsecond=0)
-            db = DatabaseManager()
-            if not db.connect():
-                return False
-            try:
-                # Restaurar lógica original: alerta si hay al menos una anomalía clara
-                if anomaly_percentage > 15 or abs(max_anomaly_value - avg_hr) > 2.5 * std_dev:
-                    priority = "high"
-                    threshold = 2.5
-                elif anomaly_percentage > 10:
-                    priority = "medium"
-                    threshold = 2.5
-                else:
-                    return False
-                details = (f"Anomalía en frecuencia cardíaca: {anomaly_percentage:.1f}% de lecturas anómalas. "
-                         f"Valor máximo: {max_anomaly_value:.0f} bpm a las {alert_timestamp.strftime('%H:%M')} (promedio normal: {avg_hr:.0f} bpm)")
+        print(f"[HRA][DEBUG] avg_hr={avg_hr}, std_dev={std_dev}")
+        for i, hr in enumerate(values):
+            print(f"[HRA][DEBUG] idx={i} hr={hr} delta={hr-avg_hr} abs_delta={abs(hr-avg_hr)}")
+        # Umbrales clínicos personalizados para ancianos:
+        # MEDIUM: >2.5 std_dev, HIGH: >5.0 std_dev
+        medium_mult = 2.5
+        high_mult = 5.0
+        high_peaks = [(i, hr) for i, hr in enumerate(heart_rate_data) if abs(hr[1] - avg_hr) > high_mult * std_dev]
+        medium_peaks = [(i, hr) for i, hr in enumerate(heart_rate_data) if medium_mult * std_dev < abs(hr[1] - avg_hr) <= high_mult * std_dev]
+        print(f"[HRA][DEBUG] high_peaks: {high_peaks}")
+        print(f"[HRA][DEBUG] medium_peaks: {medium_peaks}")
+        # Detectar anomalías por acumulación
+        high_accum = [hr for hr in values if abs(hr - avg_hr) > high_mult * std_dev]
+        medium_accum = [hr for hr in values if medium_mult * std_dev < abs(hr - avg_hr) <= high_mult * std_dev]
+        print(f"[HRA][DEBUG] high_accum: {high_accum}")
+        print(f"[HRA][DEBUG] medium_accum: {medium_accum}")
+        high_accum_pct = (len(high_accum) / len(values)) * 100
+        medium_accum_pct = (len(medium_accum) / len(values)) * 100
+        print(f"[HRA][DEBUG] high_accum_pct={high_accum_pct}, medium_accum_pct={medium_accum_pct}")
+        print(f"[HRA][DEBUG] thresholds: high_peak > {high_mult*std_dev:.1f} (>{avg_hr+high_mult*std_dev:.1f} or <{avg_hr-high_mult*std_dev:.1f}), medium_peak > {medium_mult*std_dev:.1f} (>{avg_hr+medium_mult*std_dev:.1f} or <{avg_hr-medium_mult*std_dev:.1f})")
+        db = DatabaseManager()
+        if not db.connect():
+            print("[HRA][DEBUG] No se pudo conectar a la base de datos para alertas.")
+            return False
+        try:
+            alerts_triggered = False
+            # HIGH ALERT: individual peak
+            for idx, hr in high_peaks:
+                details = f"Pico extremo de frecuencia cardíaca detectado: {hr[1]} bpm (>{avg_hr + 2.8*std_dev:.1f} o <{avg_hr - 2.8*std_dev:.1f}) a las {hr[0].strftime('%H:%M')}."
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="heart_rate_anomaly",
-                    priority=priority,
-                    triggering_value=max_anomaly_value,
-                    threshold=threshold,
-                    timestamp=alert_timestamp,
+                    priority="high",
+                    triggering_value=hr[1],
+                    threshold=2.8 * std_dev,
+                    timestamp=hr[0],
                     details=details
                 )
-                print(f"[heart_rate_anomaly] user_id={user_id} avg_hr={avg_hr:.2f} max_value={max_anomaly_value} anomaly_percentage={anomaly_percentage:.2f}% ALERTA {priority.upper()} generada.")
+                print(f"[heart_rate_anomaly][DEBUG] ALERTA HIGH generada por pico individual para user_id={user_id} en {hr[0]}")
+                print(f"[HRA][DEBUG] HIGH PEAK DETECTED idx={idx} hr={hr}")
+                alerts_triggered = True
+            # MEDIUM ALERT: individual peak
+            for idx, hr in medium_peaks:
+                details = f"Pico moderado de frecuencia cardíaca detectado: {hr[1]} bpm (>{avg_hr + 2.0*std_dev:.1f} o <{avg_hr - 2.0*std_dev:.1f}) a las {hr[0].strftime('%H:%M')}."
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="heart_rate_anomaly",
+                    priority="medium",
+                    triggering_value=hr[1],
+                    threshold=2.0 * std_dev,
+                    timestamp=hr[0],
+                    details=details
+                )
+                print(f"[heart_rate_anomaly][DEBUG] ALERTA MEDIUM generada por pico individual para user_id={user_id} en {hr[0]}")
+                print(f"[HRA][DEBUG] MEDIUM PEAK DETECTED idx={idx} hr={hr}")
+                alerts_triggered = True
+            # HIGH ALERT: acumulación
+            if high_accum_pct >= 15:
+                details = f"Acumulación de valores extremos de frecuencia cardíaca: {high_accum_pct:.1f}% de las mediciones superan ±2.8 desviaciones estándar."
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="heart_rate_anomaly",
+                    priority="high",
+                    triggering_value=high_accum_pct,
+                    threshold=15,
+                    timestamp=current_date,
+                    details=details
+                )
+                print(f"[HRA][DEBUG] HIGH ACCUM DETECTED pct={high_accum_pct}")
+                print(f"[heart_rate_anomaly][DEBUG] ALERTA HIGH generada por acumulación para user_id={user_id}")
+                alerts_triggered = True
+            # MEDIUM ALERT: acumulación
+            if medium_accum_pct >= 10:
+                details = f"Acumulación de valores anómalos de frecuencia cardíaca: {medium_accum_pct:.1f}% de las mediciones superan ±2.0 desviaciones estándar."
+                db.insert_alert(
+                    user_id=user_id,
+                    alert_type="heart_rate_anomaly",
+                    priority="medium",
+                    triggering_value=medium_accum_pct,
+                    threshold=10,
+                    timestamp=current_date,
+                    details=details
+                )
+                print(f"[heart_rate_anomaly][DEBUG] ALERTA MEDIUM generada por acumulación para user_id={user_id}")
+                print(f"[HRA][DEBUG] MEDIUM ACCUM DETECTED pct={medium_accum_pct}")
+                alerts_triggered = True
+            if alerts_triggered:
                 return True
-            finally:
-                db.close()
+            else:
+                print(f"[heart_rate_anomaly][DEBUG] No se detectaron anomalías relevantes para user_id={user_id}")
+        finally:
+            db.close()
     except Exception as e:
         print(f"Error al verificar anomalías en frecuencia cardíaca: {e}")
     return False

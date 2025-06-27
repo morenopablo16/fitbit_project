@@ -538,14 +538,40 @@ function showAlertDetails(alertId) {
     document.getElementById('modal-time').textContent = alert.alert_time;
     document.getElementById('modal-type').textContent = '{{ _("' + alert.alert_type + '") }}';
     document.getElementById('modal-priority').textContent = '{{ _("' + alert.priority.charAt(0).toUpperCase() + alert.priority.slice(1) + '") }}';
-    document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
-    // Mostrar rango anómalo para heart_rate_anomaly
-    if (alert.alert_type === 'heart_rate_anomaly' && alert.hr_upper_bound !== undefined && alert.hr_lower_bound !== undefined) {
+    // Mostrar detalles técnicos personalizados para activity_drop
+    if (alert.alert_type === 'activity_drop') {
+        // Extraer valores absolutos de los detalles (valor actual y media previa)
+        let actualSteps = null, avgSteps = null, dropPct = null, thresholdPct = null;
+        // Buscar en details: (Valor actual: 8000.00, comparado con el promedio: 10333.33)
+        if (alert.details) {
+            const match = alert.details.match(/Valor actual: ([\d\.]+), comparado con el promedio: ([\d\.]+)/);
+            if (match) {
+                actualSteps = Number(match[1]);
+                avgSteps = Number(match[2]);
+            }
+        }
+        dropPct = alert.triggering_value !== undefined && alert.triggering_value !== null ? Number(alert.triggering_value).toFixed(2) : null;
+        thresholdPct = alert.threshold_value !== undefined && alert.threshold_value !== null ? Number(alert.threshold_value).toFixed(2) : null;
+        // Mostrar valor actual, media y porcentaje de caída
+        let triggeringText = '';
+        if (actualSteps !== null && avgSteps !== null && dropPct !== null) {
+            triggeringText = `${actualSteps} pasos (media previa: ${avgSteps} pasos, caída: -${dropPct}%)`;
+        } else if (dropPct !== null) {
+            triggeringText = `Caída: -${dropPct}%`;
+        } else {
+            triggeringText = alert.triggering_value || 'N/A';
+        }
+        document.getElementById('modal-triggering').textContent = triggeringText;
+        // Mostrar umbral como porcentaje
+        document.getElementById('modal-threshold').textContent = thresholdPct !== null ? `${thresholdPct}%` : (alert.threshold_value || 'N/A');
+    } else if (alert.alert_type === 'heart_rate_anomaly' && alert.hr_upper_bound !== undefined && alert.hr_lower_bound !== undefined) {
         // Redondear a 1 decimal
         const upper = Number(alert.hr_upper_bound).toFixed(1);
         const lower = Number(alert.hr_lower_bound).toFixed(1);
         document.getElementById('modal-threshold').textContent = `Rango anómalo: >${upper} bpm o <${lower} bpm`;
+        document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
     } else {
+        document.getElementById('modal-triggering').textContent = alert.triggering_value || 'N/A';
         document.getElementById('modal-threshold').textContent = alert.threshold_value || 'N/A';
     }
     document.getElementById('modal-status').textContent = alert.acknowledged ? '{{ _("Acknowledged") }}' : '{{ _("Pending") }}';
@@ -846,49 +872,38 @@ function showAlertDetails(alertId) {
     // Configurar el contenido de información adicional
     const modalDetails = document.getElementById('modal-details');
     if (alert.details) {
-        // Traducir los detalles según el tipo de alerta
         let translatedDetails = alert.details;
-        
         if (alert.alert_type === 'intraday_activity_drop') {
             const matches = alert.details.match(/sin pasos entre (\d{2}:\d{2}) y (\d{2}:\d{2})/);
             if (matches) {
                 translatedDetails = `${translations.noStepsBetween} ${matches[1]} ${translations.and} ${matches[2]}`;
             }
         } else if (alert.alert_type === 'heart_rate_anomaly') {
-            // Mostrar información clínica clara: valor detectado, rango anómalo, media
-            let triggering = alert.triggering_value !== undefined && alert.triggering_value !== null ? Number(alert.triggering_value).toFixed(1) : 'N/A';
-            let mean = (alert.details && alert.details.mean !== undefined) ? Number(alert.details.mean).toFixed(1) : null;
-            // Si no viene en details, intentar buscar en el string (caso legacy)
-            if (!mean && alert.details && typeof alert.details === 'string') {
-                const meanMatch = alert.details.match(/media\s*[:=]\s*([\d\.]+)/i);
-                if (meanMatch) mean = Number(meanMatch[1]).toFixed(1);
-            }
-            let upper = (alert.hr_upper_bound !== undefined && alert.hr_upper_bound !== null) ? Number(alert.hr_upper_bound).toFixed(1) : null;
-            let lower = (alert.hr_lower_bound !== undefined && alert.hr_lower_bound !== null) ? Number(alert.hr_lower_bound).toFixed(1) : null;
-            if (upper && lower && mean) {
-                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Rango anómalo: >${upper} bpm o <${lower} bpm. Media: ${mean} bpm.`;
-            } else if (upper && lower) {
-                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Rango anómalo: >${upper} bpm o <${lower} bpm.`;
-            } else if (mean) {
-                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm. Media: ${mean} bpm.`;
-            } else {
-                translatedDetails = `Frecuencia cardíaca fuera del rango normal. Valor detectado: ${triggering} bpm.`;
-            }
+            // ...existing code...
         } else if (alert.alert_type === 'activity_drop') {
-            translatedDetails = translations.significantDecrease;
-            if (alert.triggering_value && alert.threshold_value) {
-                // Redondear a 2 decimales
-                const triggering = Number(alert.triggering_value).toFixed(2);
-                const threshold = Number(alert.threshold_value).toFixed(2);
-                translatedDetails += ` (${translations.currentValue}: ${triggering}, ${translations.comparedToAverage}: ${threshold})`;
+            // Mostrar resumen claro con valores absolutos y porcentaje
+            let actualSteps = null, avgSteps = null, dropPct = null, thresholdPct = null;
+            if (alert.details) {
+                const match = alert.details.match(/Valor actual: ([\d\.]+), comparado con el promedio: ([\d\.]+)/);
+                if (match) {
+                    actualSteps = Number(match[1]);
+                    avgSteps = Number(match[2]);
+                }
+            }
+            dropPct = alert.triggering_value !== undefined && alert.triggering_value !== null ? Number(alert.triggering_value).toFixed(2) : null;
+            thresholdPct = alert.threshold_value !== undefined && alert.threshold_value !== null ? Number(alert.threshold_value).toFixed(2) : null;
+            translatedDetails = `${translations.significantDecrease}.`;
+            if (actualSteps !== null && avgSteps !== null && dropPct !== null && thresholdPct !== null) {
+                translatedDetails += `\n${translations.currentValue}: ${actualSteps} pasos.`;
+                translatedDetails += `\n${translations.comparedToAverage}: ${avgSteps} pasos.`;
+                translatedDetails += `\nCaída: -${dropPct}% (umbral: ${thresholdPct}%)`;
+            } else {
+                // Fallback
+                translatedDetails += `\n${alert.details}`;
             }
         } else if (alert.alert_type === 'sleep_duration_change') {
-            translatedDetails = translations.unusualSleep;
-            if (alert.triggering_value && alert.threshold_value) {
-                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value} ${translations.hours}, ${translations.comparedToAverage}: ${alert.threshold_value} ${translations.hours})`;
-            }
+            // ...existing code...
         }
-        
         modalDetails.textContent = translatedDetails;
     } else {
         modalDetails.textContent = translations.noAdditionalInfo;

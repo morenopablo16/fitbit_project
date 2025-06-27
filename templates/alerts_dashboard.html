@@ -835,7 +835,10 @@ function showAlertDetails(alertId) {
         } else if (alert.alert_type === 'activity_drop') {
             translatedDetails = translations.significantDecrease;
             if (alert.triggering_value && alert.threshold_value) {
-                translatedDetails += ` (${translations.currentValue}: ${alert.triggering_value}, ${translations.comparedToAverage}: ${alert.threshold_value})`;
+                // Redondear a 2 decimales
+                const triggering = Number(alert.triggering_value).toFixed(2);
+                const threshold = Number(alert.threshold_value).toFixed(2);
+                translatedDetails += ` (${translations.currentValue}: ${triggering}, ${translations.comparedToAverage}: ${threshold})`;
             }
         } else if (alert.alert_type === 'sleep_duration_change') {
             translatedDetails = translations.unusualSleep;

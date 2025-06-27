@@ -42,14 +42,20 @@ def check_activity_drop(user_id, current_date):
         if not today_data:
             print(f"[activity_drop] No hay datos de hoy para el usuario {user_id}.")
             return False
-            
         today_data = today_data[0]
         today_steps = today_data[3] or 0
         today_active_minutes = today_data[9] or 0
-            
         # Calcular porcentajes de caída
-        steps_drop = ((avg_steps - today_steps) / avg_steps * 100)
-        active_minutes_drop = ((avg_active_minutes - today_active_minutes) / avg_active_minutes * 100)
+        steps_drop = ((avg_steps - today_steps) / avg_steps * 100) if today_steps < avg_steps else 0
+        active_minutes_drop = ((avg_active_minutes - today_active_minutes) / avg_active_minutes * 100) if today_active_minutes < avg_active_minutes else 0
+        # Redondear valores para detalles
+        avg_steps = round(avg_steps, 2)
+        today_steps = round(today_steps, 2)
+        steps_drop = round(steps_drop, 2)
+        avg_active_minutes = round(avg_active_minutes, 2)
+        today_active_minutes = round(today_active_minutes, 2)
+        active_minutes_drop = round(active_minutes_drop, 2)
+        
         print(f"[activity_drop] user_id={user_id} avg_steps={avg_steps} today_steps={today_steps} steps_drop={steps_drop:.2f}% avg_active_minutes={avg_active_minutes} today_active_minutes={today_active_minutes} active_minutes_drop={active_minutes_drop:.2f}%")
         
         db = DatabaseManager()
@@ -57,14 +63,18 @@ def check_activity_drop(user_id, current_date):
             return False
             
         try:
-            if steps_drop > 30 or active_minutes_drop > 30:
+            # Solo generar alerta si hoy hay menos pasos/minutos activos que la media
+            if (today_steps < avg_steps and steps_drop > 30) or (today_active_minutes < avg_active_minutes and active_minutes_drop > 30):
                 priority = "high"
                 threshold = 30.0
-                drop_value = max(steps_drop, active_minutes_drop)
-                details = (f"Caída severa en la actividad: {steps_drop:.1f}% menos pasos "
-                          f"(de {avg_steps:.0f} a {today_steps}), "
-                          f"{active_minutes_drop:.1f}% menos minutos activos "
-                          f"(de {avg_active_minutes:.0f} a {today_active_minutes})")
+                drop_value = max(steps_drop if today_steps < avg_steps else 0, active_minutes_drop if today_active_minutes < avg_active_minutes else 0)
+                # Mensaje según el tipo de cambio
+                if today_steps < avg_steps:
+                    details = (f"Disminución significativa en los pasos diarios (Valor actual: {today_steps:.2f}, comparado con el promedio: {avg_steps:.2f})")
+                elif today_active_minutes < avg_active_minutes:
+                    details = (f"Disminución significativa en los minutos activos diarios (Valor actual: {today_active_minutes:.2f}, comparado con el promedio: {avg_active_minutes:.2f})")
+                else:
+                    return False
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="activity_drop",
@@ -76,14 +86,16 @@ def check_activity_drop(user_id, current_date):
                 )
                 print(f"[activity_drop] ALERTA HIGH generada para user_id={user_id} con drop_value={drop_value}")
                 return True
-            elif steps_drop > 20 or active_minutes_drop > 20:
+            elif (today_steps < avg_steps and steps_drop > 20) or (today_active_minutes < avg_active_minutes and active_minutes_drop > 20):
                 priority = "medium"
                 threshold = 20.0
-                drop_value = max(steps_drop, active_minutes_drop)
-                details = (f"Caída moderada en la actividad: {steps_drop:.1f}% menos pasos "
-                          f"(de {avg_steps:.0f} a {today_steps}), "
-                          f"{active_minutes_drop:.1f}% menos minutos activos "
-                          f"(de {avg_active_minutes:.0f} a {today_active_minutes})")
+                drop_value = max(steps_drop if today_steps < avg_steps else 0, active_minutes_drop if today_active_minutes < avg_active_minutes else 0)
+                if today_steps < avg_steps:
+                    details = (f"Disminución moderada en los pasos diarios (Valor actual: {today_steps:.2f}, comparado con el promedio: {avg_steps:.2f})")
+                elif today_active_minutes < avg_active_minutes:
+                    details = (f"Disminución moderada en los minutos activos diarios (Valor actual: {today_active_minutes:.2f}, comparado con el promedio: {avg_active_minutes:.2f})")
+                else:
+                    return False
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="activity_drop",
@@ -99,7 +111,6 @@ def check_activity_drop(user_id, current_date):
                 print(f"[activity_drop] No se supera el threshold: steps_drop={steps_drop:.2f}%, active_minutes_drop={active_minutes_drop:.2f}% (umbral 20/30%)")
         finally:
             db.close()
-            
     except Exception as e:
         print(f"Error al verificar caída de actividad: {e}")
     return False
@@ -146,20 +157,21 @@ def check_sedentary_increase(user_id, current_date):
         if avg_sedentary == 0:
             print("[sedentary_increase] Error: Promedio de tiempo sedentario es cero, no se puede calcular el cambio porcentual.")
             return False
-        
-        sedentary_change = abs((today_sedentary - avg_sedentary) / avg_sedentary * 100)
-        print(f"[sedentary_increase] user_id={user_id} avg_sedentary={avg_sedentary} today_sedentary={today_sedentary} sedentary_change={sedentary_change:.2f}%")
-        
+        # Solo alertar si hay un AUMENTO relevante en tiempo sedentario
+        if today_sedentary <= avg_sedentary:
+            print(f"[sedentary_increase] El tiempo sedentario ha disminuido o no ha cambiado. No se genera alerta.")
+            return False
+        sedentary_change = ((today_sedentary - avg_sedentary) / avg_sedentary * 100)
+        sedentary_change = round(sedentary_change, 1)
+        print(f"[sedentary_increase] user_id={user_id} avg_sedentary={avg_sedentary} today_sedentary={today_sedentary} sedentary_change={sedentary_change:.1f}%")
         db = DatabaseManager()
         if not db.connect():
             return False
-            
         try:
             if sedentary_change > 30:
                 priority = "high"
                 threshold = 30.0
-                change_type = "aumento" if today_sedentary > avg_sedentary else "disminución"
-                details = f"Cambio significativo en tiempo sedentario: {change_type} de {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
+                details = f"Aumento significativo en tiempo sedentario: {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="sedentary_increase",
@@ -174,8 +186,7 @@ def check_sedentary_increase(user_id, current_date):
             elif sedentary_change > 20:
                 priority = "medium"
                 threshold = 20.0
-                change_type = "aumento" if today_sedentary > avg_sedentary else "disminución"
-                details = f"Cambio moderado en tiempo sedentario: {change_type} de {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
+                details = f"Aumento moderado en tiempo sedentario: {sedentary_change:.1f}% (de {avg_sedentary:.0f} a {today_sedentary:.0f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="sedentary_increase",
@@ -188,10 +199,9 @@ def check_sedentary_increase(user_id, current_date):
                 print(f"[sedentary_increase] ALERTA MEDIUM generada para user_id={user_id} con sedentary_change={sedentary_change}")
                 return True
             else:
-                print(f"[sedentary_increase] No se supera el threshold: sedentary_change={sedentary_change:.2f}% (umbral 20/30%)")
+                print(f"[sedentary_increase] No se supera el threshold: sedentary_change={sedentary_change:.1f}% (umbral 20/30%)")
         finally:
             db.close()
-            
     except Exception as e:
         print(f"Error al verificar cambios en tiempo sedentario: {e}")
     return False
@@ -241,7 +251,8 @@ def check_sleep_duration_change(user_id, current_date):
             return False
             
         sleep_change = abs((today_sleep - avg_sleep) / avg_sleep * 100)
-        print(f"[sleep_duration_change] user_id={user_id} avg_sleep={avg_sleep} today_sleep={today_sleep} sleep_change={sleep_change:.2f}%")
+        sleep_change = round(sleep_change, 1)
+        print(f"[sleep_duration_change] user_id={user_id} avg_sleep={avg_sleep} today_sleep={today_sleep} sleep_change={sleep_change:.1f}%")
         
         db = DatabaseManager()
         if not db.connect():
@@ -252,7 +263,7 @@ def check_sleep_duration_change(user_id, current_date):
                 priority = "high"
                 threshold = 40.0
                 change_type = "aumento" if today_sleep > avg_sleep else "disminución"
-                details = f"Cambio significativo en duración del sueño: {change_type} de {sleep_change:.1f}% (de {avg_sleep:.0f} a {today_sleep:.0f} minutos)"
+                details = f"Cambio significativo en duración del sueño: {change_type} de {sleep_change:.1f}% (de {avg_sleep:.1f} a {today_sleep:.1f} minutos)"
                 db.insert_alert(
                     user_id=user_id,
                     alert_type="sleep_duration_change",
@@ -375,49 +386,48 @@ def check_data_quality(user_id, current_date):
         # Verificar campos faltantes y valores fuera de rango
         missing_fields = []
         out_of_range_fields = []
-        
         for field, (min_val, max_val) in ranges.items():
             value = current_data[3] if field == 'steps' else \
                    current_data[4] if field == 'heart_rate' else \
                    current_data[5] if field == 'sleep_minutes' else \
                    current_data[11] if field == 'sedentary_minutes' else \
                    current_data[16] if field == 'oxygen_saturation' else None
-                   
             if value is None:
                 if field not in optional_fields:
                     missing_fields.append(field)
             elif value < min_val or value > max_val:
                 # Umbrales más permisivos para campos opcionales
                 if field in optional_fields:
-                    if value < min_val * 0.8 or value > max_val * 1.2:  # Ajustado a 20% de tolerancia
+                    if value < min_val * 0.8 or value > max_val * 1.2:
                         out_of_range_fields.append({
                             'field': field,
-                            'value': value,
+                            'value': round(value, 2),
                             'range': f'{min_val}-{max_val}'
                         })
                 else:
-                    # Umbrales más estrictos para campos obligatorios
-                    if value < min_val * 0.9 or value > max_val * 1.1:  # Ajustado a 10% de tolerancia
+                    if value < min_val * 0.9 or value > max_val * 1.1:
                         out_of_range_fields.append({
                             'field': field,
-                            'value': value,
+                            'value': round(value, 2),
                             'range': f'{min_val}-{max_val}'
                         })
-        
         # Generar alerta solo si hay problemas significativos
         if missing_fields or out_of_range_fields:
             # Determinar prioridad basada en la severidad de los problemas
-            priority = "high" if (
+            critical = (
                 len(missing_fields) > 0 or 
                 any(f['field'] not in optional_fields for f in out_of_range_fields) or
                 any(f['value'] < ranges[f['field']][0] * 0.5 or f['value'] > ranges[f['field']][1] * 1.5 for f in out_of_range_fields)
-            ) else "medium"
-            
-            details = {
-                'missing_fields': missing_fields,
-                'out_of_range_fields': out_of_range_fields
-            }
-            
+            )
+            priority = "high" if critical else ("medium" if out_of_range_fields else "low")
+            # Generar string legible para details
+            details_str = ""
+            if missing_fields:
+                details_str += "Campos faltantes: " + ", ".join(missing_fields) + ". "
+            if out_of_range_fields:
+                details_str += "Valores fuera de rango: " + ", ".join([
+                    f"{f['field']}={f['value']} (rango {f['range']})" for f in out_of_range_fields
+                ]) + "."
             db.insert_alert(
                 user_id=user_id,
                 alert_type="data_quality",
@@ -425,10 +435,9 @@ def check_data_quality(user_id, current_date):
                 triggering_value=len(missing_fields) + len(out_of_range_fields),
                 threshold=1,
                 timestamp=current_date,
-                details=json.dumps(details)
+                details=details_str.strip()
             )
             alerts_generated = True
-            
     finally:
         db.close()
     
@@ -552,7 +561,7 @@ def check_intraday_activity_drop(user_id, current_date):
             zero_streak = []
     if len(zero_streak) >= 8 and len(zero_streak) > len(max_streak):
         max_streak = zero_streak.copy()
-    if len(max_streak) >= 8:  # Al menos 8 horas sin actividad
+    if len(max_streak) >= 6:  # Al menos 6 horas sin actividad
         start_time = max_streak[0][0]
         end_time = max_streak[-1][0]
         duration = (end_time - start_time).total_seconds() / 3600  # Duración en horas
@@ -576,16 +585,14 @@ def check_intraday_activity_drop(user_id, current_date):
                 # 2-4 horas también es preocupante pero menos grave
                 scientific_ref = "La American Heart Association recomienda romper períodos de sedentarismo cada 2 horas para reducir el riesgo cardiovascular en adultos mayores."
                 recommendation = "RECOMENDACIÓN: Monitorizar la frecuencia de estos episodios y considerar intervenciones si se repiten habitualmente."
-            
-            details = (f"Intervalo de inactividad detectado: sin pasos entre {start} y {end} "
-                      f"({hours} intervalos ≈ {hours} horas). {scientific_ref} {recommendation}")
-            
+            details = (f"Periodo de inactividad detectado: sin pasos entre {start} y {end} "
+                      f"({hours} horas). {scientific_ref} {recommendation}")
             db.insert_alert(
                 user_id=user_id,
                 alert_type="intraday_activity_drop",
                 priority="medium" if hours < 4 else "high",
                 triggering_value=0,
-                threshold=">=8 intervalos",
+                threshold=">=6 intervalos",
                 timestamp=max_streak[0][0],
                 details=details
             )
